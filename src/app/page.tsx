@@ -250,8 +250,6 @@ export default function Home() {
                                 dinoRect.bottom > bubbleRect.top;
 
             if (isColliding) {
-                // On collision, immediately set vertical velocity to 0 to start falling.
-                dinoPhysicsRef.current.yVelocity = 0;
 
                 answeredProblemsRef.current.add(problemId);
                 const isCorrect = bubble.dataset.correct === 'true';
