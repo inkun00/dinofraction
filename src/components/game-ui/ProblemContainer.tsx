@@ -35,7 +35,7 @@ const ProblemContainer: React.FC<ProblemContainerProps> = ({ problems, speedLeve
               className={cn('answer-bubble', speedClass)}
               data-correct={answer.isCorrect}
               data-problem-id={id}
-              style={{ animationDelay: `${(id * 0.2) + (index * 0.8)}s` }}
+              style={{ animationDelay: `${index * 0.8}s` }}
             >
               <FractionDisplay fraction={answer.value} />
             </div>
