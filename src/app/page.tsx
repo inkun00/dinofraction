@@ -7,6 +7,7 @@ import { onAuthStateChanged, signInAnonymously, User } from 'firebase/auth';
 import { loadUserData as loadDBUserData, saveUserData as saveDBUserData, getLeaderboardFromFirestore } from '@/lib/firestore-helpers';
 import { generateProblem as generateProblemUtil, calculateLevel, analyzeStats, firebaseErrorKorean } from '@/lib/game-logic';
 import { login, signUp, logout } from '@/lib/auth-helpers';
+import { getPersonalizedFeedback } from '@/ai/flows/personalized-feedback';
 
 import AnimatedBackground from '@/components/game-ui/AnimatedBackground';
 import Dinosaur from '@/components/game-ui/Dinosaur';
@@ -103,7 +104,7 @@ export default function Home() {
   const cleanupProblem = React.useCallback((problemId: number) => {
       setCurrentProblems(prev => prev.filter(p => p.id !== problemId));
   }, []);
-
+  
   const endGame = React.useCallback(() => {
     const finalScore = gameState.score;
     
@@ -216,6 +217,9 @@ export default function Home() {
                 if (problemEl) {
                     const problemRect = problemEl.getBoundingClientRect();
                     if (problemRect.right < gameContainerRect.left) {
+                        if (!p.answered) {
+                           // This logic is removed to prevent life reduction when problem passes.
+                        }
                         if (!problemsToRemove.includes(p.id)) {
                             problemsToRemove.push(p.id);
                         }
@@ -245,9 +249,8 @@ export default function Home() {
                             bubble.style.background = '#e74c3c';
                         }
                         
-                        // Mark problem for cleanup after a delay to show color change
                         setTimeout(() => {
-                            if (!problemsToRemove.includes(p.id)) {
+                           if (!problemsToRemove.includes(p.id)) {
                                 problemsToRemove.push(p.id);
                             }
                         }, 500);
@@ -281,7 +284,7 @@ export default function Home() {
   }, [gameState.running, gameLoop]);
 
   const jump = React.useCallback((holdTime = 0) => {
-    if ((!isJumpingRef.current && !dinoState.recoil) && dinoState.y === GROUND_POSITION && gameState.running) {
+    if (!isJumpingRef.current && dinoState.y === GROUND_POSITION && gameState.running) {
       isJumpingRef.current = true;
       const jumpPower = holdTime > 200 ? JUMP_VELOCITY * 1.3 : JUMP_VELOCITY;
       setDinoState(prev => ({ ...prev, yVelocity: jumpPower }));
@@ -468,6 +471,7 @@ export default function Home() {
         case 'analysis':
             return <AnalysisScreen 
                       problemStats={problemStats}
+                      getPersonalizedFeedback={getPersonalizedFeedback}
                       onRestart={restartGame}
                       onBackToStart={() => {
                         restartGame();
