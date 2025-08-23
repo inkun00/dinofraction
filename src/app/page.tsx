@@ -104,6 +104,34 @@ export default function Home() {
   const cleanupProblem = React.useCallback((problemId: number) => {
       setCurrentProblems(prev => prev.filter(p => p.id !== problemId));
   }, []);
+  
+  const handleCorrectAnswer = React.useCallback((problem: Problem) => {
+    setGameState(prev => {
+      const newScore = prev.score + 10;
+      updateDinosaurEvolution(newScore);
+      return {...prev, score: newScore};
+    });
+    setProblemStats(prev => ({
+        ...prev,
+        correct: [...prev.correct, problem],
+        correctProblemTypes: { ...prev.correctProblemTypes, [problem.type]: (prev.correctProblemTypes[problem.type] || 0) + 1 }
+    }));
+  }, [updateDinosaurEvolution]);
+
+  const handleWrongAnswer = React.useCallback((problem: Problem) => {
+    setGameState(prev => {
+        const newLives = prev.lives - 1;
+        if (newLives <= 0) {
+            setTimeout(() => endGame(), 0);
+        }
+        return {...prev, lives: newLives};
+    });
+    setProblemStats(prev => ({
+        ...prev,
+        wrong: [...prev.wrong, problem],
+        wrongProblemTypes: { ...prev.wrongProblemTypes, [problem.type]: (prev.wrongProblemTypes[problem.type] || 0) + 1 }
+    }));
+  }, []);
 
   const endGame = React.useCallback(() => {
     const finalScore = gameState.score;
@@ -150,35 +178,6 @@ export default function Home() {
     }
   }, [userData, problemStats, currentUser, gameState.score]);
 
-  const handleCorrectAnswer = React.useCallback((problem: CurrentProblem) => {
-    setGameState(prev => {
-      const newScore = prev.score + 10;
-      updateDinosaurEvolution(newScore);
-      return {...prev, score: newScore};
-    });
-    setProblemStats(prev => ({
-        ...prev,
-        correct: [...prev.correct, problem.problem],
-        correctProblemTypes: { ...prev.correctProblemTypes, [problem.problem.type]: (prev.correctProblemTypes[problem.problem.type] || 0) + 1 }
-    }));
-  }, [updateDinosaurEvolution]);
-
-  const handleWrongAnswer = React.useCallback((problem: CurrentProblem) => {
-      setGameState(prev => {
-          const newLives = prev.lives - 1;
-          if (newLives <= 0) {
-              // Defer endGame call to prevent potential state update issues
-              setTimeout(endGame, 0);
-          }
-          return {...prev, lives: newLives};
-      });
-      setProblemStats(prev => ({
-          ...prev,
-          wrong: [...prev.wrong, problem.problem],
-          wrongProblemTypes: { ...prev.wrongProblemTypes, [problem.problem.type]: (prev.wrongProblemTypes[problem.problem.type] || 0) + 1 }
-      }));
-  }, [endGame]);
-
   const gameLoop = React.useCallback(() => {
     if (!gameState.running) {
         if(animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
@@ -203,62 +202,61 @@ export default function Home() {
         return { ...prev, y: newY, yVelocity: newYVelocity };
     });
     
-    if (dinosaurRef.current) {
+    if (dinosaurRef.current && gameContainerRef.current) {
         const dinoRect = dinosaurRef.current.getBoundingClientRect();
+        const gameContainerRect = gameContainerRef.current.getBoundingClientRect();
         
         setCurrentProblems(prevProblems => {
-            return prevProblems.map(p => {
-                if (p.answered) return p;
-
+            const problemsToKeep = [];
+            for (const p of prevProblems) {
                 const problemEl = document.querySelector(`.math-problem[data-problem-id='${p.id}']`);
-                const gameContainerRect = gameContainerRef.current!.getBoundingClientRect();
-                
-                let problemPassed = false;
                 if (problemEl) {
                     const problemRect = problemEl.getBoundingClientRect();
                     if (problemRect.right < gameContainerRect.left) {
-                       problemPassed = true;
+                        // Problem has passed, so we do nothing and it won't be in problemsToKeep
+                        continue;
                     }
-                }
-
-                if (problemPassed) {
-                   cleanupProblem(p.id);
-                   return {...p, answered: true}; // Mark as answered to avoid re-processing
                 }
                 
-                document.querySelectorAll(`.answer-bubble[data-problem-id='${p.id}']`).forEach(bubbleEl => {
-                    if(p.answered) return;
-
-                    const bubble = bubbleEl as HTMLDivElement;
-                    const bubbleRect = bubble.getBoundingClientRect();
-
-                    if ((isJumpingRef.current || dinoState.y > GROUND_POSITION) &&
-                        dinoRect.left < bubbleRect.right && dinoRect.right > bubbleRect.left &&
-                        dinoRect.top < bubbleRect.bottom && dinoRect.bottom > bubbleRect.top) {
+                if (!p.answered) {
+                    document.querySelectorAll(`.answer-bubble[data-problem-id='${p.id}']`).forEach(bubbleEl => {
+                        if(p.answered) return;
                         
-                        p.answered = true; // Mutate directly inside loop for immediate effect
-                        
-                        setDinoState(prev => ({...prev, recoil: true, yVelocity: -5 }));
-                        setTimeout(() => setDinoState(prev => ({ ...prev, recoil: false })), 300);
+                        const bubble = bubbleEl as HTMLDivElement;
+                        const bubbleRect = bubble.getBoundingClientRect();
 
-                        const isCorrect = bubble.dataset.correct === 'true';
+                        if (dinoRect.left < bubbleRect.right && dinoRect.right > bubbleRect.left &&
+                            dinoRect.top < bubbleRect.bottom && dinoRect.bottom > bubbleRect.top) {
+                            
+                            p.answered = true;
+                            
+                            setDinoState(prev => ({...prev, recoil: true, yVelocity: -5 }));
+                            setTimeout(() => setDinoState(prev => ({ ...prev, recoil: false })), 300);
 
-                        if (isCorrect) {
-                            handleCorrectAnswer(p);
-                            bubble.style.background = '#2ecc71';
-                        } else {
-                            handleWrongAnswer(p);
-                            bubble.style.background = '#e74c3c';
+                            const isCorrect = bubble.dataset.correct === 'true';
+
+                            if (isCorrect) {
+                                handleCorrectAnswer(p.problem);
+                                bubble.style.background = '#2ecc71';
+                            } else {
+                                handleWrongAnswer(p.problem);
+                                bubble.style.background = '#e74c3c';
+                            }
                         }
-                    }
-                });
-                return p;
-            });
+                    });
+                }
+                problemsToKeep.push(p);
+            }
+            // Only update state if there's a change
+            if (problemsToKeep.length !== prevProblems.length) {
+                return problemsToKeep;
+            }
+            return prevProblems;
         });
     }
 
     animationFrameRef.current = requestAnimationFrame(gameLoop);
-  }, [gameState.running, dinoState.y, cleanupProblem, handleCorrectAnswer, handleWrongAnswer]);
+  }, [gameState.running, handleCorrectAnswer, handleWrongAnswer]);
 
   React.useEffect(() => {
     if (gameState.running) {
@@ -272,12 +270,12 @@ export default function Home() {
   }, [gameState.running, gameLoop]);
 
   const jump = React.useCallback((holdTime = 0) => {
-    if (!isJumpingRef.current && dinoState.y === GROUND_POSITION && gameState.running) {
+    if (!dinoState.recoil && dinoState.y === GROUND_POSITION && gameState.running) {
       isJumpingRef.current = true;
       const jumpPower = holdTime > 200 ? JUMP_VELOCITY * 1.3 : JUMP_VELOCITY;
       setDinoState(prev => ({ ...prev, yVelocity: jumpPower }));
     }
-  }, [dinoState.y, gameState.running]);
+  }, [dinoState.y, dinoState.recoil, gameState.running]);
 
   const handlePressStart = React.useCallback(() => {
       if (gameState.started && gameState.running && !spacePressedRef.current) {
