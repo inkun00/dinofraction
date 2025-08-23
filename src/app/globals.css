@@ -217,11 +217,10 @@
 }
 
 @keyframes recoil-effect {
-    0% { transform: translateY(0) scaleX(-1); }
-    50% { transform: translateY(15px) scaleX(-1); } /* Bounce downwards */
-    100% { transform: translateY(0) scaleX(-1); }
+    0% { transform: translateY(0); }
+    50% { transform: translateY(15px); } /* Bounce downwards */
+    100% { transform: translateY(0); }
 }
-
 
 /* Problem & Answer Bubbles */
 .math-problem, .answer-bubble {

@@ -9,7 +9,7 @@ interface DinosaurProps {
   recoil: boolean;
 }
 
-const Dinosaur = React.forwardRef<HTMLDivElement, DinosaurProps>(({ evolution, y, recoil, evolving }, ref) => {
+const Dinosaur = React.forwardRef<HTMLDivElement, DinosaurProps>(({ evolution, y, evolving, recoil }, ref) => {
   const classes = cn(
     'dinosaur',
     evolution,
@@ -17,12 +17,12 @@ const Dinosaur = React.forwardRef<HTMLDivElement, DinosaurProps>(({ evolution, y
     { 'evolving': evolving },
     { 'jumping': y > 135 }
   );
+  
+  const currentTransform = `translateY(${135 - y}px)`;
 
-  return <div ref={ref} className={classes} style={{ bottom: `${y}px`}}></div>;
+  return <div ref={ref} className={classes} style={{ transform: currentTransform }}></div>;
 });
 
 Dinosaur.displayName = 'Dinosaur';
 
 export default Dinosaur;
-
-    

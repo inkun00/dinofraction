@@ -36,6 +36,10 @@ function createFractionDisplayHTML(whole: number, numerator: number, denominator
     return `<div class="fraction-display">${resultHtml}</div>`;
 }
 
+function constructProblemText(frac1HTML: string, operator: string, frac2HTML: string): string {
+    return `${frac1HTML}&nbsp;${operator}&nbsp;${frac2HTML}`;
+}
+
 function normalizeFraction(whole: number, numerator: number, denominator: number): Fraction {
     if (numerator < 0) {
         const borrow = Math.ceil(Math.abs(numerator) / denominator);
@@ -71,6 +75,7 @@ export function generateProblem(score: number, usedProblems: Set<string>): { pro
 
         let n1: number, n2: number, w1: number, w2: number;
         let answerWhole: number, answerNum: number;
+        let text: string;
 
         switch (problemType) {
             case '진분수+진분수':
@@ -78,42 +83,49 @@ export function generateProblem(score: number, usedProblems: Set<string>): { pro
                 do { n1 = Math.floor(Math.random() * (d - 1)) + 1; n2 = Math.floor(Math.random() * (d - 1)) + 1; innerAttempts++; } while (n1 + n2 >= d && innerAttempts < maxInnerAttempts);
                 if (innerAttempts >= maxInnerAttempts) continue;
                 answerWhole = 0; answerNum = n1 + n2;
-                candidateProblem = { type: problemType, text: `${createFractionDisplayHTML(0, n1, d)}&nbsp;+&nbsp;${createFractionDisplayHTML(0, n2, d)}`, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
+                text = constructProblemText(createFractionDisplayHTML(0, n1, d), '+', createFractionDisplayHTML(0, n2, d));
+                candidateProblem = { type: problemType, text, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
                 break;
             case '진분수+진분수_합1초과':
                  do { n1 = Math.floor(Math.random() * (d - 1)) + 1; n2 = Math.floor(Math.random() * (d - 1)) + 1; innerAttempts++; } while (n1 + n2 < d && innerAttempts < maxInnerAttempts);
                 if (innerAttempts >= maxInnerAttempts) continue;
                 answerWhole = 0; answerNum = n1 + n2;
-                candidateProblem = { type: problemType, text: `${createFractionDisplayHTML(0, n1, d)}&nbsp;+&nbsp;${createFractionDisplayHTML(0, n2, d)}`, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
+                text = constructProblemText(createFractionDisplayHTML(0, n1, d), '+', createFractionDisplayHTML(0, n2, d));
+                candidateProblem = { type: problemType, text, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
                 break;
             case '진분수-진분수':
                 do { n1 = Math.floor(Math.random() * (d - 1)) + 1; n2 = Math.floor(Math.random() * (d - 1)) + 1; innerAttempts++; } while (n1 <= n2 && innerAttempts < maxInnerAttempts);
                 if (innerAttempts >= maxInnerAttempts) continue;
                 answerWhole = 0; answerNum = n1 - n2;
-                candidateProblem = { type: problemType, text: `${createFractionDisplayHTML(0, n1, d)}&nbsp;-&nbsp;${createFractionDisplayHTML(0, n2, d)}`, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
+                text = constructProblemText(createFractionDisplayHTML(0, n1, d), '-', createFractionDisplayHTML(0, n2, d));
+                candidateProblem = { type: problemType, text, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
                 break;
             case '대분수-대분수':
                 w1 = Math.floor(Math.random() * 4) + 2; w2 = Math.floor(Math.random() * (w1 - 1)) + 1;
                 do { n1 = Math.floor(Math.random() * (d - 1)) + 1; n2 = Math.floor(Math.random() * (d - 1)) + 1; innerAttempts++; } while (n1 < n2 && innerAttempts < maxInnerAttempts);
                 if (innerAttempts >= maxInnerAttempts) continue;
                 answerWhole = w1 - w2; answerNum = n1 - n2;
-                candidateProblem = { type: problemType, text: `${createFractionDisplayHTML(w1, n1, d)}&nbsp;-&nbsp;${createFractionDisplayHTML(w2, n2, d)}`, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
+                text = constructProblemText(createFractionDisplayHTML(w1, n1, d), '-', createFractionDisplayHTML(w2, n2, d));
+                candidateProblem = { type: problemType, text, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
                 break;
             case '1-진분수':
                 n1 = Math.floor(Math.random() * (d - 1)) + 1; answerWhole = 0; answerNum = d - n1;
-                candidateProblem = { type: problemType, text: `1&nbsp;-&nbsp;${createFractionDisplayHTML(0, n1, d)}`, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
+                text = constructProblemText('<span>1</span>', '-', createFractionDisplayHTML(0, n1, d));
+                candidateProblem = { type: problemType, text, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
                 break;
             case '자연수-진분수':
                 w1 = Math.floor(Math.random() * 4) + 2; n1 = Math.floor(Math.random() * (d - 1)) + 1;
                 answerWhole = w1 - 1; answerNum = d - n1;
-                candidateProblem = { type: problemType, text: `${w1}&nbsp;-&nbsp;${createFractionDisplayHTML(0, n1, d)}`, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
+                text = constructProblemText(`<span>${w1}</span>`, '-', createFractionDisplayHTML(0, n1, d));
+                candidateProblem = { type: problemType, text, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
                 break;
             case '대분수-대분수(받아내림)':
                 w1 = Math.floor(Math.random() * 4) + 2; w2 = Math.floor(Math.random() * (w1 - 1)) + 1;
                 do { n1 = Math.floor(Math.random() * (d - 1)) + 1; n2 = Math.floor(Math.random() * (d - 1)) + 1; innerAttempts++; } while (n1 >= n2 && innerAttempts < maxInnerAttempts);
                 if (innerAttempts >= maxInnerAttempts) continue;
                 answerWhole = w1 - 1 - w2; answerNum = (n1 + d) - n2;
-                candidateProblem = { type: problemType, text: `${createFractionDisplayHTML(w1, n1, d)}&nbsp;-&nbsp;${createFractionDisplayHTML(w2, n2, d)}`, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
+                text = constructProblemText(createFractionDisplayHTML(w1, n1, d), '-', createFractionDisplayHTML(w2, n2, d));
+                candidateProblem = { type: problemType, text, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
                 break;
         }
 
