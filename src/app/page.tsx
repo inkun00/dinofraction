@@ -228,7 +228,7 @@ export default function Home() {
                                     dinoRect.bottom > bubbleRect.top;
 
                   if (isColliding) {
-                      p.answered = true;
+                      p.answered = true; // Mark problem as answered to prevent multiple triggers
 
                       const isCorrect = bubble.dataset.correct === 'true';
 
@@ -281,7 +281,7 @@ export default function Home() {
   }, [gameState.running, gameLoop]);
 
   const jump = React.useCallback(() => {
-    if (dinoState.y <= GROUND_POSITION && gameState.running) {
+    if (dinoState.y <= GROUND_POSITION + 1 && gameState.running) {
       isJumpingRef.current = true;
       setDinoState(prev => ({ ...prev, yVelocity: JUMP_VELOCITY }));
     }
@@ -492,5 +492,7 @@ export default function Home() {
     </main>
   );
 }
+
+    
 
     
