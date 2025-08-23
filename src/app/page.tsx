@@ -47,8 +47,6 @@ export default function Home() {
   const usedProblemsRef = React.useRef<Set<string>>(new Set());
   const problemCounterRef = React.useRef(0);
   const dinosaurRef = React.useRef<HTMLDivElement>(null);
-  const jumpStartTimeRef = React.useRef(0);
-  const spacePressedRef = React.useRef(false);
   const isJumpingRef = React.useRef(false);
   const animationFrameRef = React.useRef<number>();
 
@@ -102,6 +100,9 @@ export default function Home() {
   }, []);
 
   const handleCorrectAnswer = React.useCallback((problem: Problem) => {
+      setDinoState(prev => ({ ...prev, recoil: true }));
+      setTimeout(() => setDinoState(prev => ({ ...prev, recoil: false })), 300);
+
       setGameState(prev => {
         const newScore = prev.score + 10;
         updateDinosaurEvolution(newScore);
@@ -114,7 +115,10 @@ export default function Home() {
       }));
   }, [updateDinosaurEvolution]);
 
-    const handleWrongAnswer = React.useCallback(() => {
+    const handleWrongAnswer = React.useCallback((problem: Problem) => {
+        setDinoState(prev => ({ ...prev, recoil: true }));
+        setTimeout(() => setDinoState(prev => ({ ...prev, recoil: false })), 300);
+
         setGameState(prev => {
             const newLives = prev.lives - 1;
             if (newLives <= 0) {
@@ -124,8 +128,8 @@ export default function Home() {
         });
         setProblemStats(prev => ({
             ...prev,
-            // wrong: [...prev.wrong, problem],
-            // wrongProblemTypes: { ...prev.wrongProblemTypes, [problem.type]: (prev.wrongProblemTypes[problem.type] || 0) + 1 }
+            wrong: [...prev.wrong, problem],
+            wrongProblemTypes: { ...prev.wrongProblemTypes, [problem.type]: (prev.wrongProblemTypes[problem.type] || 0) + 1 }
         }));
     }, []);
 
@@ -190,7 +194,7 @@ export default function Home() {
           let newY = prev.y;
           let newYVelocity = prev.yVelocity;
 
-          if (prev.y > GROUND_POSITION || newYVelocity > 0) {
+          if (prev.y > GROUND_POSITION || newYVelocity !== 0) {
               newYVelocity += GRAVITY;
               newY += newYVelocity;
           }
@@ -198,13 +202,15 @@ export default function Home() {
           if (newY <= GROUND_POSITION) {
               newY = GROUND_POSITION;
               newYVelocity = 0;
-              isJumpingRef.current = false;
+              if (isJumpingRef.current) {
+                isJumpingRef.current = false;
+              }
           }
 
           return { ...prev, y: newY, yVelocity: newYVelocity };
       });
 
-      if (isJumpingRef.current && dinosaurRef.current && gameContainerRef.current) {
+      if (isJumpingRef.current && dinosaurRef.current) {
           const dinoRect = dinosaurRef.current.getBoundingClientRect();
           
           for (const p of currentProblems) {
@@ -222,30 +228,17 @@ export default function Home() {
                                     dinoRect.bottom > bubbleRect.top;
 
                   if (isColliding) {
-                      p.answered = true; // Mark problem as answered to prevent multiple triggers
+                      p.answered = true;
 
                       const isCorrect = bubble.dataset.correct === 'true';
 
                       if (isCorrect) {
                           handleCorrectAnswer(p.problem);
+                          bubble.style.background = '#2ecc71';
                       } else {
-                          handleWrongAnswer();
-                          setProblemStats(prev => ({
-                              ...prev,
-                              wrong: [...prev.wrong, p.problem],
-                              wrongProblemTypes: { ...prev.wrongProblemTypes, [p.problem.type]: (prev.wrongProblemTypes[p.problem.type] || 0) + 1 }
-                          }));
+                          handleWrongAnswer(p.problem);
+                          bubble.style.background = '#e74c3c';
                       }
-
-                      // Visual feedback for all bubbles of this problem
-                      document.querySelectorAll(`.answer-bubble[data-problem-id='${p.id}']`).forEach(b => {
-                          const htmlB = b as HTMLElement;
-                          if (htmlB.dataset.correct === 'true') {
-                              htmlB.style.background = '#2ecc71';
-                          } else {
-                              htmlB.style.background = '#e74c3c';
-                          }
-                      });
                   }
               });
           }
@@ -263,7 +256,6 @@ export default function Home() {
                     problemsToRemove.push(p.id);
                 }
             } else if (!document.querySelector(`.answer-bubble[data-problem-id='${p.id}']`)) {
-                // If neither problem nor bubbles are found, remove it
                  problemsToRemove.push(p.id);
             }
         }
@@ -295,39 +287,26 @@ export default function Home() {
     }
   }, [dinoState.y, gameState.running]);
 
-  const handlePressStart = React.useCallback(() => {
-      if (gameState.running && !spacePressedRef.current) {
-          spacePressedRef.current = true;
+  const handlePress = React.useCallback(() => {
+      if (gameState.running) {
           jump();
       }
   }, [gameState.running, jump]);
 
-  const handlePressEnd = React.useCallback(() => {
-      if (gameState.running && spacePressedRef.current) {
-          spacePressedRef.current = false;
-      }
-  }, [gameState.running]);
-
   React.useEffect(() => {
       const isInteractiveElement = (target: EventTarget | null) => (target as Element)?.closest('button, a, input, form');
 
-      const onKeyDown = (e: KeyboardEvent) => { if (e.code === 'Space') { e.preventDefault(); handlePressStart(); } };
-      const onKeyUp = (e: KeyboardEvent) => { if (e.code === 'Space') { e.preventDefault(); handlePressEnd(); } };
-      const onTouchStart = (e: TouchEvent) => { if (!isInteractiveElement(e.target)) { e.preventDefault(); handlePressStart(); } };
-      const onTouchEnd = (e: TouchEvent) => { if (!isInteractiveElement(e.target)) { e.preventDefault(); handlePressEnd(); } };
+      const onKeyDown = (e: KeyboardEvent) => { if (e.code === 'Space' && !e.repeat) { e.preventDefault(); handlePress(); } };
+      const onTouchStart = (e: TouchEvent) => { if (!isInteractiveElement(e.target)) { e.preventDefault(); handlePress(); } };
       
       document.addEventListener('keydown', onKeyDown);
-      document.addEventListener('keyup', onKeyUp);
-      document.addEventListener('touchstart', onTouchStart);
-      document.addEventListener('touchend', onTouchEnd);
+      document.addEventListener('touchstart', onTouchStart, { passive: false });
 
       return () => {
           document.removeEventListener('keydown', onKeyDown);
-          document.removeEventListener('keyup', onKeyUp);
           document.removeEventListener('touchstart', onTouchStart);
-          document.removeEventListener('touchend', onTouchEnd);
       };
-  }, [handlePressStart, handlePressEnd]);
+  }, [handlePress]);
 
 
   const generateProblem = React.useCallback(() => {
