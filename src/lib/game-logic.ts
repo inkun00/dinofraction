@@ -33,7 +33,7 @@ function createFractionDisplayHTML(whole: number, numerator: number, denominator
                 <span class="fraction-denominator">${denominator}</span>
             </div>`;
     }
-    return `<div class="fraction-display">${resultHtml}</div>`;
+    return resultHtml;
 }
 
 function normalizeFraction(whole: number, numerator: number, denominator: number): Fraction {
@@ -78,42 +78,42 @@ export function generateProblem(score: number, usedProblems: Set<string>): { pro
                 do { n1 = Math.floor(Math.random() * (d - 1)) + 1; n2 = Math.floor(Math.random() * (d - 1)) + 1; innerAttempts++; } while (n1 + n2 >= d && innerAttempts < maxInnerAttempts);
                 if (innerAttempts >= maxInnerAttempts) continue;
                 answerWhole = 0; answerNum = n1 + n2;
-                candidateProblem = { type: problemType, text: `${createFractionDisplayHTML(0, n1, d)} + ${createFractionDisplayHTML(0, n2, d)}`, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
+                candidateProblem = { type: problemType, text: `<div class="fraction-display">${createFractionDisplayHTML(0, n1, d)}</div>&nbsp;+&nbsp;<div class="fraction-display">${createFractionDisplayHTML(0, n2, d)}</div>`, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
                 break;
             case '진분수+진분수_합1초과':
                  do { n1 = Math.floor(Math.random() * (d - 1)) + 1; n2 = Math.floor(Math.random() * (d - 1)) + 1; innerAttempts++; } while (n1 + n2 < d && innerAttempts < maxInnerAttempts);
                 if (innerAttempts >= maxInnerAttempts) continue;
                 answerWhole = 0; answerNum = n1 + n2;
-                candidateProblem = { type: problemType, text: `${createFractionDisplayHTML(0, n1, d)} + ${createFractionDisplayHTML(0, n2, d)}`, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
+                candidateProblem = { type: problemType, text: `<div class="fraction-display">${createFractionDisplayHTML(0, n1, d)}</div>&nbsp;+&nbsp;<div class="fraction-display">${createFractionDisplayHTML(0, n2, d)}</div>`, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
                 break;
             case '진분수-진분수':
                 do { n1 = Math.floor(Math.random() * (d - 1)) + 1; n2 = Math.floor(Math.random() * (d - 1)) + 1; innerAttempts++; } while (n1 <= n2 && innerAttempts < maxInnerAttempts);
                 if (innerAttempts >= maxInnerAttempts) continue;
                 answerWhole = 0; answerNum = n1 - n2;
-                candidateProblem = { type: problemType, text: `${createFractionDisplayHTML(0, n1, d)} - ${createFractionDisplayHTML(0, n2, d)}`, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
+                candidateProblem = { type: problemType, text: `<div class="fraction-display">${createFractionDisplayHTML(0, n1, d)}</div>&nbsp;-&nbsp;<div class="fraction-display">${createFractionDisplayHTML(0, n2, d)}</div>`, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
                 break;
             case '대분수-대분수':
                 w1 = Math.floor(Math.random() * 4) + 2; w2 = Math.floor(Math.random() * (w1 - 1)) + 1;
                 do { n1 = Math.floor(Math.random() * (d - 1)) + 1; n2 = Math.floor(Math.random() * (d - 1)) + 1; innerAttempts++; } while (n1 < n2 && innerAttempts < maxInnerAttempts);
                 if (innerAttempts >= maxInnerAttempts) continue;
                 answerWhole = w1 - w2; answerNum = n1 - n2;
-                candidateProblem = { type: problemType, text: `${createFractionDisplayHTML(w1, n1, d)} - ${createFractionDisplayHTML(w2, n2, d)}`, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
+                candidateProblem = { type: problemType, text: `<div class="fraction-display">${createFractionDisplayHTML(w1, n1, d)}</div>&nbsp;-&nbsp;<div class="fraction-display">${createFractionDisplayHTML(w2, n2, d)}</div>`, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
                 break;
             case '1-진분수':
                 n1 = Math.floor(Math.random() * (d - 1)) + 1; answerWhole = 0; answerNum = d - n1;
-                candidateProblem = { type: problemType, text: `1 - ${createFractionDisplayHTML(0, n1, d)}`, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
+                candidateProblem = { type: problemType, text: `1&nbsp;-&nbsp;<div class="fraction-display">${createFractionDisplayHTML(0, n1, d)}</div>`, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
                 break;
             case '자연수-진분수':
                 w1 = Math.floor(Math.random() * 4) + 2; n1 = Math.floor(Math.random() * (d - 1)) + 1;
                 answerWhole = w1 - 1; answerNum = d - n1;
-                candidateProblem = { type: problemType, text: `${w1} - ${createFractionDisplayHTML(0, n1, d)}`, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
+                candidateProblem = { type: problemType, text: `${w1}&nbsp;-&nbsp;<div class="fraction-display">${createFractionDisplayHTML(0, n1, d)}</div>`, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
                 break;
             case '대분수-대분수(받아내림)':
                 w1 = Math.floor(Math.random() * 4) + 2; w2 = Math.floor(Math.random() * (w1 - 1)) + 1;
                 do { n1 = Math.floor(Math.random() * (d - 1)) + 1; n2 = Math.floor(Math.random() * (d - 1)) + 1; innerAttempts++; } while (n1 >= n2 && innerAttempts < maxInnerAttempts);
                 if (innerAttempts >= maxInnerAttempts) continue;
                 answerWhole = w1 - 1 - w2; answerNum = (n1 + d) - n2;
-                candidateProblem = { type: problemType, text: `${createFractionDisplayHTML(w1, n1, d)} - ${createFractionDisplayHTML(w2, n2, d)}`, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
+                candidateProblem = { type: problemType, text: `<div class="fraction-display">${createFractionDisplayHTML(w1, n1, d)}</div>&nbsp;-&nbsp;<div class="fraction-display">${createFractionDisplayHTML(w2, n2, d)}</div>`, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
                 break;
         }
 
