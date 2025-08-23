@@ -99,7 +99,11 @@ export default function Home() {
       return prev;
     });
   }, []);
-  
+
+  const cleanupProblem = React.useCallback((problemId: number) => {
+      setCurrentProblems(prev => prev.filter(p => p.id !== problemId));
+  }, []);
+
   const endGame = React.useCallback(() => {
     const finalScore = gameState.score;
     
@@ -145,38 +149,6 @@ export default function Home() {
     }
   }, [userData, problemStats, currentUser, gameState.score]);
 
-  const cleanupProblem = React.useCallback((problemId: number) => {
-      setCurrentProblems(prev => prev.filter(p => p.id !== problemId));
-  }, []);
-
-  const generateProblem = React.useCallback(() => {
-    const problemScore = gameState.score;
-    setGameState(prev => {
-        const newProblemData = generateProblemUtil(problemScore, usedProblemsRef.current);
-        if (!newProblemData) {
-          console.log("모든 문제를 다 풀었습니다!");
-          return prev;
-        }
-
-        const { problem, answers, problemKey } = newProblemData;
-        usedProblemsRef.current.add(problemKey);
-        problemCounterRef.current++;
-        const problemId = problemCounterRef.current;
-
-        const newCurrentProblem: CurrentProblem = {
-            id: problemId,
-            problem,
-            answers,
-            answered: false,
-            element: React.createRef<HTMLDivElement>(),
-        };
-
-        setCurrentProblems(prevProbs => [...prevProbs, newCurrentProblem]);
-        setProblemStats(prevStats => ({ ...prevStats, totalProblems: prevStats.totalProblems + 1 }));
-
-        return prev;
-    });
-  }, [gameState.score]);
 
   const handleCorrectAnswer = React.useCallback((problem: CurrentProblem) => {
     setGameState(prev => {
@@ -206,7 +178,6 @@ export default function Home() {
       }));
   }, [endGame]);
 
-
   const gameLoop = React.useCallback(() => {
     if (!gameState.running) {
         if(animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
@@ -234,8 +205,8 @@ export default function Home() {
     if (dinosaurRef.current) {
         const dinoRect = dinosaurRef.current.getBoundingClientRect();
         
+        const problemsToRemove: number[] = [];
         setCurrentProblems(prevProblems => {
-            const problemsToRemove: number[] = [];
             const updatedProblems = prevProblems.map(p => {
                 if (p.answered) return p;
 
@@ -245,9 +216,9 @@ export default function Home() {
                 if (problemEl) {
                     const problemRect = problemEl.getBoundingClientRect();
                     if (problemRect.right < gameContainerRect.left) {
-                       if (!problemsToRemove.includes(p.id)) {
-                         problemsToRemove.push(p.id);
-                       }
+                        if (!problemsToRemove.includes(p.id)) {
+                            problemsToRemove.push(p.id);
+                        }
                     }
                 }
                 
@@ -267,12 +238,20 @@ export default function Home() {
                         const isCorrect = bubble.dataset.correct === 'true';
 
                         if (isCorrect) {
-                            handleCorrectAnswer(p);
+                            handleCorrectAnswer(newProblemState);
                             bubble.style.background = '#2ecc71';
                         } else {
-                            handleWrongAnswer(p);
+                            handleWrongAnswer(newProblemState);
                             bubble.style.background = '#e74c3c';
                         }
+                        
+                        // Mark problem for cleanup after a delay to show color change
+                        setTimeout(() => {
+                            if (!problemsToRemove.includes(p.id)) {
+                                problemsToRemove.push(p.id);
+                            }
+                        }, 500);
+
                         return newProblemState;
                     }
                 });
@@ -302,7 +281,7 @@ export default function Home() {
   }, [gameState.running, gameLoop]);
 
   const jump = React.useCallback((holdTime = 0) => {
-    if ((!isJumpingRef.current || !dinoState.recoil) && dinoState.y === GROUND_POSITION && gameState.running) {
+    if ((!isJumpingRef.current && !dinoState.recoil) && dinoState.y === GROUND_POSITION && gameState.running) {
       isJumpingRef.current = true;
       const jumpPower = holdTime > 200 ? JUMP_VELOCITY * 1.3 : JUMP_VELOCITY;
       setDinoState(prev => ({ ...prev, yVelocity: jumpPower }));
@@ -345,6 +324,31 @@ export default function Home() {
       };
   }, [handlePressStart, handlePressEnd]);
 
+
+  const generateProblem = React.useCallback(() => {
+    const problemScore = gameState.score;
+    const newProblemData = generateProblemUtil(problemScore, usedProblemsRef.current);
+    if (!newProblemData) {
+      console.log("모든 문제를 다 풀었습니다!");
+      return;
+    }
+
+    const { problem, answers, problemKey } = newProblemData;
+    usedProblemsRef.current.add(problemKey);
+    problemCounterRef.current++;
+    const problemId = problemCounterRef.current;
+
+    const newCurrentProblem: CurrentProblem = {
+        id: problemId,
+        problem,
+        answers,
+        answered: false,
+        element: React.createRef<HTMLDivElement>(),
+    };
+
+    setCurrentProblems(prevProbs => [...prevProbs, newCurrentProblem]);
+    setProblemStats(prevStats => ({ ...prevStats, totalProblems: prevStats.totalProblems + 1 }));
+  }, [gameState.score]);
 
   const startGame = React.useCallback(() => {
     setGameState({ score: 0, lives: 5, time: 0, running: true, started: true });
@@ -504,5 +508,3 @@ export default function Home() {
     </main>
   );
 }
-
-    
