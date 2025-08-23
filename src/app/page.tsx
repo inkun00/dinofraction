@@ -102,7 +102,8 @@ export default function Home() {
   }, []);
 
   const recoilJump = React.useCallback(() => {
-    setDinoState(prev => ({ ...prev, yVelocity: RECOIL_JUMP_VELOCITY }));
+    setDinoState(prev => ({ ...prev, yVelocity: RECOIL_JUMP_VELOCITY, recoil: true }));
+    setTimeout(() => setDinoState(prev => ({...prev, recoil: false})), 300);
   }, []);
 
   const handleCorrectAnswer = React.useCallback((problem: Problem) => {
@@ -288,10 +289,6 @@ export default function Home() {
                 if (problemEl) {
                     const problemRect = problemEl.getBoundingClientRect();
                     if (problemRect.right < gameContainerRect.left) {
-                        // 문제를 풀지 않고 지나쳐도 생명력이 감소하지 않도록 수정
-                        // if (!p.answered) {
-                        //      handleWrongAnswer(p.problem);
-                        // }
                         return false; 
                     }
                 }
