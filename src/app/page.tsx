@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from 'react';
@@ -118,20 +119,20 @@ export default function Home() {
       }));
   }, [updateDinosaurEvolution]);
 
-  const handleWrongAnswer = React.useCallback((problem: Problem) => {
+  const handleWrongAnswer = React.useCallback(() => {
       setGameState(prev => {
           const newLives = prev.lives - 1;
           if (newLives <= 0) {
-              setTimeout(() => endGame(), 0);
+              endGame();
           }
           return { ...prev, lives: newLives };
       });
       setProblemStats(prev => ({
           ...prev,
-          wrong: [...prev.wrong, problem],
-          wrongProblemTypes: { ...prev.wrongProblemTypes, [problem.type]: (prev.wrongProblemTypes[problem.type] || 0) + 1 }
+          wrong: [...prev.wrong, currentProblems.find(p => !p.answered)!.problem],
+          wrongProblemTypes: { ...prev.wrongProblemTypes, [currentProblems.find(p => !p.answered)!.problem.type]: (prev.wrongProblemTypes[currentProblems.find(p => !p.answered)!.problem.type] || 0) + 1 }
       }));
-  }, []);
+  }, [currentProblems]);
 
   const endGame = React.useCallback(() => {
     const finalScore = gameState.score;
@@ -212,11 +213,11 @@ export default function Home() {
           for (const p of currentProblems) {
               if (p.answered) continue;
 
-              let problemAnswered = false;
+              let problemAnsweredThisFrame = false;
 
               // Check for collision with answer bubbles
               document.querySelectorAll(`.answer-bubble[data-problem-id='${p.id}']`).forEach(bubbleEl => {
-                  if (problemAnswered) return;
+                  if (problemAnsweredThisFrame) return;
 
                   const bubble = bubbleEl as HTMLDivElement;
                   const bubbleRect = bubble.getBoundingClientRect();
@@ -224,7 +225,7 @@ export default function Home() {
                   if (dinoRect.left < bubbleRect.right && dinoRect.right > bubbleRect.left &&
                       dinoRect.top < bubbleRect.bottom && dinoRect.bottom > bubbleRect.top) {
                       
-                      problemAnswered = true;
+                      problemAnsweredThisFrame = true;
                       p.answered = true; // Mark the entire problem as answered
 
                       setDinoState(prev => ({...prev, recoil: true, yVelocity: -5 }));
@@ -236,7 +237,7 @@ export default function Home() {
                           handleCorrectAnswer(p.problem);
                           bubble.style.background = '#2ecc71';
                       } else {
-                          handleWrongAnswer(p.problem);
+                          handleWrongAnswer();
                           bubble.style.background = '#e74c3c';
                       }
                   }
@@ -247,6 +248,9 @@ export default function Home() {
               if (problemEl) {
                   const problemRect = problemEl.getBoundingClientRect();
                   if (problemRect.right < gameContainerRect.left) {
+                      if (!p.answered) {
+                          // No penalty for letting problems go off-screen
+                      }
                       problemsToRemove.push(p.id);
                   }
               } else if (!document.querySelector(`.answer-bubble[data-problem-id='${p.id}']`)) {
@@ -261,7 +265,8 @@ export default function Home() {
       }
 
       animationFrameRef.current = requestAnimationFrame(gameLoop);
-  }, [gameState.running, currentProblems, handleCorrectAnswer, handleWrongAnswer]);
+  }, [gameState.running, currentProblems, handleCorrectAnswer, handleWrongAnswer, endGame]);
+
 
   React.useEffect(() => {
     if (gameState.running) {
@@ -275,7 +280,7 @@ export default function Home() {
   }, [gameState.running, gameLoop]);
 
   const jump = React.useCallback((holdTime = 0) => {
-    if (dinoState.y === GROUND_POSITION && gameState.running) {
+    if (dinoState.y <= GROUND_POSITION && gameState.running) {
       isJumpingRef.current = true;
       const jumpPower = holdTime > 200 ? JUMP_VELOCITY * 1.3 : JUMP_VELOCITY;
       setDinoState(prev => ({ ...prev, yVelocity: jumpPower }));
