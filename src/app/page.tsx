@@ -155,10 +155,14 @@ export default function Home() {
         setCurrentProblems(prevProblems => {
             const problemsToRemove: number[] = [];
             const updatedProblems = prevProblems.map(p => {
+                // Return a copy to avoid mutation issues with React state
+                let newProblemState = { ...p };
+
                 const problemEl = document.querySelector(`.math-problem[data-problem-id='${p.id}']`);
                 if (problemEl) {
                     const problemRect = problemEl.getBoundingClientRect();
-                     if (problemRect.right < 0) { // Off-screen to the left
+                    const gameContainerRect = gameContainerRef.current!.getBoundingClientRect();
+                    if (problemRect.right < gameContainerRect.left) {
                         problemsToRemove.push(p.id);
                         if (!p.answered) {
                             setProblemStats(prevStats => {
@@ -174,11 +178,11 @@ export default function Home() {
                     const bubble = bubbleEl as HTMLDivElement;
                     const bubbleRect = bubble.getBoundingClientRect();
 
-                    if (!p.answered && isJumpingRef.current &&
+                    if (!newProblemState.answered && isJumpingRef.current &&
                         dinoRect.left < bubbleRect.right && dinoRect.right > bubbleRect.left &&
                         dinoRect.top < bubbleRect.bottom && dinoRect.bottom > bubbleRect.top) {
                         
-                        p.answered = true;
+                        newProblemState.answered = true;
                         bubble.classList.add('hit');
                         
                         setDinoState(prev => ({...prev, recoil: true, yVelocity: -5 })); // Apply recoil
@@ -210,13 +214,19 @@ export default function Home() {
                             }));
                         }
                         
-                        setTimeout(() => problemsToRemove.push(p.id), 400); // Remove after hit animation
+                        setTimeout(() => {
+                           problemsToRemove.push(newProblemState.id);
+                           // Force a re-render to apply removal
+                           setCurrentProblems(prev => prev.filter(prob => prob.id !== newProblemState.id));
+                        }, 400); // Remove after hit animation
                     }
                 });
-                return p;
+                return newProblemState;
             });
+
             if (problemsToRemove.length > 0) {
-                 cleanupProblem(problemsToRemove[0]);
+                 const uniqueIds = [...new Set(problemsToRemove)];
+                 return prevProblems.filter(p => !uniqueIds.includes(p.id));
             }
             return updatedProblems;
         });
@@ -479,5 +489,3 @@ export default function Home() {
     </main>
   );
 }
-
-    

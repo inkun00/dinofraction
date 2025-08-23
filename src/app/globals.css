@@ -233,13 +233,13 @@
     z-index: 40;
 }
 @keyframes scrollProblem {
-    from { right: -320px; }
-    to { right: 1600px; }
+    from { transform: translateX(1280px); }
+    to { transform: translateX(-320px); }
 }
 
 .math-problem {
     top: 108px; /* 15vh of 720px */
-    right: -320px;
+    right: 0px;
     min-width: 256px;
     white-space: nowrap;
     font-size: 38px;
@@ -257,6 +257,7 @@
 
 .answer-bubble {
     top: 252px; /* 35vh of 720px */
+    right: 0;
     width: 128px;
     height: 128px;
     border-radius: 50%;
