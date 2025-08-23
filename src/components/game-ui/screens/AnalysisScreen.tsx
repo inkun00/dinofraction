@@ -39,7 +39,7 @@ const AnalysisScreen: React.FC<AnalysisScreenProps> = ({ problemStats, onRestart
                         return null;
                     })}
                   </div>
-                  <span className="text-xl">➡</span>
+                  <span className="text-xl">=</span>
                   <FractionDisplay fraction={p.answer} />
                 </div>
               ))}
