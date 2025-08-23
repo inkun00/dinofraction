@@ -230,9 +230,6 @@ export default function Home() {
           yVelocity = 0;
           isJumping = false;
       }
-      dinoPhysicsRef.current.y = y;
-      dinoPhysicsRef.current.yVelocity = yVelocity;
-      dinoPhysicsRef.current.isJumping = isJumping;
       
       // DOM update (using ref, no re-render)
       if (dinosaurRef.current) {
@@ -253,6 +250,9 @@ export default function Home() {
                                 dinoRect.bottom > bubbleRect.top;
 
             if (isColliding) {
+                // On collision, immediately set vertical velocity to 0 to start falling.
+                dinoPhysicsRef.current.yVelocity = 0;
+
                 answeredProblemsRef.current.add(problemId);
                 const isCorrect = bubble.dataset.correct === 'true';
                 const problem = currentProblems.find(p => p.id === problemId)?.problem;
@@ -271,6 +271,10 @@ export default function Home() {
         });
       }
       
+      dinoPhysicsRef.current.y = y;
+      dinoPhysicsRef.current.yVelocity = yVelocity;
+      dinoPhysicsRef.current.isJumping = isJumping;
+
       animationFrameRef.current = requestAnimationFrame(gameLoop);
   }, [gameState.running, handleCorrectAnswer, handleWrongAnswer, generateProblem, currentProblems]);
 
@@ -477,3 +481,5 @@ export default function Home() {
     </main>
   );
 }
+
+    
