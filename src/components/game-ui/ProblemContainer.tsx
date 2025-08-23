@@ -31,11 +31,11 @@ const ProblemContainer: React.FC<ProblemContainerProps> = ({ problems, speedLeve
           </div>
           {answers.map((answer, index) => (
             <div
-              key={index}
+              key={`answer-${id}-${index}`}
               className={cn('answer-bubble', speedClass)}
               data-correct={answer.isCorrect}
               data-problem-id={id}
-              style={{ animationDelay: `${index * 0.8}s` }}
+              style={{ animationDelay: `${(id * 0.2) + (index * 0.8)}s` }}
             >
               <FractionDisplay fraction={answer.value} />
             </div>
@@ -46,4 +46,4 @@ const ProblemContainer: React.FC<ProblemContainerProps> = ({ problems, speedLeve
   );
 };
 
-export default ProblemContainer;
+export default React.memo(ProblemContainer);

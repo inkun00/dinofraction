@@ -6,21 +6,20 @@ interface DinosaurProps {
   evolution: EvolutionStage;
   y: number;
   evolving: boolean;
-  recoil: boolean;
 }
 
-const Dinosaur = React.forwardRef<HTMLDivElement, DinosaurProps>(({ evolution, y, evolving, recoil }, ref) => {
+const Dinosaur = React.forwardRef<HTMLDivElement, DinosaurProps>(({ evolution, y, evolving }, ref) => {
+  const isJumping = y > 135;
   const classes = cn(
     'dinosaur',
     evolution,
-    { 'recoiling': recoil },
     { 'evolving': evolving },
-    { 'jumping': y > 135 }
+    { 'jumping': isJumping }
   );
   
-  const currentTransform = `translateY(${135 - y}px)`;
+  const initialTransform = `translateY(${135 - y}px)`;
 
-  return <div ref={ref} className={classes} style={{ transform: currentTransform }}></div>;
+  return <div ref={ref} className={classes} style={{ transform: initialTransform }}></div>;
 });
 
 Dinosaur.displayName = 'Dinosaur';

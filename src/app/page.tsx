@@ -40,18 +40,26 @@ export default function Home() {
   const [problemStats, setProblemStats] = React.useState<ProblemStats>({ correct: [], wrong: [], totalProblems: 0, correctProblemTypes: {}, wrongProblemTypes: {} });
   const [currentProblems, setCurrentProblems] = React.useState<CurrentProblem[]>([]);
   
-  const [dinoState, setDinoState] = React.useState<{ evolution: EvolutionStage; y: number; yVelocity: number; evolving: boolean; }>({ evolution: 'egg', y: GROUND_POSITION, yVelocity: 0, evolving: false });
+  const [dinoEvolution, setDinoEvolution] = React.useState<EvolutionStage>('egg');
+  const [dinoIsEvolving, setDinoIsEvolving] = React.useState(false);
   const [speedLevel, setSpeedLevel] = React.useState<SpeedLevel>(0);
   
   const gameTimerRef = React.useRef<NodeJS.Timeout | null>(null);
   const usedProblemsRef = React.useRef<Set<string>>(new Set());
   const problemCounterRef = React.useRef(0);
   const dinosaurRef = React.useRef<HTMLDivElement>(null);
-  const isJumpingRef = React.useRef(false);
   const animationFrameRef = React.useRef<number>();
   const frameCountRef = React.useRef(0);
-
   const gameContainerRef = React.useRef<HTMLDivElement>(null);
+  const answeredProblemsRef = React.useRef<Set<number>>(new Set());
+
+  // Use refs for physics to avoid re-renders
+  const dinoPhysicsRef = React.useRef({
+    y: GROUND_POSITION,
+    yVelocity: 0,
+    isJumping: false,
+  });
+
 
   const endGame = React.useCallback(() => {
       setGameState(prev => ({...prev, running: false, started: false}));
@@ -59,7 +67,7 @@ export default function Home() {
       if (gameTimerRef.current) clearInterval(gameTimerRef.current);
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
 
-      setCurrentProblems([]);
+      answeredProblemsRef.current.clear();
 
       const finalScore = gameState.score;
       const earnedXp = Math.floor(finalScore / 5);
@@ -135,22 +143,20 @@ export default function Home() {
     else if (currentScore >= 100) newStage = 'baby';
     else newStage = 'egg';
 
-    setDinoState(prev => {
-      if (newStage !== prev.evolution) {
-        setTimeout(() => setDinoState(p => ({ ...p, evolving: false })), 1000);
-        return { ...prev, evolution: newStage, evolving: true };
-      }
-      return prev;
+    setDinoEvolution(prev => {
+        if (newStage !== prev) {
+            setDinoIsEvolving(true);
+            setTimeout(() => setDinoIsEvolving(false), 1000);
+            return newStage;
+        }
+        return prev;
     });
   }, []);
 
   const handleCollision = React.useCallback(() => {
-      setDinoState(prev => {
-        if(prev.yVelocity > 0) {
-            return { ...prev, yVelocity: 0 };
-        }
-        return prev;
-      });
+      if (dinoPhysicsRef.current.yVelocity > 0) {
+        dinoPhysicsRef.current.yVelocity = 0;
+      }
   }, []);
 
   React.useEffect(() => {
@@ -203,7 +209,6 @@ export default function Home() {
         id: problemId,
         problem,
         answers,
-        answered: false,
     };
 
     setCurrentProblems(prevProbs => [...prevProbs, newCurrentProblem]);
@@ -222,64 +227,55 @@ export default function Home() {
           generateProblem();
       }
 
-      setDinoState(prev => {
-          let newY = prev.y;
-          let newYVelocity = prev.yVelocity;
-
-          if (prev.y > GROUND_POSITION || newYVelocity !== 0) {
-              newYVelocity += GRAVITY;
-              newY += newYVelocity;
+      // Physics update (using ref, no re-render)
+      let { y, yVelocity, isJumping } = dinoPhysicsRef.current;
+      if (y > GROUND_POSITION || yVelocity !== 0) {
+          yVelocity += GRAVITY;
+          y += yVelocity;
+      }
+      if (y <= GROUND_POSITION) {
+          y = GROUND_POSITION;
+          yVelocity = 0;
+          if (isJumping) {
+            dinoPhysicsRef.current.isJumping = false;
           }
-
-          if (newY <= GROUND_POSITION) {
-              newY = GROUND_POSITION;
-              newYVelocity = 0;
-              if (isJumpingRef.current) {
-                isJumpingRef.current = false;
-              }
-          }
-
-          return { ...prev, y: newY, yVelocity: newYVelocity };
-      });
-
+      }
+      dinoPhysicsRef.current.y = y;
+      dinoPhysicsRef.current.yVelocity = yVelocity;
+      
+      // DOM update (using ref, no re-render)
       if (dinosaurRef.current) {
-          const dinoRect = dinosaurRef.current.getBoundingClientRect();
-          
-          setCurrentProblems(prevProblems => {
-              const newProblems = [...prevProblems];
-              newProblems.forEach(p => {
-                  if (p.answered) return;
+        dinosaurRef.current.style.transform = `translateY(${135 - y}px)`;
+        const dinoRect = dinosaurRef.current.getBoundingClientRect();
+        
+        currentProblems.forEach(p => {
+            if (answeredProblemsRef.current.has(p.id)) return;
 
-                  const dinoBottom = dinoRect.top + dinoRect.height;
-                  const dinoTop = dinoRect.top;
+            const bubbles = document.querySelectorAll(`.answer-bubble[data-problem-id='${p.id}']`);
+            bubbles.forEach(bubbleEl => {
+                const bubble = bubbleEl as HTMLDivElement;
+                const bubbleRect = bubble.getBoundingClientRect();
+                
+                const isColliding = dinoRect.left < bubbleRect.right &&
+                                    dinoRect.right > bubbleRect.left &&
+                                    dinoRect.top < bubbleRect.bottom &&
+                                    dinoRect.bottom > bubbleRect.top;
 
-                  document.querySelectorAll(`.answer-bubble[data-problem-id='${p.id}']`).forEach(bubbleEl => {
-                      if (p.answered) return; 
+                if (isColliding) {
+                    answeredProblemsRef.current.add(p.id);
+                    const isCorrect = bubble.dataset.correct === 'true';
 
-                      const bubble = bubbleEl as HTMLDivElement;
-                      const bubbleRect = bubble.getBoundingClientRect();
-                      
-                      const isColliding = dinoRect.left < bubbleRect.right &&
-                                          dinoRect.right > bubbleRect.left &&
-                                          dinoRect.top < bubbleRect.bottom &&
-                                          dinoRect.bottom > bubbleRect.top;
-
-                      if (isColliding && dinoState.yVelocity > 0 && dinoBottom > bubbleRect.top) {
-                          p.answered = true; 
-                          const isCorrect = bubble.dataset.correct === 'true';
-
-                          if (isCorrect) {
-                              handleCorrectAnswer(p.problem);
-                              bubble.style.background = '#2ecc71';
-                          } else {
-                              handleWrongAnswer(p.problem);
-                              bubble.style.background = '#e74c3c';
-                          }
-                      }
-                  });
-              });
-              return newProblems;
-          });
+                    if (isCorrect) {
+                        handleCorrectAnswer(p.problem);
+                        bubble.style.background = '#2ecc71';
+                    } else {
+                        handleWrongAnswer(p.problem);
+                        bubble.style.background = '#e74c3c';
+                    }
+                    bubble.classList.add('bouncing');
+                }
+            });
+        });
       }
       
       const gameContainerRect = gameContainerRef.current?.getBoundingClientRect();
@@ -306,7 +302,7 @@ export default function Home() {
       }
 
       animationFrameRef.current = requestAnimationFrame(gameLoop);
-  }, [gameState.running, dinoState.yVelocity, handleCorrectAnswer, handleWrongAnswer, generateProblem]);
+  }, [gameState.running, handleCorrectAnswer, handleWrongAnswer, generateProblem, currentProblems]);
 
 
   React.useEffect(() => {
@@ -321,11 +317,11 @@ export default function Home() {
   }, [gameState.running, gameLoop]);
 
   const jump = React.useCallback(() => {
-    if (dinoState.y <= GROUND_POSITION + 1 && gameState.running && !isJumpingRef.current) {
-      isJumpingRef.current = true;
-      setDinoState(prev => ({ ...prev, yVelocity: JUMP_VELOCITY }));
+    if (dinoPhysicsRef.current.y <= GROUND_POSITION + 1 && gameState.running && !dinoPhysicsRef.current.isJumping) {
+      dinoPhysicsRef.current.isJumping = true;
+      dinoPhysicsRef.current.yVelocity = JUMP_VELOCITY;
     }
-  }, [dinoState.y, gameState.running]);
+  }, [gameState.running]);
 
   const handlePress = React.useCallback(() => {
       if (gameState.running) {
@@ -353,10 +349,13 @@ export default function Home() {
     setProblemStats({ correct: [], wrong: [], totalProblems: 0, correctProblemTypes: {}, wrongProblemTypes: {} });
     setCurrentProblems([]);
     usedProblemsRef.current.clear();
+    answeredProblemsRef.current.clear();
     problemCounterRef.current = 0;
     frameCountRef.current = 0;
     updateDinosaurEvolution(0);
-    setDinoState(prev => ({...prev, evolution: 'egg', y: GROUND_POSITION, yVelocity: 0, evolving: false}));
+    dinoPhysicsRef.current = { y: GROUND_POSITION, yVelocity: 0, isJumping: false };
+    setDinoEvolution('egg');
+    setDinoIsEvolving(false);
     setAppState('playing');
 
     const startTime = Date.now();
@@ -381,7 +380,10 @@ export default function Home() {
       setProblemStats({ correct: [], wrong: [], totalProblems: 0, correctProblemTypes: {}, wrongProblemTypes: {} });
       setCurrentProblems([]);
       usedProblemsRef.current.clear();
-      setDinoState({ evolution: 'egg', y: GROUND_POSITION, yVelocity: 0, evolving: false });
+      answeredProblemsRef.current.clear();
+      dinoPhysicsRef.current = { y: GROUND_POSITION, yVelocity: 0, isJumping: false };
+      setDinoEvolution('egg');
+      setDinoIsEvolving(false);
       setAppState('start');
   }, []);
   
@@ -440,7 +442,12 @@ export default function Home() {
                   time={gameState.time} 
                   userData={userData}
                 />
-                <Dinosaur ref={dinosaurRef} {...dinoState} />
+                <Dinosaur 
+                  ref={dinosaurRef} 
+                  evolution={dinoEvolution} 
+                  y={dinoPhysicsRef.current.y} 
+                  evolving={dinoIsEvolving} 
+                />
                 <ProblemContainer problems={currentProblems} speedLevel={speedLevel} />
                 <div className="instructions">
                   스페이스바 또는 화면 터치로 점프하고 정답을 맞혀보세요!
@@ -500,5 +507,3 @@ export default function Home() {
     </main>
   );
 }
-
-    
