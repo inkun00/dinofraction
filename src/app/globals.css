@@ -240,7 +240,7 @@
 
 .math-problem {
     top: 108px; /* 15vh of 720px */
-    min-width: 256px;
+    min-width: 320px;
     white-space: nowrap;
     font-size: 38px;
     font-weight: bold;

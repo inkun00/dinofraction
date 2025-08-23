@@ -22,6 +22,7 @@ import LeaderboardScreen from '@/components/game-ui/screens/LeaderboardScreen';
 import LevelUpModal from '@/components/game-ui/screens/LevelUpModal';
 
 const JUMP_VELOCITY = 22;
+const RECOIL_JUMP_VELOCITY = 15;
 const GRAVITY = -1;
 const GROUND_POSITION = 135;
 const PROBLEM_GENERATION_INTERVAL = 200; // frames, 60fps -> ~3.3s
@@ -100,10 +101,12 @@ export default function Home() {
     });
   }, []);
 
-  const handleCorrectAnswer = React.useCallback((problem: Problem) => {
-      setDinoState(prev => ({ ...prev, recoil: true }));
-      setTimeout(() => setDinoState(prev => ({ ...prev, recoil: false })), 300);
+  const recoilJump = React.useCallback(() => {
+    setDinoState(prev => ({ ...prev, yVelocity: RECOIL_JUMP_VELOCITY }));
+  }, []);
 
+  const handleCorrectAnswer = React.useCallback((problem: Problem) => {
+      recoilJump();
       setGameState(prev => {
         const newScore = prev.score + 10;
         updateDinosaurEvolution(newScore);
@@ -114,12 +117,10 @@ export default function Home() {
           const newCorrectTypes = { ...prev.correctProblemTypes, [problem.type]: (prev.correctProblemTypes[problem.type] || 0) + 1 };
           return { ...prev, correct: newCorrect, correctProblemTypes: newCorrectTypes };
       });
-  }, [updateDinosaurEvolution]);
+  }, [updateDinosaurEvolution, recoilJump]);
 
     const handleWrongAnswer = React.useCallback((problem: Problem) => {
-        setDinoState(prev => ({ ...prev, recoil: true }));
-        setTimeout(() => setDinoState(prev => ({ ...prev, recoil: false })), 300);
-
+        recoilJump();
         setGameState(prev => {
             const newLives = prev.lives - 1;
             return { ...prev, lives: newLives };
@@ -129,7 +130,7 @@ export default function Home() {
             const newWrongTypes = { ...prevStats.wrongProblemTypes, [problem.type]: (prevStats.wrongProblemTypes[problem.type] || 0) + 1 };
             return {...prevStats, wrong: newWrong, wrongProblemTypes: newWrongTypes };
         });
-    }, []);
+    }, [recoilJump]);
 
     const endGame = React.useCallback(() => {
         setGameState(prev => ({...prev, running: false, started: false}));
@@ -287,9 +288,10 @@ export default function Home() {
                 if (problemEl) {
                     const problemRect = problemEl.getBoundingClientRect();
                     if (problemRect.right < gameContainerRect.left) {
-                        if (!p.answered) {
-                             handleWrongAnswer(p.problem);
-                        }
+                        // 문제를 풀지 않고 지나쳐도 생명력이 감소하지 않도록 수정
+                        // if (!p.answered) {
+                        //      handleWrongAnswer(p.problem);
+                        // }
                         return false; 
                     }
                 }
