@@ -22,7 +22,7 @@ function createFractionDisplayHTML(whole: number, numerator: number, denominator
     if (numerator === 0 && whole === 0) return `<span>0</span>`;
     if (numerator === 0 && whole > 0) return `<span>${whole}</span>`;
 
-    let resultHtml = '';
+    let resultHtml = '<div class="fraction-display">';
     if (whole > 0) {
         resultHtml += `<span class="fraction-whole">${whole}</span>`;
     }
@@ -34,11 +34,12 @@ function createFractionDisplayHTML(whole: number, numerator: number, denominator
                 <span class="fraction-denominator">${denominator}</span>
             </div>`;
     }
+    resultHtml += '</div>';
     return resultHtml;
 }
 
 function constructProblemText(frac1HTML: string, operator: string, frac2HTML: string): string {
-    return `<div class="fraction-display">${frac1HTML}</div> <div class="fraction-display">${operator}</div> <div class="fraction-display">${frac2HTML}</div>`;
+    return `${frac1HTML} <span class="mx-2">${operator}</span> ${frac2HTML}`;
 }
 
 function normalizeFraction(whole: number, numerator: number, denominator: number): Fraction {
@@ -178,5 +179,7 @@ export function analyzeStats(stats: Record<string, number>): string | null {
     }
     return resultType;
 }
+
+    
 
     
