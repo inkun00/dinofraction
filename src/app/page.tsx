@@ -39,7 +39,7 @@ export default function Home() {
   const [problemStats, setProblemStats] = React.useState<ProblemStats>({ correct: [], wrong: [], totalProblems: 0, correctProblemTypes: {}, wrongProblemTypes: {} });
   const [currentProblems, setCurrentProblems] = React.useState<CurrentProblem[]>([]);
   
-  const [dinoState, setDinoState] = React.useState<{ evolution: EvolutionStage; y: number; yVelocity: number; evolving: boolean, recoil: boolean }>({ evolution: 'egg', y: GROUND_POSITION, yVelocity: 0, evolving: false, recoil: false });
+  const [dinoState, setDinoState] = React.useState<{ evolution: EvolutionStage; y: number; yVelocity: number; evolving: boolean; recoil: boolean }>({ evolution: 'egg', y: GROUND_POSITION, yVelocity: 0, evolving: false, recoil: false });
   const [speedLevel, setSpeedLevel] = React.useState<SpeedLevel>(0);
   
   const gameTimerRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -122,7 +122,7 @@ export default function Home() {
         setGameState(prev => {
             const newLives = prev.lives - 1;
             if (newLives <= 0) {
-                // endGame is called in useEffect
+                // endGame will be called in useEffect listening to lives
             }
             return { ...prev, lives: newLives };
         });
@@ -178,10 +178,10 @@ export default function Home() {
     }, [userData, problemStats, currentUser, gameState.score]);
 
     React.useEffect(() => {
-        if (gameState.started && gameState.lives <= 0) {
+        if (gameState.started && gameState.lives <= 0 && gameState.running) {
             endGame();
         }
-    }, [gameState.lives, gameState.started, endGame]);
+    }, [gameState.lives, gameState.started, gameState.running, endGame]);
 
 
   const gameLoop = React.useCallback(() => {
@@ -228,7 +228,7 @@ export default function Home() {
                                     dinoRect.bottom > bubbleRect.top;
 
                   if (isColliding) {
-                      p.answered = true; // Mark problem as answered to prevent multiple triggers
+                      p.answered = true; // Mark problem as answered to prevent multiple triggers for the same problem.
 
                       const isCorrect = bubble.dataset.correct === 'true';
 
@@ -244,24 +244,27 @@ export default function Home() {
           }
       }
 
-       // Cleanup problems that have scrolled off-screen
       const gameContainerRect = gameContainerRef.current?.getBoundingClientRect();
       if(gameContainerRect) {
         let problemsToRemove: number[] = [];
-        for (const p of currentProblems) {
-            const problemEl = document.querySelector(`.math-problem[data-problem-id='${p.id}']`);
-            if (problemEl) {
-                const problemRect = problemEl.getBoundingClientRect();
-                if (problemRect.right < gameContainerRect.left) {
+        setCurrentProblems(prev => {
+            const nextProblems = [...prev];
+            for (const p of nextProblems) {
+                const problemEl = document.querySelector(`.math-problem[data-problem-id='${p.id}']`);
+                if (problemEl) {
+                    const problemRect = problemEl.getBoundingClientRect();
+                    if (problemRect.right < gameContainerRect.left - 50) { // Add some buffer
+                        problemsToRemove.push(p.id);
+                    }
+                } else if (!document.querySelector(`.answer-bubble[data-problem-id='${p.id}']`)) {
                     problemsToRemove.push(p.id);
                 }
-            } else if (!document.querySelector(`.answer-bubble[data-problem-id='${p.id}']`)) {
-                 problemsToRemove.push(p.id);
             }
-        }
-        if (problemsToRemove.length > 0) {
-            setCurrentProblems(prev => prev.filter(p => !problemsToRemove.includes(p.id)));
-        }
+            if (problemsToRemove.length > 0) {
+                return nextProblems.filter(p => !problemsToRemove.includes(p.id));
+            }
+            return nextProblems;
+        });
       }
 
 
@@ -310,6 +313,7 @@ export default function Home() {
 
 
   const generateProblem = React.useCallback(() => {
+    if(!gameState.running) return;
     const problemScore = gameState.score;
     const newProblemData = generateProblemUtil(problemScore, usedProblemsRef.current);
     if (!newProblemData) {
@@ -332,7 +336,7 @@ export default function Home() {
 
     setCurrentProblems(prevProbs => [...prevProbs, newCurrentProblem]);
     setProblemStats(prevStats => ({ ...prevStats, totalProblems: prevStats.totalProblems + 1 }));
-  }, [gameState.score]);
+  }, [gameState.score, gameState.running]);
 
   const startGame = React.useCallback(() => {
     setGameState({ score: 0, lives: 5, time: 0, running: true, started: true });
@@ -357,12 +361,9 @@ export default function Home() {
 
     generateProblem();
     problemTimerRef.current = setInterval(() => {
-        setGameState(prev => {
-            if (prev.running) generateProblem();
-            return prev;
-        });
+        if(gameState.running) generateProblem();
     }, 4000);
-  }, [generateProblem, updateDinosaurEvolution]);
+  }, [generateProblem, updateDinosaurEvolution, gameState.running]);
 
   const restartGame = React.useCallback(() => {
       if (gameTimerRef.current) clearInterval(gameTimerRef.current);
@@ -463,10 +464,10 @@ export default function Home() {
             return <LeaderboardScreen 
                       getLeaderboardData={getLeaderboardFromFirestore}
                       onClose={() => {
-                        if (!gameState.running && gameState.started) {
-                            setAppState('gameover');
-                        } else {
+                        if (!gameState.started) {
                             setAppState('start');
+                        } else {
+                            setAppState('gameover');
                         }
                       }}
                     />;
@@ -492,7 +493,5 @@ export default function Home() {
     </main>
   );
 }
-
-    
 
     
