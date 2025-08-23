@@ -250,7 +250,7 @@ export default function Home() {
                                 dinoRect.bottom > bubbleRect.top;
 
             if (isColliding) {
-
+                dinoPhysicsRef.current.yVelocity = -10;
                 answeredProblemsRef.current.add(problemId);
                 const isCorrect = bubble.dataset.correct === 'true';
                 const problem = currentProblems.find(p => p.id === problemId)?.problem;
