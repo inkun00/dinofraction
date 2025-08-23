@@ -1,9 +1,9 @@
+/* --- Font Imports --- */
+@import url('https://fonts.googleapis.com/css2?family=Gamja+Flower&family=Jua&family=Do+Hyeon&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* --- Font Imports --- */
-@import url('https://fonts.googleapis.com/css2?family=Gamja+Flower&family=Jua&family=Do+Hyeon&display=swap');
 
 @layer base {
   :root {
