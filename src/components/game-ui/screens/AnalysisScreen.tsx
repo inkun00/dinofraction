@@ -1,6 +1,7 @@
 import React from 'react';
 import type { ProblemStats } from '@/lib/types';
 import { Button } from '@/components/ui/button';
+import FractionDisplay from '../FractionDisplay';
 
 interface AnalysisScreenProps {
   problemStats: ProblemStats;
@@ -26,7 +27,11 @@ const AnalysisScreen: React.FC<AnalysisScreenProps> = ({ problemStats, onRestart
             <div className="wrong-problems-title">❌ 틀린 문제들</div>
             <div className="wrong-problem-list">
               {problemStats.wrong.map((p, index) => (
-                <div key={index} className="wrong-problem-item" dangerouslySetInnerHTML={{ __html: p.text }} />
+                <div key={index} className="wrong-problem-item">
+                  <div dangerouslySetInnerHTML={{ __html: p.text }} />
+                  <span>➡</span>
+                  <FractionDisplay fraction={p.answer} />
+                </div>
               ))}
             </div>
           </div>
