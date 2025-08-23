@@ -22,7 +22,6 @@ import LeaderboardScreen from '@/components/game-ui/screens/LeaderboardScreen';
 import LevelUpModal from '@/components/game-ui/screens/LevelUpModal';
 
 const JUMP_VELOCITY = 22;
-const RECOIL_JUMP_VELOCITY = 15;
 const GRAVITY = -1;
 const GROUND_POSITION = 135;
 const PROBLEM_GENERATION_INTERVAL = 200; // frames, 60fps -> ~3.3s
@@ -101,13 +100,13 @@ export default function Home() {
     });
   }, []);
 
-  const recoilJump = React.useCallback(() => {
-    setDinoState(prev => ({ ...prev, yVelocity: RECOIL_JUMP_VELOCITY, recoil: true }));
-    setTimeout(() => setDinoState(prev => ({...prev, recoil: false})), 300);
+  const handleCollision = React.useCallback(() => {
+      setDinoState(prev => ({ ...prev, yVelocity: 0, recoil: true }));
+      setTimeout(() => setDinoState(prev => ({...prev, recoil: false})), 300);
   }, []);
 
   const handleCorrectAnswer = React.useCallback((problem: Problem) => {
-      recoilJump();
+      handleCollision();
       setGameState(prev => {
         const newScore = prev.score + 10;
         updateDinosaurEvolution(newScore);
@@ -118,10 +117,10 @@ export default function Home() {
           const newCorrectTypes = { ...prev.correctProblemTypes, [problem.type]: (prev.correctProblemTypes[problem.type] || 0) + 1 };
           return { ...prev, correct: newCorrect, correctProblemTypes: newCorrectTypes };
       });
-  }, [updateDinosaurEvolution, recoilJump]);
+  }, [updateDinosaurEvolution, handleCollision]);
 
     const handleWrongAnswer = React.useCallback((problem: Problem) => {
-        recoilJump();
+        handleCollision();
         setGameState(prev => {
             const newLives = prev.lives - 1;
             return { ...prev, lives: newLives };
@@ -131,7 +130,7 @@ export default function Home() {
             const newWrongTypes = { ...prevStats.wrongProblemTypes, [problem.type]: (prevStats.wrongProblemTypes[problem.type] || 0) + 1 };
             return {...prevStats, wrong: newWrong, wrongProblemTypes: newWrongTypes };
         });
-    }, [recoilJump]);
+    }, [handleCollision]);
 
     const endGame = React.useCallback(() => {
         setGameState(prev => ({...prev, running: false, started: false}));
@@ -249,7 +248,7 @@ export default function Home() {
                   if (p.answered) return;
 
                   document.querySelectorAll(`.answer-bubble[data-problem-id='${p.id}']`).forEach(bubbleEl => {
-                      if (p.answered) return; // Re-check, another bubble for same problem might have been hit
+                      if (p.answered) return; 
 
                       const bubble = bubbleEl as HTMLDivElement;
                       const bubbleRect = bubble.getBoundingClientRect();
@@ -260,7 +259,7 @@ export default function Home() {
                                           dinoRect.bottom > bubbleRect.top;
 
                       if (isColliding) {
-                          p.answered = true; // Mark the entire problem as answered
+                          p.answered = true; 
                           const isCorrect = bubble.dataset.correct === 'true';
 
                           if (isCorrect) {
@@ -284,11 +283,17 @@ export default function Home() {
                 const problemEl = document.querySelector(`.math-problem[data-problem-id='${p.id}']`);
                 if (problemEl) {
                     const problemRect = problemEl.getBoundingClientRect();
-                    if (problemRect.right < gameContainerRect.left) {
+                    if (problemRect.right < gameContainerRect.left && !p.answered) {
                         return false; 
                     }
                 }
-                // Don't filter out answered problems here, let them scroll off-screen naturally
+                const firstBubble = document.querySelector(`.answer-bubble[data-problem-id='${p.id}']`);
+                if (firstBubble) {
+                    const bubbleRect = firstBubble.getBoundingClientRect();
+                    if (bubbleRect.right < gameContainerRect.left) {
+                        return false;
+                    }
+                }
                 return true;
             })
         );
@@ -489,3 +494,5 @@ export default function Home() {
     </main>
   );
 }
+
+    
