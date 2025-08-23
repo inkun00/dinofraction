@@ -153,20 +153,7 @@ export default function Home() {
     });
   }, []);
 
-  const handleCollision = React.useCallback(() => {
-      if (dinoPhysicsRef.current.yVelocity > 0) {
-        dinoPhysicsRef.current.yVelocity = 0;
-      }
-  }, []);
-
-  React.useEffect(() => {
-      if (gameState.started && gameState.lives <= 0 && gameState.running) {
-          endGame();
-      }
-  }, [gameState.lives, gameState.started, gameState.running, endGame]);
-
   const handleCorrectAnswer = React.useCallback((problem: Problem) => {
-      handleCollision();
       setGameState(prev => {
         const newScore = prev.score + 10;
         updateDinosaurEvolution(newScore);
@@ -177,10 +164,9 @@ export default function Home() {
           const newCorrectTypes = { ...prev.correctProblemTypes, [problem.type]: (prev.correctProblemTypes[problem.type] || 0) + 1 };
           return { ...prev, correct: newCorrect, correctProblemTypes: newCorrectTypes };
       });
-  }, [updateDinosaurEvolution, handleCollision]);
+  }, [updateDinosaurEvolution]);
 
   const handleWrongAnswer = React.useCallback((problem: Problem) => {
-      handleCollision();
       setGameState(prev => {
           const newLives = prev.lives - 1;
           return { ...prev, lives: newLives };
@@ -190,7 +176,13 @@ export default function Home() {
           const newWrongTypes = { ...prevStats.wrongProblemTypes, [problem.type]: (prevStats.wrongProblemTypes[problem.type] || 0) + 1 };
           return {...prevStats, wrong: newWrong, wrongProblemTypes: newWrongTypes };
       });
-  }, [handleCollision]);
+  }, []);
+
+  React.useEffect(() => {
+      if (gameState.started && gameState.lives <= 0 && gameState.running) {
+          endGame();
+      }
+  }, [gameState.lives, gameState.started, gameState.running, endGame]);
 
   const generateProblem = React.useCallback(() => {
     const problemScore = gameState.score;
@@ -274,7 +266,7 @@ export default function Home() {
                       bubble.style.background = '#e74c3c';
                   }
                 }
-                document.querySelectorAll(`.answer-bubble[data-problem-id='${problemId}']`).forEach(b => b.classList.add('bouncing'));
+                bubble.classList.add('bouncing');
             }
         });
       }
