@@ -267,6 +267,7 @@ export default function Home() {
                   }
                 }
                 bubble.classList.add('bouncing');
+                dinoPhysicsRef.current.yVelocity = -10;
             }
         });
       }
