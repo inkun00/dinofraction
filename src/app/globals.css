@@ -405,7 +405,7 @@
 .recommendation-item { background: #e74c3c; color: white; padding: 10px 20px; border-radius: 25px; font-size: 18px; font-weight: bold; border: 3px solid #c0392b; }
 .wrong-problems { margin-bottom: 30px; }
 .wrong-problems-title { font-size: 20px; font-weight: bold; color: #34495e; margin-bottom: 15px; text-align: center; }
-.wrong-problem-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; max-height: 200px; overflow-y: auto; }
+.wrong-problem-list { display: grid; grid-template-columns: 1fr; gap: 10px; max-height: 200px; overflow-y: auto; }
 .wrong-problem-item {
     background: #f8f9fa;
     border: 2px solid #e9ecef;
