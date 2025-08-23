@@ -35,6 +35,7 @@ export default function Home() {
   const [currentProblems, setCurrentProblems] = React.useState<CurrentProblem[]>([]);
   
   const [isJumping, setIsJumping] = React.useState(false);
+  const [isRecoiling, setIsRecoiling] = React.useState(false);
   const [dinoState, setDinoState] = React.useState<{ evolution: EvolutionStage; jumping: 'none' | 'low' | 'high'; evolving: boolean }>({ evolution: 'egg', jumping: 'none', evolving: false });
   const [speedLevel, setSpeedLevel] = React.useState<SpeedLevel>(0);
   
@@ -152,15 +153,21 @@ export default function Home() {
           if (dinoRect.left < bubbleRect.right && dinoRect.right > bubbleRect.left &&
               dinoRect.top < bubbleRect.bottom && dinoRect.bottom > bubbleRect.top) {
             
-            problemData.answered = true; // Prevents multiple checks on the same problem
+            problemData.answered = true;
             clearTimeout(problemData.cleanupTimer);
             
-            // Add hit animation
             bubble.classList.add('hit');
+            bubble.style.animationPlayState = 'running';
             bubble.addEventListener('animationend', () => {
-                bubble.classList.remove('hit');
+                cleanupProblem(problemId);
             }, { once: true });
 
+            setIsJumping(false);
+            setIsRecoiling(true);
+            setTimeout(() => {
+              setIsRecoiling(false);
+              setDinoState(prev => ({...prev, jumping: 'none' }));
+            }, 300);
 
             const isCorrect = bubble.dataset.correct === 'true';
             const type = problemData.problem.type;
@@ -189,7 +196,6 @@ export default function Home() {
                 wrongProblemTypes: { ...prev.wrongProblemTypes, [type]: (prev.wrongProblemTypes[type] || 0) + 1 }
               }));
             }
-            setTimeout(() => cleanupProblem(problemId), 500);
           }
         });
       }, 50);
@@ -198,16 +204,19 @@ export default function Home() {
   }, [isJumping, currentProblems, cleanupProblem, gameState.score, updateDinosaurEvolution]);
 
   const jump = React.useCallback((holdTime = 0) => {
-    if (!isJumping && gameState.running) {
-        setIsJumping(true);
-        setDinoState(prev => ({...prev, jumping: holdTime > 200 ? 'high' : 'low' }));
+    if ((isJumping || isRecoiling) || !gameState.running) return;
+    
+    setIsJumping(true);
+    const jumpType = holdTime > 200 ? 'high' : 'low';
+    setDinoState(prev => ({...prev, jumping: jumpType }));
 
-        setTimeout(() => {
-            setDinoState(prev => ({...prev, jumping: 'none' }));
-            setIsJumping(false);
-        }, 600);
-    }
-  }, [isJumping, gameState.running]);
+    setTimeout(() => {
+        if (!isRecoiling) {
+          setIsJumping(false);
+          setDinoState(prev => ({...prev, jumping: 'none' }));
+        }
+    }, 600);
+  }, [isJumping, isRecoiling, gameState.running]);
 
   const handlePressStart = React.useCallback(() => {
       if (gameState.started && gameState.running && !spacePressedRef.current) {
@@ -341,6 +350,20 @@ export default function Home() {
     }
   }, [gameState.score, gameState.running]);
 
+  React.useEffect(() => {
+    const dinoElement = dinosaurRef.current;
+    if (!dinoElement) return;
+
+    if (isRecoiling) {
+      dinoElement.style.transition = 'bottom 0.1s ease-out';
+      const currentBottom = parseFloat(getComputedStyle(dinoElement).bottom);
+      dinoElement.style.bottom = `${currentBottom - 40}px`;
+    } else if (!isJumping) {
+      dinoElement.style.transition = 'all 0.8s ease';
+      dinoElement.style.bottom = ''; // Reset to CSS defined value
+    }
+  }, [isRecoiling, isJumping]);
+
 
   const renderContent = () => {
     switch(appState) {
@@ -444,3 +467,5 @@ export default function Home() {
     </main>
   );
 }
+
+    
