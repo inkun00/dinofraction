@@ -212,16 +212,6 @@
     100% { transform: rotate(0deg); }
 }
 
-.dinosaur.recoiling {
-    animation: recoil-effect 0.3s ease-out;
-}
-
-@keyframes recoil-effect {
-    0% { transform: translateY(0); }
-    50% { transform: translateY(15px); } /* Bounce downwards */
-    100% { transform: translateY(0); }
-}
-
 /* Problem & Answer Bubbles */
 .math-problem, .answer-bubble {
     position: absolute;

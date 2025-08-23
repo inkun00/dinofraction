@@ -40,7 +40,7 @@ export default function Home() {
   const [problemStats, setProblemStats] = React.useState<ProblemStats>({ correct: [], wrong: [], totalProblems: 0, correctProblemTypes: {}, wrongProblemTypes: {} });
   const [currentProblems, setCurrentProblems] = React.useState<CurrentProblem[]>([]);
   
-  const [dinoState, setDinoState] = React.useState<{ evolution: EvolutionStage; y: number; yVelocity: number; evolving: boolean; recoil: boolean }>({ evolution: 'egg', y: GROUND_POSITION, yVelocity: 0, evolving: false, recoil: false });
+  const [dinoState, setDinoState] = React.useState<{ evolution: EvolutionStage; y: number; yVelocity: number; evolving: boolean; }>({ evolution: 'egg', y: GROUND_POSITION, yVelocity: 0, evolving: false });
   const [speedLevel, setSpeedLevel] = React.useState<SpeedLevel>(0);
   
   const gameTimerRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -51,59 +51,7 @@ export default function Home() {
   const animationFrameRef = React.useRef<number>();
   const frameCountRef = React.useRef(0);
 
-  React.useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setCurrentUser(user);
-        const data = await loadDBUserData(user.uid);
-        setUserData(data);
-        if (appState === 'loading') {
-          setAppState('start');
-        }
-      } else {
-        setCurrentUser(null);
-        setUserData({ score: 0, totalXp: 0, level: 1, correctProblemTypes: {}, wrongProblemTypes: {} });
-        setAppState('start');
-      }
-    });
-    return () => unsubscribe();
-  }, [appState]);
-
   const gameContainerRef = React.useRef<HTMLDivElement>(null);
-  React.useEffect(() => {
-    const resizeGame = () => {
-      if (!gameContainerRef.current) return;
-      const baseWidth = 1280;
-      const baseHeight = 720;
-      const scale = Math.min(window.innerWidth / baseWidth, window.innerHeight / baseHeight);
-      gameContainerRef.current.style.transform = `translate(-50%, -50%) scale(${scale})`;
-    };
-    resizeGame();
-    window.addEventListener('resize', resizeGame);
-    return () => window.removeEventListener('resize', resizeGame);
-  }, []);
-  
-  const updateDinosaurEvolution = React.useCallback((currentScore: number) => {
-    let newStage: EvolutionStage;
-    if (currentScore >= 400) newStage = 'boss';
-    else if (currentScore >= 300) newStage = 'adult';
-    else if (currentScore >= 200) newStage = 'medium';
-    else if (currentScore >= 100) newStage = 'baby';
-    else newStage = 'egg';
-
-    setDinoState(prev => {
-      if (newStage !== prev.evolution) {
-        setTimeout(() => setDinoState(p => ({ ...p, evolving: false })), 1000);
-        return { ...prev, evolution: newStage, evolving: true };
-      }
-      return prev;
-    });
-  }, []);
-
-  const handleCollision = React.useCallback(() => {
-      setDinoState(prev => ({ ...prev, recoil: true }));
-      setTimeout(() => setDinoState(prev => ({...prev, recoil: false})), 300);
-  }, []);
 
   const endGame = React.useCallback(() => {
       setGameState(prev => ({...prev, running: false, started: false}));
@@ -147,6 +95,63 @@ export default function Home() {
           setAppState('gameover');
       }
   }, [userData, problemStats, currentUser, gameState.score]);
+
+  React.useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setCurrentUser(user);
+        const data = await loadDBUserData(user.uid);
+        setUserData(data);
+        if (appState === 'loading') {
+          setAppState('start');
+        }
+      } else {
+        setCurrentUser(null);
+        setUserData({ score: 0, totalXp: 0, level: 1, correctProblemTypes: {}, wrongProblemTypes: {} });
+        setAppState('start');
+      }
+    });
+    return () => unsubscribe();
+  }, [appState]);
+
+  React.useEffect(() => {
+    const resizeGame = () => {
+      if (!gameContainerRef.current) return;
+      const baseWidth = 1280;
+      const baseHeight = 720;
+      const scale = Math.min(window.innerWidth / baseWidth, window.innerHeight / baseHeight);
+      gameContainerRef.current.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    };
+    resizeGame();
+    window.addEventListener('resize', resizeGame);
+    return () => window.removeEventListener('resize', resizeGame);
+  }, []);
+  
+  const updateDinosaurEvolution = React.useCallback((currentScore: number) => {
+    let newStage: EvolutionStage;
+    if (currentScore >= 400) newStage = 'boss';
+    else if (currentScore >= 300) newStage = 'adult';
+    else if (currentScore >= 200) newStage = 'medium';
+    else if (currentScore >= 100) newStage = 'baby';
+    else newStage = 'egg';
+
+    setDinoState(prev => {
+      if (newStage !== prev.evolution) {
+        setTimeout(() => setDinoState(p => ({ ...p, evolving: false })), 1000);
+        return { ...prev, evolution: newStage, evolving: true };
+      }
+      return prev;
+    });
+  }, []);
+
+  const handleCollision = React.useCallback(() => {
+      setDinoState(prev => {
+        if(prev.yVelocity > 0) {
+            return { ...prev, yVelocity: 0 };
+        }
+        return prev;
+      });
+  }, []);
 
   React.useEffect(() => {
       if (gameState.started && gameState.lives <= 0 && gameState.running) {
@@ -245,18 +250,21 @@ export default function Home() {
               newProblems.forEach(p => {
                   if (p.answered) return;
 
+                  const dinoBottom = dinoRect.top + dinoRect.height;
+                  const dinoTop = dinoRect.top;
+
                   document.querySelectorAll(`.answer-bubble[data-problem-id='${p.id}']`).forEach(bubbleEl => {
                       if (p.answered) return; 
 
                       const bubble = bubbleEl as HTMLDivElement;
                       const bubbleRect = bubble.getBoundingClientRect();
-
+                      
                       const isColliding = dinoRect.left < bubbleRect.right &&
                                           dinoRect.right > bubbleRect.left &&
                                           dinoRect.top < bubbleRect.bottom &&
                                           dinoRect.bottom > bubbleRect.top;
 
-                      if (isColliding) {
+                      if (isColliding && dinoState.yVelocity > 0 && dinoBottom > bubbleRect.top) {
                           p.answered = true; 
                           const isCorrect = bubble.dataset.correct === 'true';
 
@@ -298,7 +306,7 @@ export default function Home() {
       }
 
       animationFrameRef.current = requestAnimationFrame(gameLoop);
-  }, [gameState.running, handleCorrectAnswer, handleWrongAnswer, generateProblem]);
+  }, [gameState.running, dinoState.yVelocity, handleCorrectAnswer, handleWrongAnswer, generateProblem]);
 
 
   React.useEffect(() => {
@@ -348,7 +356,7 @@ export default function Home() {
     problemCounterRef.current = 0;
     frameCountRef.current = 0;
     updateDinosaurEvolution(0);
-    setDinoState(prev => ({...prev, evolution: 'egg', y: GROUND_POSITION, yVelocity: 0, evolving: false, recoil: false}));
+    setDinoState(prev => ({...prev, evolution: 'egg', y: GROUND_POSITION, yVelocity: 0, evolving: false}));
     setAppState('playing');
 
     const startTime = Date.now();
@@ -373,7 +381,7 @@ export default function Home() {
       setProblemStats({ correct: [], wrong: [], totalProblems: 0, correctProblemTypes: {}, wrongProblemTypes: {} });
       setCurrentProblems([]);
       usedProblemsRef.current.clear();
-      setDinoState({ evolution: 'egg', y: GROUND_POSITION, yVelocity: 0, evolving: false, recoil: false });
+      setDinoState({ evolution: 'egg', y: GROUND_POSITION, yVelocity: 0, evolving: false });
       setAppState('start');
   }, []);
   
