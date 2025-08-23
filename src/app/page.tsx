@@ -24,6 +24,7 @@ import LevelUpModal from '@/components/game-ui/screens/LevelUpModal';
 const JUMP_VELOCITY = 22;
 const GRAVITY = -1;
 const GROUND_POSITION = 135;
+const PROBLEM_GENERATION_INTERVAL = 200; // frames, 60fps -> ~3.3s
 
 export default function Home() {
   const [appState, setAppState] = React.useState<AppState>('loading');
@@ -43,12 +44,12 @@ export default function Home() {
   const [speedLevel, setSpeedLevel] = React.useState<SpeedLevel>(0);
   
   const gameTimerRef = React.useRef<NodeJS.Timeout | null>(null);
-  const problemTimerRef = React.useRef<NodeJS.Timeout | null>(null);
   const usedProblemsRef = React.useRef<Set<string>>(new Set());
   const problemCounterRef = React.useRef(0);
   const dinosaurRef = React.useRef<HTMLDivElement>(null);
   const isJumpingRef = React.useRef(false);
   const animationFrameRef = React.useRef<number>();
+  const frameCountRef = React.useRef(0);
 
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -115,7 +116,7 @@ export default function Home() {
       });
   }, [updateDinosaurEvolution]);
 
-    const handleWrongAnswer = React.useCallback(() => {
+    const handleWrongAnswer = React.useCallback((problem: Problem) => {
         setDinoState(prev => ({ ...prev, recoil: true }));
         setTimeout(() => setDinoState(prev => ({ ...prev, recoil: false })), 300);
 
@@ -123,13 +124,17 @@ export default function Home() {
             const newLives = prev.lives - 1;
             return { ...prev, lives: newLives };
         });
+        setProblemStats(prevStats => {
+            const newWrong = [...prevStats.wrong, problem];
+            const newWrongTypes = { ...prevStats.wrongProblemTypes, [problem.type]: (prevStats.wrongProblemTypes[problem.type] || 0) + 1 };
+            return {...prevStats, wrong: newWrong, wrongProblemTypes: newWrongTypes };
+        });
     }, []);
 
     const endGame = React.useCallback(() => {
         setGameState(prev => ({...prev, running: false, started: false}));
 
         if (gameTimerRef.current) clearInterval(gameTimerRef.current);
-        if (problemTimerRef.current) clearInterval(problemTimerRef.current);
         if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
 
         setCurrentProblems([]);
@@ -176,10 +181,41 @@ export default function Home() {
     }, [gameState.lives, gameState.started, gameState.running, endGame]);
 
 
+  const generateProblem = React.useCallback(() => {
+    const problemScore = gameState.score;
+    const newProblemData = generateProblemUtil(problemScore, usedProblemsRef.current);
+    if (!newProblemData) {
+      console.log("모든 문제를 다 풀었습니다!");
+      return;
+    }
+
+    const { problem, answers, problemKey } = newProblemData;
+    usedProblemsRef.current.add(problemKey);
+    problemCounterRef.current++;
+    const problemId = problemCounterRef.current;
+
+    const newCurrentProblem: CurrentProblem = {
+        id: problemId,
+        problem,
+        answers,
+        answered: false,
+        element: React.createRef<HTMLDivElement>(),
+    };
+
+    setCurrentProblems(prevProbs => [...prevProbs, newCurrentProblem]);
+    setProblemStats(prevStats => ({ ...prevStats, totalProblems: prevStats.totalProblems + 1 }));
+  }, [gameState.score]);
+
+
   const gameLoop = React.useCallback(() => {
       if (!gameState.running) {
           if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
           return;
+      }
+      
+      frameCountRef.current++;
+      if (frameCountRef.current % PROBLEM_GENERATION_INTERVAL === 0) {
+          generateProblem();
       }
 
       setDinoState(prev => {
@@ -209,10 +245,10 @@ export default function Home() {
               prevProblems.map(p => {
                   if (p.answered) return p;
 
-                  let problemAnswered = false;
+                  let problemAnsweredThisFrame = false;
 
                   document.querySelectorAll(`.answer-bubble[data-problem-id='${p.id}']`).forEach(bubbleEl => {
-                      if (problemAnswered) return;
+                      if (problemAnsweredThisFrame) return;
 
                       const bubble = bubbleEl as HTMLDivElement;
                       const bubbleRect = bubble.getBoundingClientRect();
@@ -223,24 +259,19 @@ export default function Home() {
                                           dinoRect.bottom > bubbleRect.top;
 
                       if (isColliding) {
-                          problemAnswered = true; // Mark problem as answered for this loop iteration
+                          problemAnsweredThisFrame = true;
                           const isCorrect = bubble.dataset.correct === 'true';
 
                           if (isCorrect) {
                               handleCorrectAnswer(p.problem);
                               bubble.style.background = '#2ecc71';
                           } else {
-                              handleWrongAnswer();
+                              handleWrongAnswer(p.problem);
                               bubble.style.background = '#e74c3c';
-                              setProblemStats(prevStats => {
-                                const newWrong = [...prevStats.wrong, p.problem];
-                                const newWrongTypes = { ...prevStats.wrongProblemTypes, [p.problem.type]: (prevStats.wrongProblemTypes[p.problem.type] || 0) + 1 };
-                                return {...prevStats, wrong: newWrong, wrongProblemTypes: newWrongTypes };
-                              });
                           }
                       }
                   });
-                  if (problemAnswered) {
+                  if (problemAnsweredThisFrame) {
                       return { ...p, answered: true };
                   }
                   return p;
@@ -248,33 +279,27 @@ export default function Home() {
           );
       }
       
-      let problemsToCleanup: number[] = [];
       const gameContainerRect = gameContainerRef.current?.getBoundingClientRect();
-
       if(gameContainerRect) {
-        setCurrentProblems(prev => {
-          const nextProblems = [...prev];
-          for (const p of nextProblems) {
-              const problemEl = document.querySelector(`.math-problem[data-problem-id='${p.id}']`);
-              if (problemEl) {
-                  const problemRect = problemEl.getBoundingClientRect();
-                  if (problemRect.right < gameContainerRect.left - 50) {
-                      problemsToCleanup.push(p.id);
-                  }
-              } else if (!document.querySelector(`.answer-bubble[data-problem-id='${p.id}']`)) {
-                   problemsToCleanup.push(p.id);
-              }
-          }
-          if (problemsToCleanup.length > 0) {
-              return nextProblems.filter(p => !problemsToCleanup.includes(p.id));
-          }
-          return nextProblems;
-        });
+        setCurrentProblems(prev => 
+            prev.filter(p => {
+                const problemEl = document.querySelector(`.math-problem[data-problem-id='${p.id}']`);
+                if (problemEl) {
+                    const problemRect = problemEl.getBoundingClientRect();
+                    if (problemRect.right < gameContainerRect.left) {
+                        if (!p.answered) {
+                             handleWrongAnswer(p.problem);
+                        }
+                        return false; 
+                    }
+                }
+                return true; 
+            })
+        );
       }
 
-
       animationFrameRef.current = requestAnimationFrame(gameLoop);
-  }, [gameState.running, handleCorrectAnswer, handleWrongAnswer]);
+  }, [gameState.running, handleCorrectAnswer, handleWrongAnswer, generateProblem]);
 
 
   React.useEffect(() => {
@@ -289,7 +314,7 @@ export default function Home() {
   }, [gameState.running, gameLoop]);
 
   const jump = React.useCallback(() => {
-    if (dinoState.y <= GROUND_POSITION + 1 && gameState.running) {
+    if (dinoState.y <= GROUND_POSITION + 1 && gameState.running && !isJumpingRef.current) {
       isJumpingRef.current = true;
       setDinoState(prev => ({ ...prev, yVelocity: JUMP_VELOCITY }));
     }
@@ -316,39 +341,13 @@ export default function Home() {
       };
   }, [handlePress]);
 
-
-  const generateProblem = React.useCallback(() => {
-    if(!gameState.running) return;
-    const problemScore = gameState.score;
-    const newProblemData = generateProblemUtil(problemScore, usedProblemsRef.current);
-    if (!newProblemData) {
-      console.log("모든 문제를 다 풀었습니다!");
-      return;
-    }
-
-    const { problem, answers, problemKey } = newProblemData;
-    usedProblemsRef.current.add(problemKey);
-    problemCounterRef.current++;
-    const problemId = problemCounterRef.current;
-
-    const newCurrentProblem: CurrentProblem = {
-        id: problemId,
-        problem,
-        answers,
-        answered: false,
-        element: React.createRef<HTMLDivElement>(),
-    };
-
-    setCurrentProblems(prevProbs => [...prevProbs, newCurrentProblem]);
-    setProblemStats(prevStats => ({ ...prevStats, totalProblems: prevStats.totalProblems + 1 }));
-  }, [gameState.score, gameState.running]);
-
   const startGame = React.useCallback(() => {
     setGameState({ score: 0, lives: 5, time: 0, running: true, started: true });
     setProblemStats({ correct: [], wrong: [], totalProblems: 0, correctProblemTypes: {}, wrongProblemTypes: {} });
     setCurrentProblems([]);
     usedProblemsRef.current.clear();
     problemCounterRef.current = 0;
+    frameCountRef.current = 0;
     updateDinosaurEvolution(0);
     setDinoState(prev => ({...prev, evolution: 'egg', y: GROUND_POSITION, yVelocity: 0, evolving: false, recoil: false}));
     setAppState('playing');
@@ -365,14 +364,10 @@ export default function Home() {
     }, 1000);
 
     generateProblem();
-    problemTimerRef.current = setInterval(() => {
-        if(gameState.running) generateProblem();
-    }, 4000);
-  }, [generateProblem, updateDinosaurEvolution, gameState.running]);
+  }, [generateProblem, updateDinosaurEvolution]);
 
   const restartGame = React.useCallback(() => {
       if (gameTimerRef.current) clearInterval(gameTimerRef.current);
-      if (problemTimerRef.current) clearInterval(problemTimerRef.current);
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
 
       setGameState({ score: 0, lives: 5, time: 0, running: false, started: false });
@@ -498,7 +493,5 @@ export default function Home() {
     </main>
   );
 }
-
-    
 
     
