@@ -233,8 +233,8 @@
     z-index: 40;
 }
 @keyframes scrollProblem {
-    from { transform: translateX(1280px); }
-    to { transform: translateX(-320px); }
+    from { right: -320px; }
+    to { right: 1280px; }
 }
 
 .math-problem {
