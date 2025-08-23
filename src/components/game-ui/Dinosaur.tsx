@@ -6,15 +6,17 @@ interface DinosaurProps {
   evolution: EvolutionStage;
   jumping: 'none' | 'low' | 'high';
   evolving: boolean;
+  recoil: boolean;
 }
 
-const Dinosaur = React.forwardRef<HTMLDivElement, DinosaurProps>(({ evolution, jumping, evolving }, ref) => {
+const Dinosaur = React.forwardRef<HTMLDivElement, DinosaurProps>(({ evolution, jumping, recoil, evolving }, ref) => {
   const classes = cn(
     'dinosaur',
     evolution,
     { 'jumping-low': jumping === 'low' },
     { 'jumping-high': jumping === 'high' },
-    { 'bounce': jumping !== 'none' },
+    { 'recoiling': recoil },
+    { 'bounce': jumping !== 'none' && !recoil },
     { 'evolving': evolving }
   );
 

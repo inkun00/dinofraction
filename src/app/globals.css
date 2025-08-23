@@ -170,7 +170,7 @@
     position: absolute;
     bottom: 135px; /* 18.75vh of 720px */
     left: 35%;
-    transition: all 0.8s ease;
+    transition: all 0.3s ease-out;
     z-index: 50;
     filter: drop-shadow(3px 3px 6px rgba(0,0,0,0.3));
     display: flex;
@@ -203,8 +203,19 @@
 }
 
 /* Jump Positions */
-.dinosaur.jumping-low { bottom: 302px; /* 42vh of 720px */ }
-.dinosaur.jumping-high { bottom: 378px; /* 52.5vh of 720px */ }
+.dinosaur.jumping-low { bottom: 260px; /* 36vh of 720px */ transition: bottom 0.3s ease-out; }
+.dinosaur.jumping-high { bottom: 340px; /* 47vh of 720px */ transition: bottom 0.3s ease-out; }
+
+.dinosaur.recoiling {
+    animation: recoil-effect 0.3s ease-out;
+}
+
+@keyframes recoil-effect {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-30px); }
+    100% { transform: translateY(0); }
+}
+
 
 /* Problem & Answer Bubbles */
 .math-problem, .answer-bubble {
@@ -361,8 +372,11 @@
 
 .loading-spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #3498db; animation: spin 1s ease infinite; margin: 0 auto; }
 @keyframes spin { 100% { transform: rotate(360deg); } }
-@keyframes bounce { 40% { transform: translateY(-10px); } 60% { transform: translateY(-5px); } }
-.bounce { animation: bounce 0.6s ease; }
+@keyframes bounce { 
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.bounce { animation: bounce 0.6s ease-out; }
 
 /* --- Analysis Screen --- */
 .analysis-title { font-size: 32px; font-weight: bold; color: #2c3e50; text-align: center; margin-bottom: 30px; }
@@ -419,5 +433,3 @@
     background-color: white;
     border-color: #ddd;
 }
-
-    
