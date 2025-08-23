@@ -253,6 +253,20 @@
     overflow: hidden;
 }
 
+.answer-bubble.hit {
+  animation: hit-bubble 0.3s ease-out;
+}
+
+@keyframes hit-bubble {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+
 /* Fraction Display Styling */
 .fraction-display { display: flex; align-items: center; font-family: 'Jua'; }
 .fraction-whole { font-size: 1.5em; line-height: 1; margin-right: 4px; }

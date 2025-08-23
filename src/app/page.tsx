@@ -155,6 +155,13 @@ export default function Home() {
             problemData.answered = true; // Prevents multiple checks on the same problem
             clearTimeout(problemData.cleanupTimer);
             
+            // Add hit animation
+            bubble.classList.add('hit');
+            bubble.addEventListener('animationend', () => {
+                bubble.classList.remove('hit');
+            }, { once: true });
+
+
             const isCorrect = bubble.dataset.correct === 'true';
             const type = problemData.problem.type;
 
