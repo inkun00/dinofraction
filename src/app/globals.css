@@ -141,7 +141,7 @@
 @keyframes scrollGrass { 100% { transform: translateX(-33.33%); } }
 
 .trees {
-    bottom: 135px;
+    bottom: 85px;
     width: 400%;
     height: 360px; /* 50vh of 720px */
     z-index: 5;
