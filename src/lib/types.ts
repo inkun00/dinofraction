@@ -29,7 +29,6 @@ export type CurrentProblem = {
   problem: Problem;
   answers: Answer[];
   answered: boolean;
-  element: React.RefObject<HTMLDivElement>;
 };
 
 export type ProblemStats = {

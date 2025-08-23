@@ -209,6 +209,7 @@ export default function Home() {
         id: problemId,
         problem,
         answers,
+        answered: false,
     };
 
     setCurrentProblems(prevProbs => [...prevProbs, newCurrentProblem]);
@@ -229,78 +230,55 @@ export default function Home() {
 
       // Physics update (using ref, no re-render)
       let { y, yVelocity, isJumping } = dinoPhysicsRef.current;
-      if (y > GROUND_POSITION || yVelocity !== 0) {
-          yVelocity += GRAVITY;
-          y += yVelocity;
-      }
+      yVelocity += GRAVITY;
+      y += yVelocity;
+      
       if (y <= GROUND_POSITION) {
           y = GROUND_POSITION;
           yVelocity = 0;
-          if (isJumping) {
-            dinoPhysicsRef.current.isJumping = false;
-          }
+          isJumping = false;
       }
       dinoPhysicsRef.current.y = y;
       dinoPhysicsRef.current.yVelocity = yVelocity;
+      dinoPhysicsRef.current.isJumping = isJumping;
       
       // DOM update (using ref, no re-render)
       if (dinosaurRef.current) {
-        dinosaurRef.current.style.transform = `translateY(${135 - y}px)`;
+        dinosaurRef.current.style.transform = `translateY(${-(y - GROUND_POSITION)}px)`;
         const dinoRect = dinosaurRef.current.getBoundingClientRect();
         
-        currentProblems.forEach(p => {
-            if (answeredProblemsRef.current.has(p.id)) return;
+        document.querySelectorAll('.answer-bubble').forEach(bubbleEl => {
+            const bubble = bubbleEl as HTMLDivElement;
+            const problemId = parseInt(bubble.dataset.problemId || '0');
 
-            const bubbles = document.querySelectorAll(`.answer-bubble[data-problem-id='${p.id}']`);
-            bubbles.forEach(bubbleEl => {
-                const bubble = bubbleEl as HTMLDivElement;
-                const bubbleRect = bubble.getBoundingClientRect();
+            if(answeredProblemsRef.current.has(problemId)) return;
+
+            const bubbleRect = bubble.getBoundingClientRect();
+            
+            const isColliding = dinoRect.left < bubbleRect.right &&
+                                dinoRect.right > bubbleRect.left &&
+                                dinoRect.top < bubbleRect.bottom &&
+                                dinoRect.bottom > bubbleRect.top;
+
+            if (isColliding) {
+                answeredProblemsRef.current.add(problemId);
+                const isCorrect = bubble.dataset.correct === 'true';
+                const problem = currentProblems.find(p => p.id === problemId)?.problem;
                 
-                const isColliding = dinoRect.left < bubbleRect.right &&
-                                    dinoRect.right > bubbleRect.left &&
-                                    dinoRect.top < bubbleRect.bottom &&
-                                    dinoRect.bottom > bubbleRect.top;
-
-                if (isColliding) {
-                    answeredProblemsRef.current.add(p.id);
-                    const isCorrect = bubble.dataset.correct === 'true';
-
-                    if (isCorrect) {
-                        handleCorrectAnswer(p.problem);
-                        bubble.style.background = '#2ecc71';
-                    } else {
-                        handleWrongAnswer(p.problem);
-                        bubble.style.background = '#e74c3c';
-                    }
-                    bubble.classList.add('bouncing');
+                if(problem) {
+                  if (isCorrect) {
+                      handleCorrectAnswer(problem);
+                      bubble.style.background = '#2ecc71';
+                  } else {
+                      handleWrongAnswer(problem);
+                      bubble.style.background = '#e74c3c';
+                  }
                 }
-            });
+                document.querySelectorAll(`.answer-bubble[data-problem-id='${problemId}']`).forEach(b => b.classList.add('bouncing'));
+            }
         });
       }
       
-      const gameContainerRect = gameContainerRef.current?.getBoundingClientRect();
-      if(gameContainerRect) {
-        setCurrentProblems(prev => 
-            prev.filter(p => {
-                const problemEl = document.querySelector(`.math-problem[data-problem-id='${p.id}']`);
-                if (problemEl) {
-                    const problemRect = problemEl.getBoundingClientRect();
-                    if (problemRect.right < gameContainerRect.left) {
-                        return false; 
-                    }
-                }
-                const firstBubble = document.querySelector(`.answer-bubble[data-problem-id='${p.id}']`);
-                if (firstBubble) {
-                    const bubbleRect = firstBubble.getBoundingClientRect();
-                     if (bubbleRect.right < gameContainerRect.left) {
-                        return false;
-                    }
-                }
-                return true;
-            })
-        );
-      }
-
       animationFrameRef.current = requestAnimationFrame(gameLoop);
   }, [gameState.running, handleCorrectAnswer, handleWrongAnswer, generateProblem, currentProblems]);
 
@@ -317,7 +295,7 @@ export default function Home() {
   }, [gameState.running, gameLoop]);
 
   const jump = React.useCallback(() => {
-    if (dinoPhysicsRef.current.y <= GROUND_POSITION + 1 && gameState.running && !dinoPhysicsRef.current.isJumping) {
+    if (dinoPhysicsRef.current.y <= GROUND_POSITION && gameState.running && !dinoPhysicsRef.current.isJumping) {
       dinoPhysicsRef.current.isJumping = true;
       dinoPhysicsRef.current.yVelocity = JUMP_VELOCITY;
     }
