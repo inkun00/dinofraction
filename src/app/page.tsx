@@ -101,7 +101,7 @@ export default function Home() {
   }, []);
 
   const handleCollision = React.useCallback(() => {
-      setDinoState(prev => ({ ...prev, yVelocity: 0, recoil: true }));
+      setDinoState(prev => ({ ...prev, recoil: true }));
       setTimeout(() => setDinoState(prev => ({...prev, recoil: false})), 300);
   }, []);
 
@@ -148,6 +148,12 @@ export default function Home() {
       }
   }, [userData, problemStats, currentUser, gameState.score]);
 
+  React.useEffect(() => {
+      if (gameState.started && gameState.lives <= 0 && gameState.running) {
+          endGame();
+      }
+  }, [gameState.lives, gameState.started, gameState.running, endGame]);
+
   const handleCorrectAnswer = React.useCallback((problem: Problem) => {
       handleCollision();
       setGameState(prev => {
@@ -174,13 +180,6 @@ export default function Home() {
           return {...prevStats, wrong: newWrong, wrongProblemTypes: newWrongTypes };
       });
   }, [handleCollision]);
-
-    React.useEffect(() => {
-        if (gameState.started && gameState.lives <= 0 && gameState.running) {
-            endGame();
-        }
-    }, [gameState.lives, gameState.started, gameState.running, endGame]);
-
 
   const generateProblem = React.useCallback(() => {
     const problemScore = gameState.score;
@@ -283,14 +282,14 @@ export default function Home() {
                 if (problemEl) {
                     const problemRect = problemEl.getBoundingClientRect();
                     if (problemRect.right < gameContainerRect.left) {
-                        return false; // 화면 왼쪽을 벗어난 문제 제거
+                        return false; 
                     }
                 }
                 const firstBubble = document.querySelector(`.answer-bubble[data-problem-id='${p.id}']`);
                 if (firstBubble) {
                     const bubbleRect = firstBubble.getBoundingClientRect();
                      if (bubbleRect.right < gameContainerRect.left) {
-                        return false; // 화면 왼쪽을 벗어난 버블 제거
+                        return false;
                     }
                 }
                 return true;

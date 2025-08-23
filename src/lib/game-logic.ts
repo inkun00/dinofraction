@@ -19,8 +19,8 @@ const problemTypesByScore = {
 };
 
 function createFractionDisplayHTML(whole: number, numerator: number, denominator: number): string {
-    if (numerator === 0 && whole === 0) return `<div><span>0</span></div>`;
-    if (numerator === 0 && whole > 0) return `<div><span>${whole}</span></div>`;
+    if (numerator === 0 && whole === 0) return `<span>0</span>`;
+    if (numerator === 0 && whole > 0) return `<span>${whole}</span>`;
 
     let resultHtml = '';
     if (whole > 0) {
@@ -34,7 +34,7 @@ function createFractionDisplayHTML(whole: number, numerator: number, denominator
                 <span class="fraction-denominator">${denominator}</span>
             </div>`;
     }
-    return `<div>${resultHtml}</div>`;
+    return resultHtml;
 }
 
 function constructProblemText(frac1HTML: string, operator: string, frac2HTML: string): string {
@@ -178,3 +178,5 @@ export function analyzeStats(stats: Record<string, number>): string | null {
     }
     return resultType;
 }
+
+    
