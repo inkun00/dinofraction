@@ -233,7 +233,6 @@ export default function Home() {
       
       // DOM update (using ref, no re-render)
       if (dinosaurRef.current) {
-        dinosaurRef.current.style.transform = `translateY(${-(y - GROUND_POSITION)}px)`;
         const dinoRect = dinosaurRef.current.getBoundingClientRect();
         
         document.querySelectorAll('.answer-bubble').forEach(bubbleEl => {
@@ -250,7 +249,10 @@ export default function Home() {
                                 dinoRect.bottom > bubbleRect.top;
 
             if (isColliding) {
-                dinoPhysicsRef.current.yVelocity = -10;
+                // 작용-반작용: 공룡은 아래로 튕겨나감
+                yVelocity = -10; // 즉시 하강 속도로 변경
+                y += yVelocity;   // 변경된 속도를 현재 프레임 위치에 바로 적용
+                
                 answeredProblemsRef.current.add(problemId);
                 const isCorrect = bubble.dataset.correct === 'true';
                 const problem = currentProblems.find(p => p.id === problemId)?.problem;
@@ -265,10 +267,12 @@ export default function Home() {
                   }
                 }
                 bubble.classList.remove('bouncing');
-                void bubble.offsetWidth; // Trigger reflow to restart animation
+                void bubble.offsetWidth;
                 bubble.classList.add('bouncing');
             }
         });
+
+        dinosaurRef.current.style.transform = `translateY(${-(y - GROUND_POSITION)}px)`;
       }
       
       dinoPhysicsRef.current.y = y;
