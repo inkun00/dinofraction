@@ -183,7 +183,6 @@ export default function Home() {
                         dinoRect.top < bubbleRect.bottom && dinoRect.bottom > bubbleRect.top) {
                         
                         newProblemState.answered = true;
-                        bubble.classList.add('hit');
                         
                         setDinoState(prev => ({...prev, recoil: true, yVelocity: -5 })); // Apply recoil
                         setTimeout(() => setDinoState(prev => ({ ...prev, recoil: false })), 300);
@@ -213,12 +212,6 @@ export default function Home() {
                                 wrongProblemTypes: { ...prev.wrongProblemTypes, [type]: (prev.wrongProblemTypes[type] || 0) + 1 }
                             }));
                         }
-                        
-                        setTimeout(() => {
-                           problemsToRemove.push(newProblemState.id);
-                           // Force a re-render to apply removal
-                           setCurrentProblems(prev => prev.filter(prob => prob.id !== newProblemState.id));
-                        }, 400); // Remove after hit animation
                     }
                 });
                 return newProblemState;
