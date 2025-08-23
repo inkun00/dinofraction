@@ -104,7 +104,7 @@ export default function Home() {
   const cleanupProblem = React.useCallback((problemId: number) => {
       setCurrentProblems(prev => prev.filter(p => p.id !== problemId));
   }, []);
-  
+
   const endGame = React.useCallback(() => {
     const finalScore = gameState.score;
     
@@ -150,7 +150,6 @@ export default function Home() {
     }
   }, [userData, problemStats, currentUser, gameState.score]);
 
-
   const handleCorrectAnswer = React.useCallback((problem: CurrentProblem) => {
     setGameState(prev => {
       const newScore = prev.score + 10;
@@ -168,7 +167,8 @@ export default function Home() {
       setGameState(prev => {
           const newLives = prev.lives - 1;
           if (newLives <= 0) {
-              endGame();
+              // Defer endGame call to prevent potential state update issues
+              setTimeout(endGame, 0);
           }
           return {...prev, lives: newLives};
       });
@@ -206,35 +206,37 @@ export default function Home() {
     if (dinosaurRef.current) {
         const dinoRect = dinosaurRef.current.getBoundingClientRect();
         
-        const problemsToRemove: number[] = [];
         setCurrentProblems(prevProblems => {
-            const updatedProblems = prevProblems.map(p => {
+            return prevProblems.map(p => {
                 if (p.answered) return p;
 
                 const problemEl = document.querySelector(`.math-problem[data-problem-id='${p.id}']`);
                 const gameContainerRect = gameContainerRef.current!.getBoundingClientRect();
-
+                
+                let problemPassed = false;
                 if (problemEl) {
                     const problemRect = problemEl.getBoundingClientRect();
                     if (problemRect.right < gameContainerRect.left) {
-                        if (!p.answered) {
-                           // This logic is removed to prevent life reduction when problem passes.
-                        }
-                        if (!problemsToRemove.includes(p.id)) {
-                            problemsToRemove.push(p.id);
-                        }
+                       problemPassed = true;
                     }
+                }
+
+                if (problemPassed) {
+                   cleanupProblem(p.id);
+                   return {...p, answered: true}; // Mark as answered to avoid re-processing
                 }
                 
                 document.querySelectorAll(`.answer-bubble[data-problem-id='${p.id}']`).forEach(bubbleEl => {
+                    if(p.answered) return;
+
                     const bubble = bubbleEl as HTMLDivElement;
                     const bubbleRect = bubble.getBoundingClientRect();
 
-                    if (!p.answered && (isJumpingRef.current || dinoState.y > GROUND_POSITION) &&
+                    if ((isJumpingRef.current || dinoState.y > GROUND_POSITION) &&
                         dinoRect.left < bubbleRect.right && dinoRect.right > bubbleRect.left &&
                         dinoRect.top < bubbleRect.bottom && dinoRect.bottom > bubbleRect.top) {
                         
-                        const newProblemState = { ...p, answered: true };
+                        p.answered = true; // Mutate directly inside loop for immediate effect
                         
                         setDinoState(prev => ({...prev, recoil: true, yVelocity: -5 }));
                         setTimeout(() => setDinoState(prev => ({ ...prev, recoil: false })), 300);
@@ -242,31 +244,17 @@ export default function Home() {
                         const isCorrect = bubble.dataset.correct === 'true';
 
                         if (isCorrect) {
-                            handleCorrectAnswer(newProblemState);
+                            handleCorrectAnswer(p);
                             bubble.style.background = '#2ecc71';
                         } else {
-                            handleWrongAnswer(newProblemState);
+                            handleWrongAnswer(p);
                             bubble.style.background = '#e74c3c';
                         }
-                        
-                        setTimeout(() => {
-                           if (!problemsToRemove.includes(p.id)) {
-                                problemsToRemove.push(p.id);
-                            }
-                        }, 500);
-
-                        return newProblemState;
                     }
                 });
                 return p;
             });
-            if (problemsToRemove.length > 0) {
-              const uniqueIds = [...new Set(problemsToRemove)];
-              uniqueIds.forEach(id => cleanupProblem(id));
-            }
-            return updatedProblems;
         });
-
     }
 
     animationFrameRef.current = requestAnimationFrame(gameLoop);
@@ -289,7 +277,7 @@ export default function Home() {
       const jumpPower = holdTime > 200 ? JUMP_VELOCITY * 1.3 : JUMP_VELOCITY;
       setDinoState(prev => ({ ...prev, yVelocity: jumpPower }));
     }
-  }, [dinoState.y, dinoState.recoil, gameState.running]);
+  }, [dinoState.y, gameState.running]);
 
   const handlePressStart = React.useCallback(() => {
       if (gameState.started && gameState.running && !spacePressedRef.current) {
@@ -471,7 +459,6 @@ export default function Home() {
         case 'analysis':
             return <AnalysisScreen 
                       problemStats={problemStats}
-                      getPersonalizedFeedback={getPersonalizedFeedback}
                       onRestart={restartGame}
                       onBackToStart={() => {
                         restartGame();
