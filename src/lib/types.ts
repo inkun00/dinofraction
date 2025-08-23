@@ -9,9 +9,13 @@ export type Fraction = {
 
 export type ProblemType = '진분수+진분수' | '진분수+진분수_합1초과' | '진분수-진분수' | '대분수-대분수' | '1-진분수' | '자연수-진분수' | '대분수-대분수(받아내림)';
 
+export type ProblemPart = 
+    | { type: 'fraction'; value: Fraction }
+    | { type: 'operator'; value: string };
+
 export type Problem = {
   type: ProblemType;
-  text: string;
+  parts: ProblemPart[];
   answer: Fraction;
 };
 

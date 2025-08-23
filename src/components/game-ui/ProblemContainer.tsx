@@ -19,7 +19,15 @@ const ProblemContainer: React.FC<ProblemContainerProps> = ({ problems, speedLeve
             className={cn('math-problem', speedClass)}
             data-problem-id={id}
           >
-             <div dangerouslySetInnerHTML={{ __html: problem.text }}/>
+             {problem.parts.map((part, index) => {
+                if (part.type === 'fraction') {
+                    return <FractionDisplay key={index} fraction={part.value} />;
+                }
+                if (part.type === 'operator') {
+                    return <span key={index} className="mx-2">{part.value}</span>;
+                }
+                return null;
+             })}
           </div>
           {answers.map((answer, index) => (
             <div
