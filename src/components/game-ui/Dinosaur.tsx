@@ -4,25 +4,25 @@ import type { EvolutionStage } from '@/lib/types';
 
 interface DinosaurProps {
   evolution: EvolutionStage;
-  jumping: 'none' | 'low' | 'high';
+  y: number;
   evolving: boolean;
   recoil: boolean;
 }
 
-const Dinosaur = React.forwardRef<HTMLDivElement, DinosaurProps>(({ evolution, jumping, recoil, evolving }, ref) => {
+const Dinosaur = React.forwardRef<HTMLDivElement, DinosaurProps>(({ evolution, y, recoil, evolving }, ref) => {
   const classes = cn(
     'dinosaur',
     evolution,
-    { 'jumping-low': jumping === 'low' },
-    { 'jumping-high': jumping === 'high' },
     { 'recoiling': recoil },
-    { 'bounce': jumping !== 'none' && !recoil },
-    { 'evolving': evolving }
+    { 'evolving': evolving },
+    { 'jumping': y > 135 }
   );
 
-  return <div ref={ref} className={classes}></div>;
+  return <div ref={ref} className={classes} style={{ bottom: `${y}px`}}></div>;
 });
 
 Dinosaur.displayName = 'Dinosaur';
 
 export default Dinosaur;
+
+    

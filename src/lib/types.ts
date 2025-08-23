@@ -1,4 +1,5 @@
 import type { User } from 'firebase/auth';
+import React from 'react';
 
 export type Fraction = {
   whole: number;
@@ -24,7 +25,7 @@ export type CurrentProblem = {
   problem: Problem;
   answers: Answer[];
   answered: boolean;
-  cleanupTimer: NodeJS.Timeout;
+  element: React.RefObject<HTMLDivElement>;
 };
 
 export type ProblemStats = {
@@ -70,3 +71,5 @@ export type GameState = {
 export type EvolutionStage = 'egg' | 'baby' | 'medium' | 'adult' | 'boss';
 
 export type SpeedLevel = 0 | 1 | 2 | 3 | 4 | 5;
+
+    

@@ -170,7 +170,7 @@
     position: absolute;
     bottom: 135px; /* 18.75vh of 720px */
     left: 35%;
-    transition: all 0.3s ease-out;
+    transition: bottom 0s; /* No transition for physics based movement */
     z-index: 50;
     filter: drop-shadow(3px 3px 6px rgba(0,0,0,0.3));
     display: flex;
@@ -202,9 +202,15 @@
     75% { transform: scale(1.1) rotate(3deg); filter: brightness(1.5) drop-shadow(0 0 15px gold); }
 }
 
-/* Jump Positions */
-.dinosaur.jumping-low { bottom: 260px; /* 36vh of 720px */ transition: bottom 0.3s ease-out; }
-.dinosaur.jumping-high { bottom: 340px; /* 47vh of 720px */ transition: bottom 0.3s ease-out; }
+.dinosaur.jumping::before {
+    animation: jump-rotate 0.6s linear;
+}
+
+@keyframes jump-rotate {
+    0% { transform: rotate(0deg); }
+    50% { transform: rotate(10deg); }
+    100% { transform: rotate(0deg); }
+}
 
 .dinosaur.recoiling {
     animation: recoil-effect 0.3s ease-out;
@@ -212,7 +218,7 @@
 
 @keyframes recoil-effect {
     0% { transform: translateY(0); }
-    50% { transform: translateY(-30px); }
+    50% { transform: translateY(15px); } /* Bounce downwards */
     100% { transform: translateY(0); }
 }
 
@@ -220,12 +226,15 @@
 /* Problem & Answer Bubbles */
 .math-problem, .answer-bubble {
     position: absolute;
-    animation: scrollProblem 7.5s linear infinite;
+    animation-name: scrollProblem;
+    animation-timing-function: linear;
+    animation-iteration-count: 1; /* Play only once */
+    animation-fill-mode: forwards; /* Keep the final state */
     z-index: 40;
 }
 @keyframes scrollProblem {
-    0% { right: -320px; }
-    100% { right: 1600px; }
+    from { right: -320px; }
+    to { right: 1600px; }
 }
 
 .math-problem {
@@ -269,9 +278,9 @@
 }
 
 @keyframes hit-bubble {
-  0% { transform: translateY(0); opacity: 1; }
-  50% { transform: translateY(-30px) scale(1.1); opacity: 1; }
-  100% { transform: translateY(-50px) scale(0.9); opacity: 0; }
+  0% { transform: scale(1) translateY(0); opacity: 1; }
+  50% { transform: scale(1.1) translateY(-30px); opacity: 0.8; }
+  100% { transform: scale(0.8) translateY(-60px); opacity: 0; }
 }
 
 
@@ -287,6 +296,7 @@
 }
 
 /* Speed Levels */
+.speed-level-0 { animation-duration: 7.5s !important; }
 .speed-level-1 { animation-duration: 7s !important; }
 .speed-level-2 { animation-duration: 6.5s !important; }
 .speed-level-3 { animation-duration: 6s !important; }
@@ -433,3 +443,5 @@
     background-color: white;
     border-color: #ddd;
 }
+
+    
