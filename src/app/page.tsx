@@ -264,6 +264,8 @@ export default function Home() {
                       bubble.style.background = '#e74c3c';
                   }
                 }
+                bubble.classList.remove('bouncing');
+                void bubble.offsetWidth; // Trigger reflow to restart animation
                 bubble.classList.add('bouncing');
             }
         });
