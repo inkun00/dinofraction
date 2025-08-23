@@ -28,7 +28,17 @@ const AnalysisScreen: React.FC<AnalysisScreenProps> = ({ problemStats, onRestart
             <div className="wrong-problem-list">
               {problemStats.wrong.map((p, index) => (
                 <div key={index} className="wrong-problem-item">
-                  <div dangerouslySetInnerHTML={{ __html: p.text }} />
+                   <div className="flex items-center justify-center">
+                    {p.parts.map((part, partIndex) => {
+                        if (part.type === 'fraction') {
+                            return <FractionDisplay key={partIndex} fraction={part.value} />;
+                        }
+                        if (part.type === 'operator') {
+                            return <span key={partIndex} className="mx-2">{part.value}</span>;
+                        }
+                        return null;
+                    })}
+                  </div>
                   <span>➡</span>
                   <FractionDisplay fraction={p.answer} />
                 </div>
