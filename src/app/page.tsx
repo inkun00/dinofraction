@@ -203,18 +203,6 @@ export default function Home() {
                     const gameContainerRect = gameContainerRef.current!.getBoundingClientRect();
                     if (problemRect.right < gameContainerRect.left) {
                         problemsToRemove.push(p.id);
-                        if (!p.answered) {
-                          setProblemStats(prevStats => {
-                              const newWrong = [...prevStats.wrong, p.problem];
-                              const newWrongTypes = { ...prevStats.wrongProblemTypes, [p.problem.type]: (prevStats.wrongProblemTypes[p.problem.type] || 0) + 1 };
-                              return { ...prevStats, wrong: newWrong, wrongProblemTypes: newWrongTypes };
-                          });
-                          setGameState(prevGame => {
-                              const newLives = prevGame.lives - 1;
-                              if (newLives <= 0) endGame(prevGame.score);
-                              return {...prevGame, lives: newLives};
-                          });
-                        }
                     }
                 }
                 
