@@ -104,33 +104,33 @@ export default function Home() {
   const cleanupProblem = React.useCallback((problemId: number) => {
       setCurrentProblems(prev => prev.filter(p => p.id !== problemId));
   }, []);
-  
+
   const handleCorrectAnswer = React.useCallback((problem: Problem) => {
-    setGameState(prev => {
-      const newScore = prev.score + 10;
-      updateDinosaurEvolution(newScore);
-      return {...prev, score: newScore};
-    });
-    setProblemStats(prev => ({
-        ...prev,
-        correct: [...prev.correct, problem],
-        correctProblemTypes: { ...prev.correctProblemTypes, [problem.type]: (prev.correctProblemTypes[problem.type] || 0) + 1 }
-    }));
+      setGameState(prev => {
+          const newScore = prev.score + 10;
+          updateDinosaurEvolution(newScore);
+          return { ...prev, score: newScore };
+      });
+      setProblemStats(prev => ({
+          ...prev,
+          correct: [...prev.correct, problem],
+          correctProblemTypes: { ...prev.correctProblemTypes, [problem.type]: (prev.correctProblemTypes[problem.type] || 0) + 1 }
+      }));
   }, [updateDinosaurEvolution]);
 
   const handleWrongAnswer = React.useCallback((problem: Problem) => {
-    setGameState(prev => {
-        const newLives = prev.lives - 1;
-        if (newLives <= 0) {
-            setTimeout(() => endGame(), 0);
-        }
-        return {...prev, lives: newLives};
-    });
-    setProblemStats(prev => ({
-        ...prev,
-        wrong: [...prev.wrong, problem],
-        wrongProblemTypes: { ...prev.wrongProblemTypes, [problem.type]: (prev.wrongProblemTypes[problem.type] || 0) + 1 }
-    }));
+      setGameState(prev => {
+          const newLives = prev.lives - 1;
+          if (newLives <= 0) {
+              setTimeout(() => endGame(), 0);
+          }
+          return { ...prev, lives: newLives };
+      });
+      setProblemStats(prev => ({
+          ...prev,
+          wrong: [...prev.wrong, problem],
+          wrongProblemTypes: { ...prev.wrongProblemTypes, [problem.type]: (prev.wrongProblemTypes[problem.type] || 0) + 1 }
+      }));
   }, []);
 
   const endGame = React.useCallback(() => {
@@ -179,84 +179,89 @@ export default function Home() {
   }, [userData, problemStats, currentUser, gameState.score]);
 
   const gameLoop = React.useCallback(() => {
-    if (!gameState.running) {
-        if(animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-        return;
-    }
+      if (!gameState.running) {
+          if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+          return;
+      }
 
-    setDinoState(prev => {
-        let newY = prev.y;
-        let newYVelocity = prev.yVelocity;
+      setDinoState(prev => {
+          let newY = prev.y;
+          let newYVelocity = prev.yVelocity;
 
-        if (isJumpingRef.current || prev.y > GROUND_POSITION) {
-            newYVelocity += GRAVITY;
-            newY += newYVelocity;
-        }
+          if (isJumpingRef.current || prev.y > GROUND_POSITION) {
+              newYVelocity += GRAVITY;
+              newY += newYVelocity;
+          }
 
-        if (newY <= GROUND_POSITION) {
-            newY = GROUND_POSITION;
-            newYVelocity = 0;
-            isJumpingRef.current = false;
-        }
-        
-        return { ...prev, y: newY, yVelocity: newYVelocity };
-    });
-    
-    if (dinosaurRef.current && gameContainerRef.current) {
-        const dinoRect = dinosaurRef.current.getBoundingClientRect();
-        const gameContainerRect = gameContainerRef.current.getBoundingClientRect();
-        
-        setCurrentProblems(prevProblems => {
-            const problemsToKeep = [];
-            for (const p of prevProblems) {
-                const problemEl = document.querySelector(`.math-problem[data-problem-id='${p.id}']`);
-                if (problemEl) {
-                    const problemRect = problemEl.getBoundingClientRect();
-                    if (problemRect.right < gameContainerRect.left) {
-                        // Problem has passed, so we do nothing and it won't be in problemsToKeep
-                        continue;
-                    }
-                }
-                
-                if (!p.answered) {
-                    document.querySelectorAll(`.answer-bubble[data-problem-id='${p.id}']`).forEach(bubbleEl => {
-                        if(p.answered) return;
-                        
-                        const bubble = bubbleEl as HTMLDivElement;
-                        const bubbleRect = bubble.getBoundingClientRect();
+          if (newY <= GROUND_POSITION) {
+              newY = GROUND_POSITION;
+              newYVelocity = 0;
+              isJumpingRef.current = false;
+          }
 
-                        if (dinoRect.left < bubbleRect.right && dinoRect.right > bubbleRect.left &&
-                            dinoRect.top < bubbleRect.bottom && dinoRect.bottom > bubbleRect.top) {
-                            
-                            p.answered = true;
-                            
-                            setDinoState(prev => ({...prev, recoil: true, yVelocity: -5 }));
-                            setTimeout(() => setDinoState(prev => ({ ...prev, recoil: false })), 300);
+          return { ...prev, y: newY, yVelocity: newYVelocity };
+      });
 
-                            const isCorrect = bubble.dataset.correct === 'true';
+      if (dinosaurRef.current && gameContainerRef.current) {
+          const dinoRect = dinosaurRef.current.getBoundingClientRect();
+          const gameContainerRect = gameContainerRef.current.getBoundingClientRect();
+          
+          let problemsToKeep = [...currentProblems];
+          let problemsToRemove: number[] = [];
 
-                            if (isCorrect) {
-                                handleCorrectAnswer(p.problem);
-                                bubble.style.background = '#2ecc71';
-                            } else {
-                                handleWrongAnswer(p.problem);
-                                bubble.style.background = '#e74c3c';
-                            }
-                        }
-                    });
-                }
-                problemsToKeep.push(p);
-            }
-            // Only update state if there's a change
-            if (problemsToKeep.length !== prevProblems.length) {
-                return problemsToKeep;
-            }
-            return prevProblems;
-        });
-    }
+          for (const p of currentProblems) {
+              if (p.answered) continue;
 
-    animationFrameRef.current = requestAnimationFrame(gameLoop);
-  }, [gameState.running, handleCorrectAnswer, handleWrongAnswer]);
+              let problemAnswered = false;
+
+              // Check for collision with answer bubbles
+              document.querySelectorAll(`.answer-bubble[data-problem-id='${p.id}']`).forEach(bubbleEl => {
+                  if (problemAnswered) return;
+
+                  const bubble = bubbleEl as HTMLDivElement;
+                  const bubbleRect = bubble.getBoundingClientRect();
+
+                  if (dinoRect.left < bubbleRect.right && dinoRect.right > bubbleRect.left &&
+                      dinoRect.top < bubbleRect.bottom && dinoRect.bottom > bubbleRect.top) {
+                      
+                      problemAnswered = true;
+                      p.answered = true; // Mark the entire problem as answered
+
+                      setDinoState(prev => ({...prev, recoil: true, yVelocity: -5 }));
+                      setTimeout(() => setDinoState(prev => ({ ...prev, recoil: false })), 300);
+
+                      const isCorrect = bubble.dataset.correct === 'true';
+
+                      if (isCorrect) {
+                          handleCorrectAnswer(p.problem);
+                          bubble.style.background = '#2ecc71';
+                      } else {
+                          handleWrongAnswer(p.problem);
+                          bubble.style.background = '#e74c3c';
+                      }
+                  }
+              });
+
+              // Check if problem went off-screen
+              const problemEl = document.querySelector(`.math-problem[data-problem-id='${p.id}']`);
+              if (problemEl) {
+                  const problemRect = problemEl.getBoundingClientRect();
+                  if (problemRect.right < gameContainerRect.left) {
+                      problemsToRemove.push(p.id);
+                  }
+              } else if (!document.querySelector(`.answer-bubble[data-problem-id='${p.id}']`)) {
+                  // If no problem or answer bubbles are found, mark for removal
+                  problemsToRemove.push(p.id);
+              }
+          }
+          
+          if (problemsToRemove.length > 0) {
+              setCurrentProblems(prev => prev.filter(p => !problemsToRemove.includes(p.id)));
+          }
+      }
+
+      animationFrameRef.current = requestAnimationFrame(gameLoop);
+  }, [gameState.running, currentProblems, handleCorrectAnswer, handleWrongAnswer]);
 
   React.useEffect(() => {
     if (gameState.running) {
@@ -270,12 +275,12 @@ export default function Home() {
   }, [gameState.running, gameLoop]);
 
   const jump = React.useCallback((holdTime = 0) => {
-    if (!dinoState.recoil && dinoState.y === GROUND_POSITION && gameState.running) {
+    if (dinoState.y === GROUND_POSITION && gameState.running) {
       isJumpingRef.current = true;
       const jumpPower = holdTime > 200 ? JUMP_VELOCITY * 1.3 : JUMP_VELOCITY;
       setDinoState(prev => ({ ...prev, yVelocity: jumpPower }));
     }
-  }, [dinoState.y, dinoState.recoil, gameState.running]);
+  }, [dinoState.y, gameState.running]);
 
   const handlePressStart = React.useCallback(() => {
       if (gameState.started && gameState.running && !spacePressedRef.current) {
@@ -497,3 +502,5 @@ export default function Home() {
     </main>
   );
 }
+
+    
