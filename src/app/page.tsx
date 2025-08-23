@@ -94,7 +94,8 @@ export default function Home() {
       return;
     }
 
-    const { problem, answers } = newProblemData;
+    const { problem, answers, problemKey } = newProblemData;
+    usedProblemsRef.current.add(problemKey);
     problemCounterRef.current++;
     const problemId = problemCounterRef.current;
 
@@ -161,10 +162,10 @@ export default function Home() {
             bubble.addEventListener('animationend', () => {
                 cleanupProblem(problemId);
             }, { once: true });
-
-            setIsJumping(false);
+            
             setIsRecoiling(true);
             setTimeout(() => {
+              setIsJumping(false);
               setIsRecoiling(false);
               setDinoState(prev => ({...prev, jumping: 'none' }));
             }, 300);
@@ -467,5 +468,3 @@ export default function Home() {
     </main>
   );
 }
-
-    

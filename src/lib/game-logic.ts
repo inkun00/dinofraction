@@ -49,10 +49,11 @@ function normalizeFraction(whole: number, numerator: number, denominator: number
     return { whole, numerator, denominator };
 }
 
-export function generateProblem(score: number, usedProblems: Set<string>): { problem: Problem, answers: Answer[] } | null {
+export function generateProblem(score: number, usedProblems: Set<string>): { problem: Problem, answers: Answer[], problemKey: string } | null {
     let problem: Problem | null = null;
     let attempts = 0;
     const maxAttempts = 100;
+    let problemKey = '';
 
     while (!problem && attempts < maxAttempts) {
         attempts++;
@@ -117,10 +118,10 @@ export function generateProblem(score: number, usedProblems: Set<string>): { pro
         }
 
         if (candidateProblem) {
-            const problemKey = JSON.stringify({ text: candidateProblem.text });
-            if (!usedProblems.has(problemKey)) {
+            const currentProblemKey = JSON.stringify({ text: candidateProblem.text });
+            if (!usedProblems.has(currentProblemKey)) {
                 problem = candidateProblem;
-                usedProblems.add(problemKey);
+                problemKey = currentProblemKey;
             }
         }
     }
@@ -143,7 +144,7 @@ export function generateProblem(score: number, usedProblems: Set<string>): { pro
     }
 
     answers.sort(() => Math.random() - 0.5);
-    return { problem, answers };
+    return { problem, answers, problemKey };
 }
 
 export function calculateLevel(xp: number): number {
