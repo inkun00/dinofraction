@@ -317,7 +317,7 @@
 }
 
 .game-over-content, .modal-content { border-color: #e74c3c; }
-.analysis-content { padding: 40px; border-radius: 20px; max-width: 1100px; max-height: 80vh; overflow-y: auto; }
+.analysis-content { padding: 40px; border-radius: 20px; max-width: 900px; max-height: 80vh; overflow-y: auto; }
 
 .game-title { font-size: 48px; font-weight: bold; color: #2c3e50; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.1); }
 .game-description { font-size: 20px; color: #34495e; margin-bottom: 30px; line-height: 1.6; }

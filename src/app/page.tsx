@@ -193,10 +193,10 @@ export default function Home() {
     
     if (dinosaurRef.current) {
         const dinoRect = dinosaurRef.current.getBoundingClientRect();
-        const problemsToRemove: number[] = [];
         
         setCurrentProblems(prevProblems => {
-            return prevProblems.map(p => {
+            const problemsToRemove: number[] = [];
+            const updatedProblems = prevProblems.map(p => {
                 if (p.answered) return p;
 
                 const problemEl = document.querySelector(`.math-problem[data-problem-id='${p.id}']`);
@@ -217,9 +217,9 @@ export default function Home() {
                         dinoRect.left < bubbleRect.right && dinoRect.right > bubbleRect.left &&
                         dinoRect.top < bubbleRect.bottom && dinoRect.bottom > bubbleRect.top) {
                         
-                        p.answered = true;
+                        const newProblemState = { ...p, answered: true };
                         
-                        setDinoState(prev => ({...prev, recoil: true, yVelocity: -5 })); // Apply recoil
+                        setDinoState(prev => ({...prev, recoil: true, yVelocity: -5 }));
                         setTimeout(() => setDinoState(prev => ({ ...prev, recoil: false })), 300);
 
                         const isCorrect = bubble.dataset.correct === 'true';
@@ -247,16 +247,18 @@ export default function Home() {
                                 wrongProblemTypes: { ...prev.wrongProblemTypes, [type]: (prev.wrongProblemTypes[type] || 0) + 1 }
                             }));
                         }
+                        return newProblemState;
                     }
                 });
                 return p;
             });
+            if (problemsToRemove.length > 0) {
+              const uniqueIds = [...new Set(problemsToRemove)];
+              uniqueIds.forEach(id => cleanupProblem(id));
+            }
+            return updatedProblems;
         });
 
-        if (problemsToRemove.length > 0) {
-            const uniqueIds = [...new Set(problemsToRemove)];
-            uniqueIds.forEach(id => cleanupProblem(id));
-        }
     }
 
     animationFrameRef.current = requestAnimationFrame(gameLoop);
