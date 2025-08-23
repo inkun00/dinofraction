@@ -243,14 +243,13 @@ export default function Home() {
       if (isJumpingRef.current && dinosaurRef.current) {
           const dinoRect = dinosaurRef.current.getBoundingClientRect();
           
-          setCurrentProblems(prevProblems => 
-              prevProblems.map(p => {
-                  if (p.answered) return p;
-
-                  let problemAnsweredThisFrame = false;
+          setCurrentProblems(prevProblems => {
+              const newProblems = [...prevProblems];
+              newProblems.forEach(p => {
+                  if (p.answered) return;
 
                   document.querySelectorAll(`.answer-bubble[data-problem-id='${p.id}']`).forEach(bubbleEl => {
-                      if (problemAnsweredThisFrame) return;
+                      if (p.answered) return; // Re-check, another bubble for same problem might have been hit
 
                       const bubble = bubbleEl as HTMLDivElement;
                       const bubbleRect = bubble.getBoundingClientRect();
@@ -261,7 +260,7 @@ export default function Home() {
                                           dinoRect.bottom > bubbleRect.top;
 
                       if (isColliding) {
-                          problemAnsweredThisFrame = true;
+                          p.answered = true; // Mark the entire problem as answered
                           const isCorrect = bubble.dataset.correct === 'true';
 
                           if (isCorrect) {
@@ -273,12 +272,9 @@ export default function Home() {
                           }
                       }
                   });
-                  if (problemAnsweredThisFrame) {
-                      return { ...p, answered: true };
-                  }
-                  return p;
-              })
-          );
+              });
+              return newProblems;
+          });
       }
       
       const gameContainerRect = gameContainerRef.current?.getBoundingClientRect();
@@ -292,7 +288,8 @@ export default function Home() {
                         return false; 
                     }
                 }
-                return true; 
+                // Don't filter out answered problems here, let them scroll off-screen naturally
+                return true;
             })
         );
       }
@@ -492,5 +489,3 @@ export default function Home() {
     </main>
   );
 }
-
-    
