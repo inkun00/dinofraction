@@ -22,7 +22,7 @@ import LeaderboardScreen from '@/components/game-ui/screens/LeaderboardScreen';
 import LevelUpModal from '@/components/game-ui/screens/LevelUpModal';
 
 const JUMP_VELOCITY = 22;
-const GRAVITY = -1;
+const GRAVITY = -0.8;
 const GROUND_POSITION = 135;
 const PROBLEM_GENERATION_INTERVAL = 200; // frames, 60fps -> ~3.3s
 
@@ -105,6 +105,49 @@ export default function Home() {
       setTimeout(() => setDinoState(prev => ({...prev, recoil: false})), 300);
   }, []);
 
+  const endGame = React.useCallback(() => {
+      setGameState(prev => ({...prev, running: false, started: false}));
+
+      if (gameTimerRef.current) clearInterval(gameTimerRef.current);
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+
+      setCurrentProblems([]);
+
+      const finalScore = gameState.score;
+      const earnedXp = Math.floor(finalScore / 5);
+      const oldLevel = userData.level;
+      
+      const newTotalXp = userData.totalXp + earnedXp;
+      const newLevel = calculateLevel(newTotalXp);
+
+      const finalUserData: UserData = {
+          ...userData,
+          score: Math.max(userData.score, finalScore),
+          totalXp: newTotalXp,
+          level: newLevel,
+          correctProblemTypes: { ...userData.correctProblemTypes },
+          wrongProblemTypes: { ...userData.wrongProblemTypes },
+      };
+
+      for (const type in problemStats.correctProblemTypes) {
+          finalUserData.correctProblemTypes[type] = (finalUserData.correctProblemTypes[type] || 0) + problemStats.correctProblemTypes[type];
+      }
+      for (const type in problemStats.wrongProblemTypes) {
+          finalUserData.wrongProblemTypes[type] = (finalUserData.wrongProblemTypes[type] || 0) + problemStats.wrongProblemTypes[type];
+      }
+      
+      setUserData(finalUserData);
+      if(currentUser) {
+        saveDBUserData(currentUser.uid, finalUserData, finalScore);
+      }
+
+      if (newLevel > oldLevel) {
+          setAppState('levelup');
+      } else {
+          setAppState('gameover');
+      }
+  }, [userData, problemStats, currentUser, gameState.score]);
+
   const handleCorrectAnswer = React.useCallback((problem: Problem) => {
       handleCollision();
       setGameState(prev => {
@@ -119,61 +162,18 @@ export default function Home() {
       });
   }, [updateDinosaurEvolution, handleCollision]);
 
-    const handleWrongAnswer = React.useCallback((problem: Problem) => {
-        handleCollision();
-        setGameState(prev => {
-            const newLives = prev.lives - 1;
-            return { ...prev, lives: newLives };
-        });
-        setProblemStats(prevStats => {
-            const newWrong = [...prevStats.wrong, problem];
-            const newWrongTypes = { ...prevStats.wrongProblemTypes, [problem.type]: (prevStats.wrongProblemTypes[problem.type] || 0) + 1 };
-            return {...prevStats, wrong: newWrong, wrongProblemTypes: newWrongTypes };
-        });
-    }, [handleCollision]);
-
-    const endGame = React.useCallback(() => {
-        setGameState(prev => ({...prev, running: false, started: false}));
-
-        if (gameTimerRef.current) clearInterval(gameTimerRef.current);
-        if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-
-        setCurrentProblems([]);
-
-        const finalScore = gameState.score;
-        const earnedXp = Math.floor(finalScore / 5);
-        const oldLevel = userData.level;
-        
-        const newTotalXp = userData.totalXp + earnedXp;
-        const newLevel = calculateLevel(newTotalXp);
-
-        const finalUserData: UserData = {
-            ...userData,
-            score: Math.max(userData.score, finalScore),
-            totalXp: newTotalXp,
-            level: newLevel,
-            correctProblemTypes: { ...userData.correctProblemTypes },
-            wrongProblemTypes: { ...userData.wrongProblemTypes },
-        };
-
-        for (const type in problemStats.correctProblemTypes) {
-            finalUserData.correctProblemTypes[type] = (finalUserData.correctProblemTypes[type] || 0) + problemStats.correctProblemTypes[type];
-        }
-        for (const type in problemStats.wrongProblemTypes) {
-            finalUserData.wrongProblemTypes[type] = (finalUserData.wrongProblemTypes[type] || 0) + problemStats.wrongProblemTypes[type];
-        }
-        
-        setUserData(finalUserData);
-        if(currentUser) {
-          saveDBUserData(currentUser.uid, finalUserData, finalScore);
-        }
-
-        if (newLevel > oldLevel) {
-            setAppState('levelup');
-        } else {
-            setAppState('gameover');
-        }
-    }, [userData, problemStats, currentUser, gameState.score]);
+  const handleWrongAnswer = React.useCallback((problem: Problem) => {
+      handleCollision();
+      setGameState(prev => {
+          const newLives = prev.lives - 1;
+          return { ...prev, lives: newLives };
+      });
+      setProblemStats(prevStats => {
+          const newWrong = [...prevStats.wrong, problem];
+          const newWrongTypes = { ...prevStats.wrongProblemTypes, [problem.type]: (prevStats.wrongProblemTypes[problem.type] || 0) + 1 };
+          return {...prevStats, wrong: newWrong, wrongProblemTypes: newWrongTypes };
+      });
+  }, [handleCollision]);
 
     React.useEffect(() => {
         if (gameState.started && gameState.lives <= 0 && gameState.running) {
@@ -200,7 +200,6 @@ export default function Home() {
         problem,
         answers,
         answered: false,
-        element: React.createRef<HTMLDivElement>(),
     };
 
     setCurrentProblems(prevProbs => [...prevProbs, newCurrentProblem]);
@@ -239,7 +238,7 @@ export default function Home() {
           return { ...prev, y: newY, yVelocity: newYVelocity };
       });
 
-      if (isJumpingRef.current && dinosaurRef.current) {
+      if (dinosaurRef.current) {
           const dinoRect = dinosaurRef.current.getBoundingClientRect();
           
           setCurrentProblems(prevProblems => {
@@ -283,15 +282,15 @@ export default function Home() {
                 const problemEl = document.querySelector(`.math-problem[data-problem-id='${p.id}']`);
                 if (problemEl) {
                     const problemRect = problemEl.getBoundingClientRect();
-                    if (problemRect.right < gameContainerRect.left && !p.answered) {
-                        return false; 
+                    if (problemRect.right < gameContainerRect.left) {
+                        return false; // 화면 왼쪽을 벗어난 문제 제거
                     }
                 }
                 const firstBubble = document.querySelector(`.answer-bubble[data-problem-id='${p.id}']`);
                 if (firstBubble) {
                     const bubbleRect = firstBubble.getBoundingClientRect();
-                    if (bubbleRect.right < gameContainerRect.left) {
-                        return false;
+                     if (bubbleRect.right < gameContainerRect.left) {
+                        return false; // 화면 왼쪽을 벗어난 버블 제거
                     }
                 }
                 return true;

@@ -1,3 +1,4 @@
+
 import type { Fraction, Problem, Answer, ProblemType } from './types';
 
 export const firebaseErrorKorean: Record<string, string> = {
@@ -18,8 +19,8 @@ const problemTypesByScore = {
 };
 
 function createFractionDisplayHTML(whole: number, numerator: number, denominator: number): string {
-    if (numerator === 0 && whole === 0) return `<span>0</span>`;
-    if (numerator === 0 && whole > 0) return `<span>${whole}</span>`;
+    if (numerator === 0 && whole === 0) return `<div><span>0</span></div>`;
+    if (numerator === 0 && whole > 0) return `<div><span>${whole}</span></div>`;
 
     let resultHtml = '';
     if (whole > 0) {
@@ -33,11 +34,11 @@ function createFractionDisplayHTML(whole: number, numerator: number, denominator
                 <span class="fraction-denominator">${denominator}</span>
             </div>`;
     }
-    return `<div class="fraction-display">${resultHtml}</div>`;
+    return `<div>${resultHtml}</div>`;
 }
 
 function constructProblemText(frac1HTML: string, operator: string, frac2HTML: string): string {
-    return `${frac1HTML}&nbsp;${operator}&nbsp;${frac2HTML}`;
+    return `<div class="fraction-display">${frac1HTML}</div> <div class="fraction-display">${operator}</div> <div class="fraction-display">${frac2HTML}</div>`;
 }
 
 function normalizeFraction(whole: number, numerator: number, denominator: number): Fraction {
