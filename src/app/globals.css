@@ -226,6 +226,7 @@
 /* Problem & Answer Bubbles */
 .math-problem, .answer-bubble {
     position: absolute;
+    right: -320px;
     animation-name: scrollProblem;
     animation-timing-function: linear;
     animation-iteration-count: 1; /* Play only once */
@@ -239,7 +240,6 @@
 
 .math-problem {
     top: 108px; /* 15vh of 720px */
-    right: 0px;
     min-width: 256px;
     white-space: nowrap;
     font-size: 38px;
@@ -257,7 +257,6 @@
 
 .answer-bubble {
     top: 252px; /* 35vh of 720px */
-    right: 0;
     width: 128px;
     height: 128px;
     border-radius: 50%;
