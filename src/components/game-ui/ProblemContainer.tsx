@@ -18,8 +18,9 @@ const ProblemContainer: React.FC<ProblemContainerProps> = ({ problems, speedLeve
           <div
             className={cn('math-problem', speedClass)}
             data-problem-id={id}
-            dangerouslySetInnerHTML={{ __html: problem.text }}
-          />
+          >
+             <div dangerouslySetInnerHTML={{ __html: problem.text }}/>
+          </div>
           {answers.map((answer, index) => (
             <div
               key={index}
