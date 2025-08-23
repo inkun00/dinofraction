@@ -8,7 +8,6 @@ import { onAuthStateChanged, signInAnonymously, User } from 'firebase/auth';
 import { loadUserData as loadDBUserData, saveUserData as saveDBUserData, getLeaderboardFromFirestore } from '@/lib/firestore-helpers';
 import { generateProblem as generateProblemUtil, calculateLevel, analyzeStats, firebaseErrorKorean } from '@/lib/game-logic';
 import { login, signUp, logout } from '@/lib/auth-helpers';
-import { getPersonalizedFeedback } from '@/ai/flows/personalized-feedback';
 
 import AnimatedBackground from '@/components/game-ui/AnimatedBackground';
 import Dinosaur from '@/components/game-ui/Dinosaur';
@@ -102,15 +101,11 @@ export default function Home() {
     });
   }, []);
 
-  const cleanupProblem = React.useCallback((problemId: number) => {
-      setCurrentProblems(prev => prev.filter(p => p.id !== problemId));
-  }, []);
-
   const handleCorrectAnswer = React.useCallback((problem: Problem) => {
       setGameState(prev => {
-          const newScore = prev.score + 10;
-          updateDinosaurEvolution(newScore);
-          return { ...prev, score: newScore };
+        const newScore = prev.score + 10;
+        updateDinosaurEvolution(newScore);
+        return { ...prev, score: newScore };
       });
       setProblemStats(prev => ({
           ...prev,
@@ -119,18 +114,18 @@ export default function Home() {
       }));
   }, [updateDinosaurEvolution]);
 
-    const handleWrongAnswer = React.useCallback((problem: Problem) => {
+    const handleWrongAnswer = React.useCallback(() => {
         setGameState(prev => {
             const newLives = prev.lives - 1;
             if (newLives <= 0) {
-                setGameState(g => ({ ...g, running: false }));
+                // endGame is called in useEffect
             }
             return { ...prev, lives: newLives };
         });
         setProblemStats(prev => ({
             ...prev,
-            wrong: [...prev.wrong, problem],
-            wrongProblemTypes: { ...prev.wrongProblemTypes, [problem.type]: (prev.wrongProblemTypes[problem.type] || 0) + 1 }
+            // wrong: [...prev.wrong, problem],
+            // wrongProblemTypes: { ...prev.wrongProblemTypes, [problem.type]: (prev.wrongProblemTypes[problem.type] || 0) + 1 }
         }));
     }, []);
 
@@ -179,10 +174,10 @@ export default function Home() {
     }, [userData, problemStats, currentUser, gameState.score]);
 
     React.useEffect(() => {
-        if (gameState.started && !gameState.running) {
+        if (gameState.started && gameState.lives <= 0) {
             endGame();
         }
-    }, [gameState.started, gameState.running, endGame]);
+    }, [gameState.lives, gameState.started, endGame]);
 
 
   const gameLoop = React.useCallback(() => {
@@ -195,7 +190,7 @@ export default function Home() {
           let newY = prev.y;
           let newYVelocity = prev.yVelocity;
 
-          if (isJumpingRef.current || prev.y > GROUND_POSITION) {
+          if (prev.y > GROUND_POSITION || newYVelocity > 0) {
               newYVelocity += GRAVITY;
               newY += newYVelocity;
           }
@@ -209,25 +204,11 @@ export default function Home() {
           return { ...prev, y: newY, yVelocity: newYVelocity };
       });
 
-      if (dinosaurRef.current && gameContainerRef.current) {
+      if (isJumpingRef.current && dinosaurRef.current && gameContainerRef.current) {
           const dinoRect = dinosaurRef.current.getBoundingClientRect();
-          const gameContainerRect = gameContainerRef.current.getBoundingClientRect();
           
-          let problemsToRemove: number[] = [];
-
           for (const p of currentProblems) {
-              if (p.answered) {
-                  const problemEl = document.querySelector(`.math-problem[data-problem-id='${p.id}']`);
-                  if (problemEl) {
-                      const problemRect = problemEl.getBoundingClientRect();
-                      if (problemRect.right < gameContainerRect.left) {
-                          problemsToRemove.push(p.id);
-                      }
-                  } else if (!document.querySelector(`.answer-bubble[data-problem-id='${p.id}']`)) {
-                      problemsToRemove.push(p.id);
-                  }
-                  continue;
-              };
+              if (p.answered) continue;
 
               document.querySelectorAll(`.answer-bubble[data-problem-id='${p.id}']`).forEach(bubbleEl => {
                   if (p.answered) return;
@@ -235,50 +216,62 @@ export default function Home() {
                   const bubble = bubbleEl as HTMLDivElement;
                   const bubbleRect = bubble.getBoundingClientRect();
 
-                  if (dinoRect.left < bubbleRect.right && dinoRect.right > bubbleRect.left &&
-                      dinoRect.top < bubbleRect.bottom && dinoRect.bottom > bubbleRect.top) {
-                      
-                      p.answered = true;
+                  const isColliding = dinoRect.left < bubbleRect.right &&
+                                    dinoRect.right > bubbleRect.left &&
+                                    dinoRect.top < bubbleRect.bottom &&
+                                    dinoRect.bottom > bubbleRect.top;
 
-                      setDinoState(prev => ({...prev, recoil: true, yVelocity: -5 }));
-                      setTimeout(() => setDinoState(prev => ({ ...prev, recoil: false })), 300);
+                  if (isColliding) {
+                      p.answered = true; // Mark problem as answered to prevent multiple triggers
 
                       const isCorrect = bubble.dataset.correct === 'true';
 
                       if (isCorrect) {
                           handleCorrectAnswer(p.problem);
-                          document.querySelectorAll(`.answer-bubble[data-problem-id='${p.id}']`).forEach(b => {
-                              if ((b as HTMLElement).dataset.correct === 'true') {
-                                (b as HTMLElement).style.background = '#2ecc71';
-                              }
-                          });
                       } else {
-                          handleWrongAnswer(p.problem);
-                           document.querySelectorAll(`.answer-bubble[data-problem-id='${p.id}']`).forEach(b => {
-                              if ((b as HTMLElement).dataset.correct === 'false') {
-                                (b as HTMLElement).style.background = '#e74c3c';
-                              }
-                          });
+                          handleWrongAnswer();
+                          setProblemStats(prev => ({
+                              ...prev,
+                              wrong: [...prev.wrong, p.problem],
+                              wrongProblemTypes: { ...prev.wrongProblemTypes, [p.problem.type]: (prev.wrongProblemTypes[p.problem.type] || 0) + 1 }
+                          }));
                       }
+
+                      // Visual feedback for all bubbles of this problem
+                      document.querySelectorAll(`.answer-bubble[data-problem-id='${p.id}']`).forEach(b => {
+                          const htmlB = b as HTMLElement;
+                          if (htmlB.dataset.correct === 'true') {
+                              htmlB.style.background = '#2ecc71';
+                          } else {
+                              htmlB.style.background = '#e74c3c';
+                          }
+                      });
                   }
               });
-
-              const problemEl = document.querySelector(`.math-problem[data-problem-id='${p.id}']`);
-              if (problemEl) {
-                  const problemRect = problemEl.getBoundingClientRect();
-                  if (problemRect.right < gameContainerRect.left) {
-                      if (!p.answered) {
-                          // No penalty, just remove
-                      }
-                      problemsToRemove.push(p.id);
-                  }
-              }
-          }
-          
-          if (problemsToRemove.length > 0) {
-              setCurrentProblems(prev => prev.filter(p => !problemsToRemove.includes(p.id)));
           }
       }
+
+       // Cleanup problems that have scrolled off-screen
+      const gameContainerRect = gameContainerRef.current?.getBoundingClientRect();
+      if(gameContainerRect) {
+        let problemsToRemove: number[] = [];
+        for (const p of currentProblems) {
+            const problemEl = document.querySelector(`.math-problem[data-problem-id='${p.id}']`);
+            if (problemEl) {
+                const problemRect = problemEl.getBoundingClientRect();
+                if (problemRect.right < gameContainerRect.left) {
+                    problemsToRemove.push(p.id);
+                }
+            } else if (!document.querySelector(`.answer-bubble[data-problem-id='${p.id}']`)) {
+                // If neither problem nor bubbles are found, remove it
+                 problemsToRemove.push(p.id);
+            }
+        }
+        if (problemsToRemove.length > 0) {
+            setCurrentProblems(prev => prev.filter(p => !problemsToRemove.includes(p.id)));
+        }
+      }
+
 
       animationFrameRef.current = requestAnimationFrame(gameLoop);
   }, [gameState.running, currentProblems, handleCorrectAnswer, handleWrongAnswer]);
@@ -295,28 +288,25 @@ export default function Home() {
     };
   }, [gameState.running, gameLoop]);
 
-  const jump = React.useCallback((holdTime = 0) => {
+  const jump = React.useCallback(() => {
     if (dinoState.y <= GROUND_POSITION && gameState.running) {
       isJumpingRef.current = true;
-      const jumpPower = holdTime > 200 ? JUMP_VELOCITY * 1.3 : JUMP_VELOCITY;
-      setDinoState(prev => ({ ...prev, yVelocity: jumpPower }));
+      setDinoState(prev => ({ ...prev, yVelocity: JUMP_VELOCITY }));
     }
   }, [dinoState.y, gameState.running]);
 
   const handlePressStart = React.useCallback(() => {
-      if (gameState.started && gameState.running && !spacePressedRef.current) {
+      if (gameState.running && !spacePressedRef.current) {
           spacePressedRef.current = true;
-          jumpStartTimeRef.current = Date.now();
+          jump();
       }
-  }, [gameState.started, gameState.running]);
+  }, [gameState.running, jump]);
 
   const handlePressEnd = React.useCallback(() => {
-      if (gameState.started && gameState.running && spacePressedRef.current) {
+      if (gameState.running && spacePressedRef.current) {
           spacePressedRef.current = false;
-          const holdTime = Date.now() - jumpStartTimeRef.current;
-          jump(holdTime);
       }
-  }, [gameState.started, gameState.running, jump]);
+  }, [gameState.running]);
 
   React.useEffect(() => {
       const isInteractiveElement = (target: EventTarget | null) => (target as Element)?.closest('button, a, input, form');
