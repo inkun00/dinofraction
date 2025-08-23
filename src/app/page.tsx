@@ -125,6 +125,46 @@ export default function Home() {
     }
   }, [dinoState.evolution]);
   
+  const endGame = React.useCallback((finalScore: number) => {
+    setGameState(prev => ({...prev, running: false}));
+    if (gameTimerRef.current) clearInterval(gameTimerRef.current);
+    if (problemTimerRef.current) clearInterval(problemTimerRef.current);
+    if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+    setCurrentProblems([]);
+
+    const earnedXp = Math.floor(finalScore / 5);
+    const oldLevel = userData.level;
+    const newTotalXp = userData.totalXp + earnedXp;
+    const newLevel = calculateLevel(newTotalXp);
+
+    const finalUserData: UserData = {
+        ...userData,
+        score: Math.max(userData.score, finalScore),
+        totalXp: newTotalXp,
+        level: newLevel,
+        correctProblemTypes: { ...userData.correctProblemTypes },
+        wrongProblemTypes: { ...userData.wrongProblemTypes },
+    };
+
+    for (const type in problemStats.correctProblemTypes) {
+        finalUserData.correctProblemTypes[type] = (finalUserData.correctProblemTypes[type] || 0) + problemStats.correctProblemTypes[type];
+    }
+    for (const type in problemStats.wrongProblemTypes) {
+        finalUserData.wrongProblemTypes[type] = (finalUserData.wrongProblemTypes[type] || 0) + problemStats.wrongProblemTypes[type];
+    }
+    
+    setUserData(finalUserData);
+    if(currentUser) {
+      saveDBUserData(currentUser.uid, finalUserData, finalScore);
+    }
+
+    if (newLevel > oldLevel) {
+        setAppState('levelup');
+    } else {
+        setAppState('gameover');
+    }
+  }, [userData, problemStats, currentUser]);
+
   const gameLoop = React.useCallback(() => {
     if (!gameState.running) {
         if(animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
@@ -155,8 +195,7 @@ export default function Home() {
         setCurrentProblems(prevProblems => {
             const problemsToRemove: number[] = [];
             const updatedProblems = prevProblems.map(p => {
-                // Return a copy to avoid mutation issues with React state
-                let newProblemState = { ...p };
+                if (p.answered) return p;
 
                 const problemEl = document.querySelector(`.math-problem[data-problem-id='${p.id}']`);
                 if (problemEl) {
@@ -165,11 +204,16 @@ export default function Home() {
                     if (problemRect.right < gameContainerRect.left) {
                         problemsToRemove.push(p.id);
                         if (!p.answered) {
-                            setProblemStats(prevStats => {
-                                const newWrong = [...prevStats.wrong, p.problem];
-                                const newWrongTypes = { ...prevStats.wrongProblemTypes, [p.problem.type]: (prevStats.wrongProblemTypes[p.problem.type] || 0) + 1 };
-                                return { ...prevStats, wrong: newWrong, wrongProblemTypes: newWrongTypes };
-                            });
+                          setProblemStats(prevStats => {
+                              const newWrong = [...prevStats.wrong, p.problem];
+                              const newWrongTypes = { ...prevStats.wrongProblemTypes, [p.problem.type]: (prevStats.wrongProblemTypes[p.problem.type] || 0) + 1 };
+                              return { ...prevStats, wrong: newWrong, wrongProblemTypes: newWrongTypes };
+                          });
+                          setGameState(prevGame => {
+                              const newLives = prevGame.lives - 1;
+                              if (newLives <= 0) endGame(prevGame.score);
+                              return {...prevGame, lives: newLives};
+                          });
                         }
                     }
                 }
@@ -178,11 +222,11 @@ export default function Home() {
                     const bubble = bubbleEl as HTMLDivElement;
                     const bubbleRect = bubble.getBoundingClientRect();
 
-                    if (!newProblemState.answered && isJumpingRef.current &&
+                    if (!p.answered && isJumpingRef.current &&
                         dinoRect.left < bubbleRect.right && dinoRect.right > bubbleRect.left &&
                         dinoRect.top < bubbleRect.bottom && dinoRect.bottom > bubbleRect.top) {
                         
-                        newProblemState.answered = true;
+                        p.answered = true;
                         
                         setDinoState(prev => ({...prev, recoil: true, yVelocity: -5 })); // Apply recoil
                         setTimeout(() => setDinoState(prev => ({ ...prev, recoil: false })), 300);
@@ -214,19 +258,19 @@ export default function Home() {
                         }
                     }
                 });
-                return newProblemState;
+                return p;
             });
 
             if (problemsToRemove.length > 0) {
                  const uniqueIds = [...new Set(problemsToRemove)];
-                 return prevProblems.filter(p => !uniqueIds.includes(p.id));
+                 return updatedProblems.filter(p => !uniqueIds.includes(p.id));
             }
             return updatedProblems;
         });
     }
 
     animationFrameRef.current = requestAnimationFrame(gameLoop);
-  }, [gameState.running, gameState.score, cleanupProblem, updateDinosaurEvolution]);
+  }, [gameState.running, gameState.score, gameState.lives, cleanupProblem, updateDinosaurEvolution, endGame]);
 
   React.useEffect(() => {
     if (gameState.running) {
@@ -313,46 +357,6 @@ export default function Home() {
         });
     }, 4000);
   }, [generateProblem, updateDinosaurEvolution]);
-
-  const endGame = React.useCallback((finalScore: number) => {
-    setGameState(prev => ({...prev, running: false}));
-    if (gameTimerRef.current) clearInterval(gameTimerRef.current);
-    if (problemTimerRef.current) clearInterval(problemTimerRef.current);
-    if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-    setCurrentProblems([]);
-
-    const earnedXp = Math.floor(finalScore / 5);
-    const oldLevel = userData.level;
-    const newTotalXp = userData.totalXp + earnedXp;
-    const newLevel = calculateLevel(newTotalXp);
-
-    const finalUserData: UserData = {
-        ...userData,
-        score: Math.max(userData.score, finalScore),
-        totalXp: newTotalXp,
-        level: newLevel,
-        correctProblemTypes: { ...userData.correctProblemTypes },
-        wrongProblemTypes: { ...userData.wrongProblemTypes },
-    };
-
-    for (const type in problemStats.correctProblemTypes) {
-        finalUserData.correctProblemTypes[type] = (finalUserData.correctProblemTypes[type] || 0) + problemStats.correctProblemTypes[type];
-    }
-    for (const type in problemStats.wrongProblemTypes) {
-        finalUserData.wrongProblemTypes[type] = (finalUserData.wrongProblemTypes[type] || 0) + problemStats.wrongProblemTypes[type];
-    }
-    
-    setUserData(finalUserData);
-    if(currentUser) {
-      saveDBUserData(currentUser.uid, finalUserData, finalScore);
-    }
-
-    if (newLevel > oldLevel) {
-        setAppState('levelup');
-    } else {
-        setAppState('gameover');
-    }
-  }, [userData, problemStats, currentUser]);
 
   const restartGame = React.useCallback(() => {
       if (gameTimerRef.current) clearInterval(gameTimerRef.current);
