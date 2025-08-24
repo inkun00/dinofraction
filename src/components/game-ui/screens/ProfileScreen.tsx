@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import type { ProblemType, UserData } from '@/lib/types';
 import { Button } from '@/components/ui/button';
+import { getUserRank } from '@/lib/firestore-helpers'; // getUserRank 함수 import
+import { auth } from '@/lib/firebase';
 
 interface ProfileScreenProps {
   userData: UserData;
@@ -11,6 +13,22 @@ interface ProfileScreenProps {
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, onLogout, onShowWrongProblems }) => {
   const allTypes = Array.from(new Set([...Object.keys(userData.correctProblemTypes), ...Object.keys(userData.wrongProblemTypes)]));
+  
+  const [userRank, setUserRank] = useState<{ xpRank: number | null; scoreRank: number | null }>({ xpRank: null, scoreRank: null });
+  const [loadingRank, setLoadingRank] = useState(true);
+
+  useEffect(() => {
+    const fetchRank = async () => {
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        setLoadingRank(true);
+        const rank = await getUserRank(currentUser.uid);
+        setUserRank(rank);
+        setLoadingRank(false);
+      }
+    };
+    fetchRank();
+  }, []);
 
   const performanceData = allTypes.map(type => {
     const correct = userData.correctProblemTypes[type] || 0;
@@ -34,10 +52,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, on
           <div className="stat-item p-4 bg-gray-100 rounded-lg">
             <div className="stat-label">누적 경험치</div>
             <div className="stat-value">{userData.totalXp}</div>
+            {loadingRank ? <div className="text-xs">순위 로딩중...</div> : userRank.xpRank && <div className="text-sm font-bold text-gray-600">(전체 {userRank.xpRank}위)</div>}
           </div>
           <div className="stat-item p-4 bg-gray-100 rounded-lg col-span-2">
             <div className="stat-label">최고 점수</div>
             <div className="stat-value">{userData.score}</div>
+             {loadingRank ? <div className="text-xs">순위 로딩중...</div> : userRank.scoreRank && <div className="text-sm font-bold text-gray-600">(전체 {userRank.scoreRank}위)</div>}
           </div>
         </div>
 

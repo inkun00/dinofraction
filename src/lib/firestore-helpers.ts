@@ -1,5 +1,5 @@
 import { db } from './firebase';
-import { doc, getDoc, setDoc, collection, query, orderBy, limit, getDocs, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, query, orderBy, limit, getDocs, serverTimestamp, updateDoc, where } from 'firebase/firestore';
 import type { UserData, LeaderboardEntry, SchoolLeaderboardEntry } from './types';
 
 export async function saveUserData(userId: string, userData: UserData) {
@@ -40,23 +40,15 @@ export async function loadUserData(userId: string): Promise<UserData> {
     }
 }
 
-export async function getLeaderboardFromFirestore(type: 'score' | 'xp' | 'school'): Promise<Array<LeaderboardEntry | SchoolLeaderboardEntry>> {
+export async function getLeaderboardFromFirestore(type: 'score' | 'xp' | 'school', schoolName?: string): Promise<Array<LeaderboardEntry>> {
     let q;
     if (type === 'score') {
         q = query(collection(db, 'users'), orderBy("score", "desc"), limit(10));
     } else if (type === 'xp') {
         q = query(collection(db, 'users'), orderBy("totalXp", "desc"), limit(10));
     } else { // school
-        const usersSnapshot = await getDocs(collection(db, 'users'));
-        const schoolData: Record<string, number> = {};
-        usersSnapshot.forEach(doc => {
-            const user = doc.data() as UserData;
-            if (user.school && user.totalXp) {
-                schoolData[user.school] = (schoolData[user.school] || 0) + user.totalXp;
-            }
-        });
-        const sortedSchools = Object.entries(schoolData).sort(([, a], [, b]) => b - a).slice(0, 10);
-        return sortedSchools.map(([school, totalXp]) => ({ school, totalXp }));
+        if (!schoolName) return [];
+        q = query(collection(db, 'users'), where("school", "==", schoolName), orderBy("totalXp", "desc"), limit(10));
     }
     
     const querySnapshot = await getDocs(q);
@@ -71,4 +63,37 @@ export async function getLeaderboardFromFirestore(type: 'score' | 'xp' | 'school
         })
     });
     return data;
+}
+
+export async function getAllSchools(): Promise<string[]> {
+    const usersSnapshot = await getDocs(collection(db, 'users'));
+    const schoolSet = new Set<string>();
+    usersSnapshot.forEach(doc => {
+        const user = doc.data() as UserData;
+        if (user.school) {
+            schoolSet.add(user.school);
+        }
+    });
+    return Array.from(schoolSet).sort();
+}
+
+export async function getUserRank(userId: string): Promise<{ xpRank: number | null; scoreRank: number | null }> {
+    const usersRef = collection(db, "users");
+    const currentUserDoc = await getDoc(doc(usersRef, userId));
+    if (!currentUserDoc.exists()) {
+        return { xpRank: null, scoreRank: null };
+    }
+    const currentUserData = currentUserDoc.data() as UserData;
+
+    // XP Rank
+    const xpQuery = query(usersRef, where("totalXp", ">", currentUserData.totalXp || 0));
+    const xpSnapshot = await getDocs(xpQuery);
+    const xpRank = xpSnapshot.size + 1;
+    
+    // Score Rank
+    const scoreQuery = query(usersRef, where("score", ">", currentUserData.score || 0));
+    const scoreSnapshot = await getDocs(scoreQuery);
+    const scoreRank = scoreSnapshot.size + 1;
+
+    return { xpRank, scoreRank };
 }
