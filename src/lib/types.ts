@@ -49,6 +49,7 @@ export type UserData = {
   nickname?: string;
   correctProblemTypes: Record<string, number>;
   wrongProblemTypes: Record<string, number>;
+  wrongProblems: Problem[];
 };
 
 export type LeaderboardEntry = {

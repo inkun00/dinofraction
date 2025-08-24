@@ -1,6 +1,7 @@
 
 
 
+
 import type { Fraction, Problem, Answer, ProblemType, ProblemPart } from './types';
 
 export const firebaseErrorKorean: Record<string, string> = {
@@ -35,7 +36,7 @@ function getDifficultyLevel(score: number): number {
     return 4;
 }
 
-function normalizeFraction(whole: number, numerator: number, denominator: number): Fraction {
+export function normalizeFraction(whole: number, numerator: number, denominator: number): Fraction {
     if (denominator === 0) return { whole, numerator, denominator }; // avoid division by zero
     if (numerator < 0) {
         const borrow = Math.ceil(Math.abs(numerator) / denominator);

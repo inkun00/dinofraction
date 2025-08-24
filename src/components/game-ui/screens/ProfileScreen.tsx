@@ -45,14 +45,18 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, on
               {performanceData.length > 0 ? performanceData.map(({ type, correct, wrong, accuracy }) => (
                 <button 
                   key={type} 
-                  className="stat-item p-3 bg-white rounded-lg border text-left hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="stat-item p-3 bg-white rounded-lg border text-left hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => onShowWrongProblems(type)}
+                  disabled={(userData.wrongProblems?.filter(p => p.type === type).length || 0) === 0}
                 >
                   <div className="font-bold text-lg text-gray-700">{type}</div>
                   <div className="text-base text-blue-600">정답률: {accuracy}%</div>
                   <div className="text-sm text-gray-500">
                     (정답 {correct} / 오답 {wrong})
                   </div>
+                  {(userData.wrongProblems?.filter(p => p.type === type).length || 0) === 0 && (
+                    <div className="text-xs text-green-600 font-bold mt-1">완벽해요!</div>
+                  )}
                 </button>
               )) : (
                 <p className="col-span-2 text-center text-gray-500 py-4">아직 플레이 기록이 없습니다.</p>

@@ -21,6 +21,7 @@ import AnalysisScreen from '@/components/game-ui/screens/AnalysisScreen';
 import LeaderboardScreen from '@/components/game-ui/screens/LeaderboardScreen';
 import LevelUpModal from '@/components/game-ui/screens/LevelUpModal';
 import WrongProblemsModal from '@/components/game-ui/screens/WrongProblemsModal';
+import { normalizeFraction } from '@/lib/game-logic';
 
 const JUMP_VELOCITY = 22;
 const GRAVITY = -0.8;
@@ -41,7 +42,7 @@ export default function Home() {
     started: false,
   });
   const [currentUser, setCurrentUser] = React.useState<User | null>(null);
-  const [userData, setUserData] = React.useState<UserData>({ score: 0, totalXp: 0, level: 1, correctProblemTypes: {}, wrongProblemTypes: {} });
+  const [userData, setUserData] = React.useState<UserData>({ score: 0, totalXp: 0, level: 1, correctProblemTypes: {}, wrongProblemTypes: {}, wrongProblems: [] });
   const [problemStats, setProblemStats] = React.useState<ProblemStats>({ correct: [], wrong: [], totalProblems: 0, correctProblemTypes: {}, wrongProblemTypes: {} });
   const [currentProblems, setCurrentProblems] = React.useState<CurrentProblem[]>([]);
   
@@ -108,6 +109,7 @@ export default function Home() {
           level: newLevel,
           correctProblemTypes: { ...userData.correctProblemTypes },
           wrongProblemTypes: { ...userData.wrongProblemTypes },
+          wrongProblems: [...(userData.wrongProblems || []), ...problemStats.wrong],
       };
 
       for (const type in problemStats.correctProblemTypes) {
@@ -119,7 +121,7 @@ export default function Home() {
       
       setUserData(finalUserData);
       if(currentUser) {
-        saveDBUserData(currentUser.uid, finalUserData, finalScore);
+        saveDBUserData(currentUser.uid, finalUserData);
       }
 
       if (newLevel > oldLevel) {
@@ -140,7 +142,7 @@ export default function Home() {
         }
       } else {
         setCurrentUser(null);
-        setUserData({ score: 0, totalXp: 0, level: 1, correctProblemTypes: {}, wrongProblemTypes: {} });
+        setUserData({ score: 0, totalXp: 0, level: 1, correctProblemTypes: {}, wrongProblemTypes: {}, wrongProblems: [] });
         setAppState('start');
       }
     });
@@ -393,6 +395,22 @@ export default function Home() {
   };
   const handleCloseModal = () => setIsModalOpen(false);
 
+  const handleCorrectReviewAnswer = (problemToRemove: Problem) => {
+    const updatedWrongProblems = userData.wrongProblems?.filter(p => JSON.stringify(p) !== JSON.stringify(problemToRemove));
+    
+    const updatedUserData: UserData = {
+        ...userData,
+        wrongProblems: updatedWrongProblems,
+    };
+
+    setUserData(updatedUserData);
+
+    if (currentUser) {
+        saveDBUserData(currentUser.uid, updatedUserData);
+    }
+  };
+
+
   const renderContent = () => {
     switch(appState) {
         case 'loading':
@@ -431,8 +449,9 @@ export default function Home() {
                 {isModalOpen && modalProblemType && (
                   <WrongProblemsModal
                     problemType={modalProblemType}
-                    allWrongProblems={problemStats.wrong}
+                    allWrongProblems={userData.wrongProblems || []}
                     onClose={handleCloseModal}
+                    onCorrectAnswer={handleCorrectReviewAnswer}
                   />
                 )}
               </>
