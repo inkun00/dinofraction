@@ -6,7 +6,7 @@ import { GameState, Problem, UserData, ProblemStats, CurrentProblem, AppState, F
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, signInAnonymously, User } from 'firebase/auth';
 import { loadUserData as loadDBUserData, saveUserData as saveDBUserData, getLeaderboardFromFirestore } from '@/lib/firestore-helpers';
-import { generateProblem as generateProblemUtil, calculateLevel, analyzeStats, firebaseErrorKorean } from '@/lib/game-logic';
+import { generateProblem as generateProblemUtil, calculateLevel, analyzeStats, firebaseErrorKorean, PROBLEM_DIFFICULTY } from '@/lib/game-logic';
 import { login, signUp, logout } from '@/lib/auth-helpers';
 
 import AnimatedBackground from '@/components/game-ui/AnimatedBackground';
@@ -46,6 +46,7 @@ export default function Home() {
   
   const [dinoEvolution, setDinoEvolution] = React.useState<EvolutionStage>('egg');
   const [dinoIsEvolving, setDinoIsEvolving] = React.useState(false);
+  const [earnedXp, setEarnedXp] = React.useState(0);
   
   const gameTimerRef = React.useRef<NodeJS.Timeout | null>(null);
   const usedProblemsRef = React.useRef<Set<string>>(new Set());
@@ -91,7 +92,6 @@ export default function Home() {
       answeredProblemsRef.current.clear();
 
       const finalScore = gameState.score;
-      const earnedXp = Math.floor(finalScore / 5);
       const oldLevel = userData.level;
       
       const newTotalXp = userData.totalXp + earnedXp;
@@ -123,7 +123,7 @@ export default function Home() {
       } else {
           setAppState('gameover');
       }
-  }, [userData, problemStats, currentUser, gameState.score]);
+  }, [userData, problemStats, currentUser, gameState.score, earnedXp]);
 
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -163,11 +163,15 @@ export default function Home() {
   }, []);
 
   const handleCorrectAnswer = React.useCallback((problem: Problem) => {
+      const difficulty = problem.difficulty;
+      const { score: scoreToAdd, xp: xpToAdd } = PROBLEM_DIFFICULTY[difficulty] || { score: 10, xp: 2 };
+
       setGameState(prev => {
-        const newScore = prev.score + 10;
+        const newScore = prev.score + scoreToAdd;
         updateDinosaurEvolution(newScore);
         return { ...prev, score: newScore };
       });
+      setEarnedXp(prev => prev + xpToAdd);
       setProblemStats(prev => {
           const newCorrect = [...prev.correct, problem];
           const newCorrectTypes = { ...prev.correctProblemTypes, [problem.type]: (prev.correctProblemTypes[problem.type] || 0) + 1 };
@@ -338,6 +342,7 @@ export default function Home() {
   const startGame = React.useCallback(() => {
     setGameState({ score: 0, lives: 5, time: 0, running: true, started: true });
     setProblemStats({ correct: [], wrong: [], totalProblems: 0, correctProblemTypes: {}, wrongProblemTypes: {} });
+    setEarnedXp(0);
     setCurrentProblems([]);
     usedProblemsRef.current.clear();
     answeredProblemsRef.current.clear();
@@ -436,7 +441,7 @@ export default function Home() {
         case 'gameover':
             return <GameOverScreen 
                       score={gameState.score}
-                      xpGained={Math.floor(gameState.score / 5)}
+                      xpGained={earnedXp}
                       onShowLeaderboard={() => setAppState('leaderboard')}
                       onShowAnalysis={() => setAppState('analysis')}
                       onRestart={restartGame}
@@ -466,7 +471,7 @@ export default function Home() {
 
         case 'levelup':
             return <LevelUpModal
-                      oldLevel={calculateLevel(userData.totalXp - Math.floor(gameState.score / 5))}
+                      oldLevel={calculateLevel(userData.totalXp - earnedXp)}
                       newLevel={userData.level}
                       onClose={() => setAppState('gameover')}
                     />;

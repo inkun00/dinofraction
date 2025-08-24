@@ -1,4 +1,5 @@
 
+
 import type { Fraction, Problem, Answer, ProblemType, ProblemPart } from './types';
 
 export const firebaseErrorKorean: Record<string, string> = {
@@ -10,13 +11,26 @@ export const firebaseErrorKorean: Record<string, string> = {
     'default': '로그인 중 오류가 발생했습니다. 다시 시도해주세요.'
 };
 
-const possibleDenominators = [2, 3, 4, 5, 6, 7, 8, 9, 10, 12];
 const problemTypesByScore = {
     level1: ['진분수+진분수', '진분수-진분수'],
     level2: ['진분수+진분수_합1초과'],
     level3: ['1-진분수', '자연수-진분수'],
     level4: ['대분수-대분수', '대분수-대분수(받아내림)']
 };
+
+export const PROBLEM_DIFFICULTY: Record<number, { score: number, xp: number }> = {
+    1: { score: 10, xp: 1 }, // Easiest
+    2: { score: 13, xp: 2 },
+    3: { score: 17, xp: 3 },
+    4: { score: 20, xp: 5 }, // Hardest
+};
+
+function getDifficultyLevel(score: number): number {
+    if (score < 50) return 1;
+    if (score < 100) return 2;
+    if (score < 150) return 3;
+    return 4;
+}
 
 function normalizeFraction(whole: number, numerator: number, denominator: number): Fraction {
     if (numerator < 0) {
@@ -37,13 +51,14 @@ export function generateProblem(score: number, usedProblems: Set<string>): { pro
     const maxAttempts = 100;
     let problemKey = '';
     let parts: ProblemPart[] = [];
+    const difficulty = getDifficultyLevel(score);
 
     while (!problem && attempts < maxAttempts) {
         attempts++;
         let currentProblemSet: ProblemType[];
-        if (score < 50) currentProblemSet = problemTypesByScore.level1;
-        else if (score < 100) currentProblemSet = problemTypesByScore.level2;
-        else if (score < 150) currentProblemSet = problemTypesByScore.level3;
+        if (difficulty === 1) currentProblemSet = problemTypesByScore.level1;
+        else if (difficulty === 2) currentProblemSet = problemTypesByScore.level2;
+        else if (difficulty === 3) currentProblemSet = problemTypesByScore.level3;
         else currentProblemSet = problemTypesByScore.level4;
         
         const problemType = currentProblemSet[Math.floor(Math.random() * currentProblemSet.length)];
@@ -62,21 +77,21 @@ export function generateProblem(score: number, usedProblems: Set<string>): { pro
                 if (innerAttempts >= maxInnerAttempts) continue;
                 answerWhole = 0; answerNum = n1 + n2;
                 parts = [{type: 'fraction', value: {whole: 0, numerator: n1, denominator: d}}, {type: 'operator', value: '+'}, {type: 'fraction', value: {whole: 0, numerator: n2, denominator: d}}];
-                candidateProblem = { type: problemType, parts, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
+                candidateProblem = { type: problemType, parts, answer: { whole: answerWhole, numerator: answerNum, denominator: d }, difficulty };
                 break;
             case '진분수+진분수_합1초과':
                  do { n1 = Math.floor(Math.random() * (d - 1)) + 1; n2 = Math.floor(Math.random() * (d - 1)) + 1; innerAttempts++; } while (n1 + n2 < d && innerAttempts < maxInnerAttempts);
                 if (innerAttempts >= maxInnerAttempts) continue;
                 answerWhole = 0; answerNum = n1 + n2;
                 parts = [{type: 'fraction', value: {whole: 0, numerator: n1, denominator: d}}, {type: 'operator', value: '+'}, {type: 'fraction', value: {whole: 0, numerator: n2, denominator: d}}];
-                candidateProblem = { type: problemType, parts, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
+                candidateProblem = { type: problemType, parts, answer: { whole: answerWhole, numerator: answerNum, denominator: d }, difficulty };
                 break;
             case '진분수-진분수':
                 do { n1 = Math.floor(Math.random() * (d - 1)) + 1; n2 = Math.floor(Math.random() * (d - 1)) + 1; innerAttempts++; } while (n1 <= n2 && innerAttempts < maxInnerAttempts);
                 if (innerAttempts >= maxInnerAttempts) continue;
                 answerWhole = 0; answerNum = n1 - n2;
                 parts = [{type: 'fraction', value: {whole: 0, numerator: n1, denominator: d}}, {type: 'operator', value: '-'}, {type: 'fraction', value: {whole: 0, numerator: n2, denominator: d}}];
-                candidateProblem = { type: problemType, parts, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
+                candidateProblem = { type: problemType, parts, answer: { whole: answerWhole, numerator: answerNum, denominator: d }, difficulty };
                 break;
             case '대분수-대분수':
                 w1 = Math.floor(Math.random() * 4) + 2; w2 = Math.floor(Math.random() * (w1 - 1)) + 1;
@@ -84,18 +99,18 @@ export function generateProblem(score: number, usedProblems: Set<string>): { pro
                 if (innerAttempts >= maxInnerAttempts) continue;
                 answerWhole = w1 - w2; answerNum = n1 - n2;
                 parts = [{type: 'fraction', value: {whole: w1, numerator: n1, denominator: d}}, {type: 'operator', value: '-'}, {type: 'fraction', value: {whole: w2, numerator: n2, denominator: d}}];
-                candidateProblem = { type: problemType, parts, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
+                candidateProblem = { type: problemType, parts, answer: { whole: answerWhole, numerator: answerNum, denominator: d }, difficulty };
                 break;
             case '1-진분수':
                 n1 = Math.floor(Math.random() * (d - 1)) + 1; answerWhole = 0; answerNum = d - n1;
                 parts = [{type: 'operator', value: '1'}, {type: 'operator', value: '-'}, {type: 'fraction', value: {whole: 0, numerator: n1, denominator: d}}];
-                candidateProblem = { type: problemType, parts, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
+                candidateProblem = { type: problemType, parts, answer: { whole: answerWhole, numerator: answerNum, denominator: d }, difficulty };
                 break;
             case '자연수-진분수':
                 w1 = Math.floor(Math.random() * 4) + 2; n1 = Math.floor(Math.random() * (d - 1)) + 1;
                 answerWhole = w1 - 1; answerNum = d - n1;
                 parts = [{type: 'operator', value: `${w1}`}, {type: 'operator', value: '-'}, {type: 'fraction', value: {whole: 0, numerator: n1, denominator: d}}];
-                candidateProblem = { type: problemType, parts, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
+                candidateProblem = { type: problemType, parts, answer: { whole: answerWhole, numerator: answerNum, denominator: d }, difficulty };
                 break;
             case '대분수-대분수(받아내림)':
                 w1 = Math.floor(Math.random() * 4) + 2; w2 = Math.floor(Math.random() * (w1 - 1)) + 1;
@@ -103,7 +118,7 @@ export function generateProblem(score: number, usedProblems: Set<string>): { pro
                 if (innerAttempts >= maxInnerAttempts) continue;
                 answerWhole = w1 - 1 - w2; answerNum = (n1 + d) - n2;
                 parts = [{type: 'fraction', value: {whole: w1, numerator: n1, denominator: d}}, {type: 'operator', value: '-'}, {type: 'fraction', value: {whole: w2, numerator: n2, denominator: d}}];
-                candidateProblem = { type: problemType, parts, answer: { whole: answerWhole, numerator: answerNum, denominator: d } };
+                candidateProblem = { type: problemType, parts, answer: { whole: answerWhole, numerator: answerNum, denominator: d }, difficulty };
                 break;
         }
 

@@ -17,6 +17,7 @@ export type Problem = {
   type: ProblemType;
   parts: ProblemPart[];
   answer: Fraction;
+  difficulty: number;
 };
 
 export type Answer = {
