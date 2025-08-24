@@ -157,22 +157,3 @@ export function generateProblem(score: number, usedProblems: Set<string>): { pro
 export function calculateLevel(xp: number): number {
     return Math.floor(Math.sqrt(xp / 10)) + 1;
 }
-
-export function analyzeStats(stats: Record<string, number>): string | null {
-    if (!stats || Object.keys(stats).length === 0) return null;
-
-    let resultType = '';
-    let bestValue = -1;
-
-    for (const type in stats) {
-        if (stats[type] > bestValue) {
-            bestValue = stats[type];
-            resultType = type;
-        }
-    }
-    return resultType;
-}
-
-    
-
-    

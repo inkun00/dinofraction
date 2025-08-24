@@ -1,6 +1,5 @@
 import React from 'react';
 import type { UserData } from '@/lib/types';
-import { analyzeStats } from '@/lib/game-logic';
 import { Button } from '@/components/ui/button';
 
 interface ProfileScreenProps {
@@ -10,8 +9,15 @@ interface ProfileScreenProps {
 }
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, onLogout }) => {
-  const strengths = analyzeStats(userData.correctProblemTypes);
-  const weaknesses = analyzeStats(userData.wrongProblemTypes);
+  const allTypes = Array.from(new Set([...Object.keys(userData.correctProblemTypes), ...Object.keys(userData.wrongProblemTypes)]));
+
+  const performanceData = allTypes.map(type => {
+    const correct = userData.correctProblemTypes[type] || 0;
+    const wrong = userData.wrongProblemTypes[type] || 0;
+    const total = correct + wrong;
+    const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
+    return { type, correct, wrong, total, accuracy };
+  }).sort((a, b) => b.accuracy - a.accuracy);
 
   return (
     <div className="profile-screen" style={{ display: 'flex' }}>
@@ -30,16 +36,26 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, on
             <div className="stat-label">최고 점수</div>
             <div className="stat-value">{userData.score}</div>
           </div>
-          <div className="stat-item p-4 bg-green-100 rounded-lg">
-            <div className="stat-label text-green-700">잘하는 계산</div>
-            <div className="stat-value text-green-700 text-xl">{strengths || '기록 없음'}</div>
-          </div>
-          <div className="stat-item p-4 bg-red-100 rounded-lg">
-            <div className="stat-label text-red-700">부족한 계산</div>
-            <div className="stat-value text-red-700 text-xl">{weaknesses || '기록 없음'}</div>
-          </div>
         </div>
-        <div className="analysis-buttons">
+
+        <div className="mt-6">
+            <h3 className="text-xl font-bold text-center mb-4">📊 영역별 성취도</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-48 overflow-y-auto p-2 bg-gray-50 rounded-lg">
+              {performanceData.length > 0 ? performanceData.map(({ type, correct, wrong, accuracy }) => (
+                <div key={type} className="stat-item p-3 bg-white rounded-lg border">
+                  <div className="font-bold text-lg text-gray-700">{type}</div>
+                  <div className="text-base text-blue-600">정답률: {accuracy}%</div>
+                  <div className="text-sm text-gray-500">
+                    (정답 {correct} / 오답 {wrong})
+                  </div>
+                </div>
+              )) : (
+                <p className="col-span-2 text-center text-gray-500 py-4">아직 플레이 기록이 없습니다.</p>
+              )}
+            </div>
+        </div>
+
+        <div className="analysis-buttons mt-6">
           <Button onClick={onStartGame} className="start-btn">게임 시작!</Button>
           <Button onClick={onLogout} className="restart-btn close">로그아웃</Button>
         </div>
