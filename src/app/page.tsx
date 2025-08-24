@@ -122,18 +122,6 @@ export default function Home() {
     return () => unsubscribe();
   }, [appState]);
 
-  React.useEffect(() => {
-    const resizeGame = () => {
-      if (!gameContainerRef.current) return;
-      const baseWidth = 1280;
-      const baseHeight = 720;
-      const scale = Math.min(window.innerWidth / baseWidth, window.innerHeight / baseHeight);
-      gameContainerRef.current.style.transform = `translate(-50%, -50%) scale(${scale})`;
-    };
-    resizeGame();
-    window.addEventListener('resize', resizeGame);
-    return () => window.removeEventListener('resize', resizeGame);
-  }, []);
   
   const updateDinosaurEvolution = React.useCallback((currentScore: number) => {
     let newStage: EvolutionStage;

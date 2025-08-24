@@ -62,8 +62,6 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Gamja Flower', 'Jua', 'Do Hyeon', 'Comic Sans MS', cursive, sans-serif;
-    overflow: hidden;
-    background: #000;
   }
 }
 
@@ -73,7 +71,7 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%) scale(1);
+    transform: translate(-50%, -50%);
     overflow: hidden;
     background: linear-gradient(to bottom, #87CEEB 0%, #98FB98 100%);
     user-select: none;
@@ -450,3 +448,4 @@
 }
 
     
+
