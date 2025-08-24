@@ -18,6 +18,8 @@ const problemTypesByScore = {
     level4: ['대분수-대분수', '대분수-대분수(받아내림)']
 };
 
+const possibleDenominators = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+
 export const PROBLEM_DIFFICULTY: Record<number, { score: number, xp: number }> = {
     1: { score: 10, xp: 1 }, // Easiest
     2: { score: 13, xp: 2 },
