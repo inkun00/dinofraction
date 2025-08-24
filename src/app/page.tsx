@@ -25,6 +25,9 @@ const JUMP_VELOCITY = 22;
 const GRAVITY = -0.8;
 const GROUND_POSITION = 135;
 const PROBLEM_GENERATION_INTERVAL = 450; // frames, 60fps -> ~7.5s
+const GAME_WIDTH = 1280;
+const GAME_HEIGHT = 720;
+
 
 export default function Home() {
   const [appState, setAppState] = React.useState<AppState>('loading');
@@ -60,6 +63,24 @@ export default function Home() {
     isJumping: false,
   });
 
+  React.useEffect(() => {
+    const resizeGame = () => {
+      if (!gameContainerRef.current) return;
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight;
+      const scaleX = screenWidth / GAME_WIDTH;
+      const scaleY = screenHeight / GAME_HEIGHT;
+      const scale = Math.min(scaleX, scaleY);
+      gameContainerRef.current.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    };
+
+    window.addEventListener('resize', resizeGame);
+    resizeGame(); // Initial resize
+
+    return () => {
+      window.removeEventListener('resize', resizeGame);
+    };
+  }, []);
 
   const endGame = React.useCallback(() => {
       setGameState(prev => ({...prev, running: false, started: false}));
