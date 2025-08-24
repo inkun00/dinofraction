@@ -1,5 +1,6 @@
 
 
+
 import type { Fraction, Problem, Answer, ProblemType, ProblemPart } from './types';
 
 export const firebaseErrorKorean: Record<string, string> = {
@@ -11,11 +12,11 @@ export const firebaseErrorKorean: Record<string, string> = {
     'default': '로그인 중 오류가 발생했습니다. 다시 시도해주세요.'
 };
 
-const problemTypesByScore = {
+const problemTypesByScore: Record<string, ProblemType[]> = {
     level1: ['진분수+진분수', '진분수-진분수'],
     level2: ['진분수+진분수_합1초과'],
     level3: ['1-진분수', '자연수-진분수'],
-    level4: ['대분수-대분수', '대분수-대분수(받아내림)']
+    level4: ['대분수-대분수(받아내림)', '대분수+대분수', '자연수-대분수', '대분수-대분수']
 };
 
 const possibleDenominators = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
@@ -35,6 +36,7 @@ function getDifficultyLevel(score: number): number {
 }
 
 function normalizeFraction(whole: number, numerator: number, denominator: number): Fraction {
+    if (denominator === 0) return { whole, numerator, denominator }; // avoid division by zero
     if (numerator < 0) {
         const borrow = Math.ceil(Math.abs(numerator) / denominator);
         whole -= borrow;
@@ -122,6 +124,21 @@ export function generateProblem(score: number, usedProblems: Set<string>): { pro
                 parts = [{type: 'fraction', value: {whole: w1, numerator: n1, denominator: d}}, {type: 'operator', value: '-'}, {type: 'fraction', value: {whole: w2, numerator: n2, denominator: d}}];
                 candidateProblem = { type: problemType, parts, answer: { whole: answerWhole, numerator: answerNum, denominator: d }, difficulty };
                 break;
+            case '대분수+대분수':
+                w1 = Math.floor(Math.random() * 3) + 1; w2 = Math.floor(Math.random() * 3) + 1;
+                n1 = Math.floor(Math.random() * (d - 1)) + 1; n2 = Math.floor(Math.random() * (d - 1)) + 1;
+                answerWhole = w1 + w2; answerNum = n1 + n2;
+                parts = [{type: 'fraction', value: {whole: w1, numerator: n1, denominator: d}}, {type: 'operator', value: '+'}, {type: 'fraction', value: {whole: w2, numerator: n2, denominator: d}}];
+                candidateProblem = { type: problemType, parts, answer: normalizeFraction(answerWhole, answerNum, d), difficulty };
+                break;
+            case '자연수-대분수':
+                w1 = Math.floor(Math.random() * 3) + 3;
+                w2 = Math.floor(Math.random() * (w1 - 2)) + 1;
+                n2 = Math.floor(Math.random() * (d - 1)) + 1;
+                answerWhole = w1 - 1 - w2; answerNum = d - n2;
+                parts = [{type: 'operator', value: `${w1}`}, {type: 'operator', value: '-'}, {type: 'fraction', value: {whole: w2, numerator: n2, denominator: d}}];
+                candidateProblem = { type: problemType, parts, answer: normalizeFraction(answerWhole, answerNum, d), difficulty };
+                break;
         }
 
         if (candidateProblem) {
@@ -146,7 +163,7 @@ export function generateProblem(score: number, usedProblems: Set<string>): { pro
             const wrongWhole = Math.floor(Math.random() * (correctAnswer.whole + 2));
             wrongAnswer = normalizeFraction(wrongWhole, wrongNum, problem.answer.denominator);
             wrongAttempts++;
-        } while (answers.some(a => a.value.whole === wrongAnswer.whole && a.value.numerator === wrongAnswer.numerator) && wrongAttempts < 20);
+        } while (answers.some(a => a.value.whole === wrongAnswer.whole && a.value.numerator === wrongAnswer.numerator && a.value.denominator === wrongAnswer.denominator) && wrongAttempts < 20);
         answers.push({ value: wrongAnswer, isCorrect: false });
     }
 

@@ -1,14 +1,15 @@
 import React from 'react';
-import type { UserData } from '@/lib/types';
+import type { ProblemType, UserData } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 
 interface ProfileScreenProps {
   userData: UserData;
   onStartGame: () => void;
   onLogout: () => void;
+  onShowWrongProblems: (type: ProblemType) => void;
 }
 
-const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, onLogout }) => {
+const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, onLogout, onShowWrongProblems }) => {
   const allTypes = Array.from(new Set([...Object.keys(userData.correctProblemTypes), ...Object.keys(userData.wrongProblemTypes)]));
 
   const performanceData = allTypes.map(type => {
@@ -16,7 +17,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, on
     const wrong = userData.wrongProblemTypes[type] || 0;
     const total = correct + wrong;
     const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
-    return { type, correct, wrong, total, accuracy };
+    return { type: type as ProblemType, correct, wrong, total, accuracy };
   }).sort((a, b) => b.accuracy - a.accuracy);
 
   return (
@@ -39,16 +40,20 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, on
         </div>
 
         <div className="mt-6">
-            <h3 className="text-xl font-bold text-center mb-4">📊 영역별 성취도</h3>
+            <h3 className="text-xl font-bold text-center mb-4">📊 영역별 성취도 (클릭하여 오답 풀기)</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-48 overflow-y-auto p-2 bg-gray-50 rounded-lg">
               {performanceData.length > 0 ? performanceData.map(({ type, correct, wrong, accuracy }) => (
-                <div key={type} className="stat-item p-3 bg-white rounded-lg border">
+                <button 
+                  key={type} 
+                  className="stat-item p-3 bg-white rounded-lg border text-left hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onClick={() => onShowWrongProblems(type)}
+                >
                   <div className="font-bold text-lg text-gray-700">{type}</div>
                   <div className="text-base text-blue-600">정답률: {accuracy}%</div>
                   <div className="text-sm text-gray-500">
                     (정답 {correct} / 오답 {wrong})
                   </div>
-                </div>
+                </button>
               )) : (
                 <p className="col-span-2 text-center text-gray-500 py-4">아직 플레이 기록이 없습니다.</p>
               )}

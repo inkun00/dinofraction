@@ -2,11 +2,11 @@
 "use client";
 
 import * as React from 'react';
-import { GameState, Problem, UserData, ProblemStats, CurrentProblem, AppState, Fraction, EvolutionStage } from '@/lib/types';
+import { GameState, Problem, UserData, ProblemStats, CurrentProblem, AppState, Fraction, EvolutionStage, ProblemType } from '@/lib/types';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, signInAnonymously, User } from 'firebase/auth';
 import { loadUserData as loadDBUserData, saveUserData as saveDBUserData, getLeaderboardFromFirestore } from '@/lib/firestore-helpers';
-import { generateProblem as generateProblemUtil, calculateLevel, analyzeStats, firebaseErrorKorean, PROBLEM_DIFFICULTY } from '@/lib/game-logic';
+import { generateProblem as generateProblemUtil, calculateLevel, firebaseErrorKorean, PROBLEM_DIFFICULTY } from '@/lib/game-logic';
 import { login, signUp, logout } from '@/lib/auth-helpers';
 
 import AnimatedBackground from '@/components/game-ui/AnimatedBackground';
@@ -20,6 +20,7 @@ import GameOverScreen from '@/components/game-ui/screens/GameOverScreen';
 import AnalysisScreen from '@/components/game-ui/screens/AnalysisScreen';
 import LeaderboardScreen from '@/components/game-ui/screens/LeaderboardScreen';
 import LevelUpModal from '@/components/game-ui/screens/LevelUpModal';
+import WrongProblemsModal from '@/components/game-ui/screens/WrongProblemsModal';
 
 const JUMP_VELOCITY = 22;
 const GRAVITY = -0.8;
@@ -48,6 +49,9 @@ export default function Home() {
   const [dinoIsEvolving, setDinoIsEvolving] = React.useState(false);
   const [earnedXp, setEarnedXp] = React.useState(0);
   
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [modalProblemType, setModalProblemType] = React.useState<ProblemType | null>(null);
+
   const gameTimerRef = React.useRef<NodeJS.Timeout | null>(null);
   const usedProblemsRef = React.useRef<Set<string>>(new Set());
   const problemCounterRef = React.useRef(0);
@@ -382,7 +386,13 @@ export default function Home() {
       setDinoIsEvolving(false);
       setAppState('start');
   }, []);
-  
+
+  const handleOpenModal = (type: ProblemType) => {
+    setModalProblemType(type);
+    setIsModalOpen(true);
+  };
+  const handleCloseModal = () => setIsModalOpen(false);
+
   const renderContent = () => {
     switch(appState) {
         case 'loading':
@@ -407,14 +417,26 @@ export default function Home() {
                     />;
 
         case 'profile':
-            return <ProfileScreen 
-                      userData={userData}
-                      onStartGame={startGame}
-                      onLogout={async () => {
-                        await logout();
-                        restartGame();
-                      }}
-                    />;
+            return (
+              <>
+                <ProfileScreen 
+                  userData={userData}
+                  onStartGame={startGame}
+                  onLogout={async () => {
+                    await logout();
+                    restartGame();
+                  }}
+                  onShowWrongProblems={handleOpenModal}
+                />
+                {isModalOpen && modalProblemType && (
+                  <WrongProblemsModal
+                    problemType={modalProblemType}
+                    allWrongProblems={problemStats.wrong}
+                    onClose={handleCloseModal}
+                  />
+                )}
+              </>
+            );
 
         case 'playing':
             return (
