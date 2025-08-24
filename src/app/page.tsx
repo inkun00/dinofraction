@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from 'react';
-import { GameState, Problem, UserData, ProblemStats, CurrentProblem, AppState, Fraction, EvolutionStage, SpeedLevel } from '@/lib/types';
+import { GameState, Problem, UserData, ProblemStats, CurrentProblem, AppState, Fraction, EvolutionStage } from '@/lib/types';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, signInAnonymously, User } from 'firebase/auth';
 import { loadUserData as loadDBUserData, saveUserData as saveDBUserData, getLeaderboardFromFirestore } from '@/lib/firestore-helpers';
@@ -27,6 +27,7 @@ const GROUND_POSITION = 135;
 const PROBLEM_GENERATION_INTERVAL = 450; // frames, 60fps -> ~7.5s
 const GAME_WIDTH = 1280;
 const GAME_HEIGHT = 720;
+const INITIAL_ANIMATION_DURATION = 7.5; // seconds
 
 
 export default function Home() {
@@ -45,7 +46,6 @@ export default function Home() {
   
   const [dinoEvolution, setDinoEvolution] = React.useState<EvolutionStage>('egg');
   const [dinoIsEvolving, setDinoIsEvolving] = React.useState(false);
-  const [speedLevel, setSpeedLevel] = React.useState<SpeedLevel>(0);
   
   const gameTimerRef = React.useRef<NodeJS.Timeout | null>(null);
   const usedProblemsRef = React.useRef<Set<string>>(new Set());
@@ -203,14 +203,18 @@ export default function Home() {
 
     const { problem, answers, problemKey } = newProblemData;
     usedProblemsRef.current.add(problemKey);
-    problemCounterRef.current++;
+    
     const problemId = problemCounterRef.current;
+    
+    const animationDuration = INITIAL_ANIMATION_DURATION / (1 + (problemCounterRef.current * 0.01));
+    problemCounterRef.current++;
 
     const newCurrentProblem: CurrentProblem = {
         id: problemId,
         problem,
         answers,
         answered: false,
+        animationDuration,
     };
 
     setCurrentProblems(prevProbs => [...prevProbs, newCurrentProblem]);
@@ -374,19 +378,6 @@ export default function Home() {
       setAppState('start');
   }, []);
   
-  React.useEffect(() => {
-    if (gameState.running) {
-      let newSpeedLevel: SpeedLevel;
-      if (gameState.score >= 200) newSpeedLevel = 5;
-      else if (gameState.score >= 150) newSpeedLevel = 4;
-      else if (gameState.score >= 100) newSpeedLevel = 3;
-      else if (gameState.score >= 50) newSpeedLevel = 2;
-      else if (gameState.score >= 20) newSpeedLevel = 1;
-      else newSpeedLevel = 0;
-      setSpeedLevel(newSpeedLevel);
-    }
-  }, [gameState.score, gameState.running]);
-
   const renderContent = () => {
     switch(appState) {
         case 'loading':
@@ -435,7 +426,7 @@ export default function Home() {
                   y={dinoPhysicsRef.current.y} 
                   evolving={dinoIsEvolving} 
                 />
-                <ProblemContainer problems={currentProblems} speedLevel={speedLevel} />
+                <ProblemContainer problems={currentProblems} />
                 <div className="instructions">
                   스페이스바 또는 화면 터치로 점프하고 정답을 맞혀보세요!
                 </div>
@@ -494,5 +485,3 @@ export default function Home() {
     </main>
   );
 }
-
-    

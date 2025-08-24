@@ -1,23 +1,21 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import type { CurrentProblem, SpeedLevel } from '@/lib/types';
+import type { CurrentProblem } from '@/lib/types';
 import FractionDisplay from './FractionDisplay';
 
 interface ProblemContainerProps {
   problems: CurrentProblem[];
-  speedLevel: SpeedLevel;
 }
 
-const ProblemContainer: React.FC<ProblemContainerProps> = ({ problems, speedLevel }) => {
-  const speedClass = `speed-level-${speedLevel}`;
-
+const ProblemContainer: React.FC<ProblemContainerProps> = ({ problems }) => {
   return (
     <>
-      {problems.map(({ id, problem, answers }) => (
+      {problems.map(({ id, problem, answers, animationDuration }) => (
         <React.Fragment key={id}>
           <div
-            className={cn('math-problem', speedClass)}
+            className='math-problem'
             data-problem-id={id}
+            style={{ animationDuration: `${animationDuration}s` }}
           >
              {problem.parts.map((part, index) => {
                 if (part.type === 'fraction') {
@@ -32,10 +30,10 @@ const ProblemContainer: React.FC<ProblemContainerProps> = ({ problems, speedLeve
           {answers.map((answer, index) => (
             <div
               key={`answer-${id}-${index}`}
-              className={cn('answer-bubble', speedClass)}
+              className='answer-bubble'
               data-correct={answer.isCorrect}
               data-problem-id={id}
-              style={{ animationDelay: `${index * 0.8}s` }}
+              style={{ animationDuration: `${animationDuration}s`, animationDelay: `${index * 0.8}s` }}
             >
               <FractionDisplay fraction={answer.value} />
             </div>

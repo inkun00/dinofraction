@@ -269,7 +269,6 @@
 
 .answer-bubble.bouncing {
     animation-name: scrollProblem, bubble-bounce;
-    animation-duration: inherit, 0.2s;
     animation-timing-function: linear, ease-out;
     animation-iteration-count: 1, 1;
     animation-fill-mode: forwards, forwards;
@@ -297,14 +296,6 @@
   font-size: 0.8em; 
   line-height: 1;
 }
-
-/* Speed Levels */
-.speed-level-0 { animation-duration: 7.5s !important; }
-.speed-level-1 { animation-duration: 7s !important; }
-.speed-level-2 { animation-duration: 6.5s !important; }
-.speed-level-3 { animation-duration: 6s !important; }
-.speed-level-4 { animation-duration: 5.5s !important; }
-.speed-level-5 { animation-duration: 5s !important; }
 
 /* --- Screens (Start, Game Over, Analysis) --- */
 .game-over-screen, .analysis-screen, .start-screen, .modal-overlay, .profile-screen, .leaderboard-screen {
