@@ -24,7 +24,7 @@ import LevelUpModal from '@/components/game-ui/screens/LevelUpModal';
 const JUMP_VELOCITY = 22;
 const GRAVITY = -0.8;
 const GROUND_POSITION = 135;
-const PROBLEM_GENERATION_INTERVAL = 200; // frames, 60fps -> ~3.3s
+const PROBLEM_GENERATION_INTERVAL = 450; // frames, 60fps -> ~7.5s
 
 export default function Home() {
   const [appState, setAppState] = React.useState<AppState>('loading');
