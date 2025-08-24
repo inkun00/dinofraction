@@ -48,7 +48,24 @@ export async function getLeaderboardFromFirestore(type: 'score' | 'xp' | 'school
         q = query(collection(db, 'users'), orderBy("totalXp", "desc"), limit(10));
     } else { // school
         if (!schoolName) return [];
-        q = query(collection(db, 'users'), where("school", "==", schoolName), orderBy("totalXp", "desc"), limit(10));
+        q = query(collection(db, 'users'), where("school", "==", schoolName));
+        
+        const querySnapshot = await getDocs(q);
+        let data: LeaderboardEntry[] = [];
+        querySnapshot.forEach((doc) => {
+            const userData = doc.data() as UserData;
+            data.push({
+                nickname: userData.nickname || 'Unknown',
+                school: userData.school || 'Unknown',
+                score: userData.score,
+                totalXp: userData.totalXp
+            })
+        });
+        
+        // 클라이언트 측에서 정렬
+        data.sort((a, b) => (b.totalXp || 0) - (a.totalXp || 0));
+        
+        return data.slice(0, 10);
     }
     
     const querySnapshot = await getDocs(q);
