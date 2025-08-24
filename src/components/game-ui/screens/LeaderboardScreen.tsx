@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import type { LeaderboardEntry, SchoolLeaderboardEntry } from '@/lib/types';
+import type { LeaderboardEntry, SchoolLeaderboardEntry, LeaderboardType } from '@/lib/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getAllSchools } from '@/lib/firestore-helpers';
 
 
 interface LeaderboardScreenProps {
-  getLeaderboardData: (type: 'score' | 'xp' | 'school', schoolName?: string) => Promise<Array<LeaderboardEntry | SchoolLeaderboardEntry>>;
+  getLeaderboardData: (type: LeaderboardType, schoolName?: string) => Promise<Array<LeaderboardEntry | SchoolLeaderboardEntry>>;
   onClose: () => void;
 }
 
 const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({ getLeaderboardData, onClose }) => {
-  const [activeTab, setActiveTab] = useState<'score' | 'xp' | 'school'>('score');
+  const [activeTab, setActiveTab] = useState<LeaderboardType>('score');
   const [leaderboardData, setLeaderboardData] = useState<Array<LeaderboardEntry | SchoolLeaderboardEntry>>([]);
   const [loading, setLoading] = useState(true);
   const [schools, setSchools] = useState<string[]>([]);
@@ -24,7 +24,7 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({ getLeaderboardDat
       const schoolList = await getAllSchools();
       setSchools(schoolList);
     };
-    if (activeTab === 'school') {
+    if (activeTab === 'school-personal') {
       fetchSchools();
     }
   }, [activeTab]);
@@ -34,9 +34,9 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({ getLeaderboardDat
       setLoading(true);
       try {
         let data;
-        if (activeTab === 'school') {
+        if (activeTab === 'school-personal') {
           if (selectedSchool) {
-            data = await getLeaderboardData('school', selectedSchool);
+            data = await getLeaderboardData('school-personal', selectedSchool);
           } else {
             data = []; // 학교 선택 안하면 데이터 없음
           }
@@ -59,31 +59,53 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({ getLeaderboardDat
       return <div className="loading-spinner my-8"></div>;
     }
     if (leaderboardData.length === 0) {
-      if (activeTab === 'school' && !selectedSchool) {
+      if (activeTab === 'school-personal' && !selectedSchool) {
         return <p className="text-center my-8">학교를 선택해주세요.</p>;
       }
       return <p className="text-center my-8">데이터가 없습니다.</p>;
     }
     
-    const isSchoolRank = activeTab === 'school' && selectedSchool;
+    if (activeTab === 'school-total-xp') {
+        return (
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>순위</TableHead>
+                        <TableHead>학교</TableHead>
+                        <TableHead>총경험치</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {(leaderboardData as SchoolLeaderboardEntry[]).map((entry, index) => (
+                        <TableRow key={index}>
+                            <TableCell>{index + 1}</TableCell>
+                            <TableCell>{entry.school}</TableCell>
+                            <TableCell>{entry.totalXp}</TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        );
+    }
 
+    const isSchoolPersonalRank = activeTab === 'school-personal' && selectedSchool;
     return (
         <Table>
             <TableHeader>
                 <TableRow>
                     <TableHead>순위</TableHead>
-                    <TableHead>학교</TableHead>
                     <TableHead>닉네임</TableHead>
-                    <TableHead>{isSchoolRank || activeTab === 'xp' ? '경험치' : '점수'}</TableHead>
+                    <TableHead>학교</TableHead>
+                    <TableHead>{isSchoolPersonalRank || activeTab === 'xp' ? '경험치' : '점수'}</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
                 {(leaderboardData as LeaderboardEntry[]).map((entry, index) => (
                     <TableRow key={index}>
                         <TableCell>{index + 1}</TableCell>
-                        <TableCell>{entry.school || '미입력'}</TableCell>
                         <TableCell>{entry.nickname}</TableCell>
-                        <TableCell>{isSchoolRank || activeTab === 'xp' ? entry.totalXp : entry.score}</TableCell>
+                        <TableCell>{entry.school || '미입력'}</TableCell>
+                        <TableCell>{isSchoolPersonalRank || activeTab === 'xp' ? entry.totalXp : entry.score}</TableCell>
                     </TableRow>
                 ))}
             </TableBody>
@@ -96,13 +118,14 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({ getLeaderboardDat
     <div className="leaderboard-screen" style={{ display: 'flex' }}>
       <div className="analysis-content">
         <h2 className="analysis-title">🏆 리더보드</h2>
-        <div className="flex justify-center mb-4">
+        <div className="flex justify-center mb-4 flex-wrap">
           <button onClick={() => setActiveTab('score')} className={cn('tab-btn', { 'active': activeTab === 'score' })}>개인 최고 점수</button>
           <button onClick={() => setActiveTab('xp')} className={cn('tab-btn', { 'active': activeTab === 'xp' })}>개인 경험치</button>
-          <button onClick={() => setActiveTab('school')} className={cn('tab-btn', { 'active': activeTab === 'school' })}>학교 내 랭킹</button>
+          <button onClick={() => setActiveTab('school-total-xp')} className={cn('tab-btn', { 'active': activeTab === 'school-total-xp' })}>학교별 총경험치</button>
+          <button onClick={() => setActiveTab('school-personal')} className={cn('tab-btn', { 'active': activeTab === 'school-personal' })}>학교 내 랭킹</button>
         </div>
         
-        {activeTab === 'school' && (
+        {activeTab === 'school-personal' && (
           <div className="mb-4">
             <Select onValueChange={setSelectedSchool}>
               <SelectTrigger className="w-full">

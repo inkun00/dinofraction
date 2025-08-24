@@ -49,12 +49,12 @@ export type UserData = {
   nickname?: string;
   correctProblemTypes: Record<string, number>;
   wrongProblemTypes: Record<string, number>;
-  wrongProblems: Problem[];
+  wrongProblems?: Problem[];
 };
 
 export type LeaderboardEntry = {
-  school?: string;
   nickname: string;
+  school?: string;
   score?: number;
   totalXp?: number;
 };
@@ -75,3 +75,5 @@ export type GameState = {
 };
 
 export type EvolutionStage = 'egg' | 'baby' | 'medium' | 'adult' | 'boss';
+
+export type LeaderboardType = 'score' | 'xp' | 'school-total-xp' | 'school-personal';
