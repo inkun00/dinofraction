@@ -20,6 +20,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, on
     return { type: type as ProblemType, correct, wrong, total, accuracy };
   }).sort((a, b) => b.accuracy - a.accuracy);
 
+  const allMistakesCleared = (userData.wrongProblems?.length || 0) === 0;
+
   return (
     <div className="profile-screen" style={{ display: 'flex' }}>
       <div className="analysis-content">
@@ -65,9 +67,16 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, on
         </div>
 
         <div className="analysis-buttons mt-6">
-          <Button onClick={onStartGame} className="start-btn">게임 시작!</Button>
+          <Button onClick={onStartGame} className="start-btn" disabled={!allMistakesCleared}>
+            게임 시작!
+          </Button>
           <Button onClick={onLogout} className="restart-btn close">로그아웃</Button>
         </div>
+        {!allMistakesCleared && (
+            <p className="text-center text-red-600 font-bold mt-2">
+              모든 오답 문제를 해결해야 게임을 시작할 수 있습니다.
+            </p>
+        )}
       </div>
     </div>
   );
