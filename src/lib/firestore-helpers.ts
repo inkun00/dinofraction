@@ -72,9 +72,7 @@ export async function getLeaderboardFromFirestore(type: LeaderboardType, schoolN
                 if (!schoolName) return [];
                 q = query(
                     collection(db, 'users'), 
-                    where("school", ">=", schoolName),
-                    where("school", "<=", schoolName + '\uf8ff'),
-                    orderBy("school", "asc"),
+                    where("school", "==", schoolName),
                     orderBy("totalXp", "desc"), 
                     limit(10)
                 );
@@ -115,7 +113,8 @@ export async function getUserRank(userId: string): Promise<{ xpRank: number | nu
         const allUsersSnapshot = await getDocs(usersRef);
         const allUsers = allUsersSnapshot.docs.map(doc => ({ uid: doc.id, ...(doc.data() as UserData) }));
 
-        if (!allUsers.some(user => user.uid === userId)) {
+        const currentUserData = allUsers.find(user => user.uid === userId);
+        if (!currentUserData) {
             return { xpRank: null, scoreRank: null };
         }
 
