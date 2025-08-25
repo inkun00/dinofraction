@@ -6,7 +6,7 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "totalXp",
+          "fieldPath": "score",
           "order": "DESCENDING"
         }
       ]
@@ -17,7 +17,27 @@
       "fields": [
         {
           "fieldPath": "score",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "totalXp",
           "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "totalXp",
+          "order": "ASCENDING"
         }
       ]
     }
