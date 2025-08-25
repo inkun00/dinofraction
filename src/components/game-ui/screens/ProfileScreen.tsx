@@ -67,8 +67,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, on
   return (
     <div className="profile-screen" style={{ display: 'flex' }}>
       <div className="analysis-content">
-        <h2 className="analysis-title">📊 나의 프로필</h2>
-        <div className="grid grid-cols-3 gap-4">
+        <h2 className="analysis-title mb-4">📊 나의 프로필</h2>
+        <div className="grid grid-cols-3 gap-4 mb-4">
           <div className="stat-item p-4 bg-gray-100 rounded-lg">
             <div className="stat-label">레벨</div>
             <div className="stat-value">{userData.level}</div>
@@ -85,7 +85,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, on
           </div>
         </div>
 
-        <div className="mt-6 p-4 bg-gray-100 rounded-lg relative">
+        <div className="mb-4 p-4 bg-gray-100 rounded-lg relative">
             <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                 <div className="font-bold">이름</div>
                 <div>{isEditing ? <Input value={nickname} onChange={(e) => setNickname(e.target.value)} /> : (userData.nickname || '미설정')}</div>
@@ -99,8 +99,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, on
             {editMessage && <div className="text-center text-sm text-green-600 mt-2">{editMessage}</div>}
         </div>
 
-        <div className="mt-6">
-            <h3 className="text-xl font-bold text-center mb-4">📊 영역별 성취도 (클릭하여 오답 풀기)</h3>
+        <div className="mb-4">
+            <h3 className="text-xl font-bold text-center mb-2">📊 영역별 성취도 (클릭하여 오답 풀기)</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-48 overflow-y-auto p-2 bg-gray-50 rounded-lg custom-scrollbar">
               {performanceData.length > 0 ? performanceData.map(({ type, correct, wrong, accuracy }) => (
                 <button 
@@ -124,7 +124,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, on
             </div>
         </div>
 
-        <div className="analysis-buttons mt-6">
+        <div className="analysis-buttons">
           <Button onClick={onStartGame} className="start-btn" disabled={!allMistakesCleared}>
             게임 시작!
           </Button>
