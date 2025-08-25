@@ -76,4 +76,4 @@ export type GameState = {
 
 export type EvolutionStage = 'egg' | 'baby' | 'medium' | 'adult' | 'boss';
 
-export type LeaderboardType = 'score' | 'xp' | 'school-total-xp' | 'school-personal';
+export type LeaderboardType = 'score' | 'xp' | 'school-total-xp' | 'school-personal-by-school';

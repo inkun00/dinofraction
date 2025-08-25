@@ -68,40 +68,11 @@ export async function getLeaderboardFromFirestore(type: LeaderboardType, schoolN
 
                 return sortedSchools.map(([school, totalXp]) => ({ school, totalXp }));
 
-            case 'school-personal':
-                if (!schoolName) {
-                    const allUsersSnapshot = await getDocs(collection(db, 'users'));
-                    const schoolXP: Record<string, number> = {};
-    
-                    allUsersSnapshot.forEach(doc => {
-                        const user = doc.data() as UserData;
-                        if (user.school && user.totalXp) {
-                            schoolXP[user.school] = (schoolXP[user.school] || 0) + user.totalXp;
-                        }
-                    });
-    
-                    const sortedSchools = Object.entries(schoolXP)
-                        .sort(([,a],[,b]) => b - a)
-                        .slice(0, 10);
-    
-                    return sortedSchools.map(([school, totalXp]) => ({ school, totalXp }));
-                }
-                
+            case 'school-personal-by-school':
+                if (!schoolName) return [];
                 q = query(collection(db, 'users'), where("school", "==", schoolName), orderBy("totalXp", "desc"), limit(10));
-                
                 const schoolPersonalSnapshot = await getDocs(q);
-                let personalData: LeaderboardEntry[] = [];
-                schoolPersonalSnapshot.forEach((doc) => {
-                    const userData = doc.data() as UserData;
-                    personalData.push({
-                        nickname: userData.nickname || 'Unknown',
-                        school: userData.school || 'Unknown',
-                        score: userData.score,
-                        totalXp: userData.totalXp
-                    })
-                });
-                
-                return personalData;
+                return schoolPersonalSnapshot.docs.map(doc => doc.data() as LeaderboardEntry);
             
             default:
                 return [];
@@ -131,30 +102,30 @@ export async function getAllSchools(): Promise<string[]> {
 
 export async function getUserRank(userId: string): Promise<{ xpRank: number | null; scoreRank: number | null }> {
     try {
-      if (!userId) return { xpRank: null, scoreRank: null };
-  
-      const usersRef = collection(db, "users");
-      const allUsersSnapshot = await getDocs(usersRef);
-      const allUsers = allUsersSnapshot.docs.map(doc => ({ uid: doc.id, ...(doc.data() as UserData) }));
-  
-      if (!allUsers.some(user => user.uid === userId)) {
-        return { xpRank: null, scoreRank: null };
-      }
-  
-      // XP Rank
-      const sortedByXp = [...allUsers].sort((a, b) => (b.totalXp || 0) - (a.totalXp || 0));
-      const xpRank = sortedByXp.findIndex(user => user.uid === userId) + 1;
-  
-      // Score Rank
-      const sortedByScore = [...allUsers].sort((a, b) => (b.score || 0) - (a.score || 0));
-      const scoreRank = sortedByScore.findIndex(user => user.uid === userId) + 1;
-  
-      return {
-        xpRank: xpRank > 0 ? xpRank : null,
-        scoreRank: scoreRank > 0 ? scoreRank : null
-      };
+        if (!userId) return { xpRank: null, scoreRank: null };
+
+        const usersRef = collection(db, "users");
+        const allUsersSnapshot = await getDocs(usersRef);
+        const allUsers = allUsersSnapshot.docs.map(doc => ({ uid: doc.id, ...(doc.data() as UserData) }));
+
+        if (!allUsers.some(user => user.uid === userId)) {
+            return { xpRank: null, scoreRank: null };
+        }
+
+        // XP Rank
+        const sortedByXp = [...allUsers].sort((a, b) => (b.totalXp || 0) - (a.totalXp || 0));
+        const xpRank = sortedByXp.findIndex(user => user.uid === userId) + 1;
+
+        // Score Rank
+        const sortedByScore = [...allUsers].sort((a, b) => (b.score || 0) - (a.score || 0));
+        const scoreRank = sortedByScore.findIndex(user => user.uid === userId) + 1;
+
+        return {
+            xpRank: xpRank > 0 ? xpRank : null,
+            scoreRank: scoreRank > 0 ? scoreRank : null
+        };
     } catch (error) {
-      console.error("Error fetching user rank:", error);
-      return { xpRank: null, scoreRank: null };
+        console.error("Error fetching user rank:", error);
+        return { xpRank: null, scoreRank: null };
     }
-  }
+}
