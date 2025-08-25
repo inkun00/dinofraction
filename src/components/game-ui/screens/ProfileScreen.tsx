@@ -95,6 +95,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, on
                 <div className="font-bold">학교</div>
                 <div>{isEditing ? <Input value={school} onChange={(e) => setSchool(e.target.value)} /> : (userData.school || '미설정')}</div>
             </div>
+             <p className="text-xs text-gray-500 mt-2">
+              이름과 학교에 부적절한 단어가 포함된 계정은 삭제될 수 있으니 주의해주시기 바랍니다.
+            </p>
             <Button onClick={handleEditToggle} size="icon" className="absolute top-2 right-2 w-8 h-8">
                 {isEditing ? <Save className="w-4 h-4"/> : <Edit className="w-4 h-4"/>}
                 <span className="sr-only">{isEditing ? 'Save' : 'Edit'}</span>
