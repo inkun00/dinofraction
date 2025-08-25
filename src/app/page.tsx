@@ -136,9 +136,20 @@ export default function Home() {
       if (user) {
         setCurrentUser(user);
         const data = await loadDBUserData(user.uid);
-        setUserData(data);
-        if (appState === 'loading') {
-          setAppState('start');
+        if (data.nickname) { // Check if user data is loaded
+            setUserData(data);
+            if (appState === 'loading' || appState === 'signup') {
+              setAppState('start');
+            }
+        } else {
+            // New user, data might not be ready, try reloading
+            setTimeout(async () => {
+                const freshData = await loadDBUserData(user.uid);
+                setUserData(freshData);
+                if (appState === 'loading' || appState === 'signup') {
+                    setAppState('start');
+                }
+            }, 1000); // Give firestore a moment to propagate
         }
       } else {
         setCurrentUser(null);
@@ -445,7 +456,7 @@ export default function Home() {
                       currentUser={currentUser}
                       userData={userData}
                       onLogin={login}
-                      onShowSignUp={() => { console.log('누름'); setAppState('signup'); }}
+                      onShowSignUp={() => { setAppState('signup'); }}
                       onShowProfile={() => setAppState('profile')}
                       onShowLeaderboard={() => setAppState('leaderboard')}
                       firebaseErrorKorean={firebaseErrorKorean}
