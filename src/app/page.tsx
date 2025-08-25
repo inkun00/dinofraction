@@ -154,7 +154,7 @@ export default function Home() {
       } else {
         setCurrentUser(null);
         setUserData({ score: 0, totalXp: 0, level: 1, correctProblemTypes: {}, wrongProblemTypes: {}, wrongProblems: [] });
-        if (appState === 'loading' || appState === 'profile') {
+        if (appState === 'loading' || appState === 'profile' || appState === 'signup') {
           setAppState('start');
         }
       }
@@ -244,29 +244,6 @@ export default function Home() {
     setProblemStats(prevStats => ({ ...prevStats, totalProblems: prevStats.totalProblems + 1 }));
   }, [gameState.score]);
 
-  // Effect to handle penalty for skipped problems
-  React.useEffect(() => {
-    const problemTimers = new Map<number, NodeJS.Timeout>();
-
-    currentProblems.forEach((p) => {
-      if (!problemTimers.has(p.id)) {
-        const timer = setTimeout(() => {
-          if (!answeredProblemsRef.current.has(p.id)) {
-            // Problem was skipped
-            handleWrongAnswer(p.problem);
-            answeredProblemsRef.current.add(p.id); // Mark as handled
-          }
-        }, p.animationDuration * 1000 + 1000); // Add a 1s buffer
-        problemTimers.set(p.id, timer);
-      }
-    });
-
-    return () => {
-      problemTimers.forEach(timer => clearTimeout(timer));
-    };
-  }, [currentProblems, handleWrongAnswer]);
-
-
   const gameLoop = React.useCallback(() => {
       if (!gameState.running) {
           if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
@@ -295,21 +272,21 @@ export default function Home() {
         
         document.querySelectorAll('.answer-bubble').forEach(bubbleEl => {
             const bubble = bubbleEl as HTMLDivElement;
-            const problemId = parseInt(bubble.dataset.problemId || '0');
-
-            if(answeredProblemsRef.current.has(problemId)) return;
+            const problemId = parseInt(bubble.dataset.problemId || '-1');
+            
+            if(problemId === -1 || answeredProblemsRef.current.has(problemId)) return;
 
             const bubbleRect = bubble.getBoundingClientRect();
             
+            // Check for collision
             const isColliding = dinoRect.left < bubbleRect.right &&
                                 dinoRect.right > bubbleRect.left &&
                                 dinoRect.top < bubbleRect.bottom &&
                                 dinoRect.bottom > bubbleRect.top;
 
             if (isColliding) {
-                // 작용-반작용: 공룡은 아래로 튕겨나감
-                yVelocity = -10; // 즉시 하강 속도로 변경
-                y += yVelocity;   // 변경된 속도를 현재 프레임 위치에 바로 적용
+                yVelocity = -10; // Bounce down
+                y += yVelocity;
                 
                 answeredProblemsRef.current.add(problemId);
                 const isCorrect = bubble.dataset.correct === 'true';
@@ -327,6 +304,15 @@ export default function Home() {
                 bubble.classList.remove('bouncing');
                 void bubble.offsetWidth;
                 bubble.classList.add('bouncing');
+            }
+            
+            // Check if problem is skipped (off-screen)
+            if (bubbleRect.right < 0) {
+              const problem = currentProblems.find(p => p.id === problemId)?.problem;
+              if (problem && !answeredProblemsRef.current.has(problemId)) {
+                handleWrongAnswer(problem);
+                answeredProblemsRef.current.add(problemId); // Mark as handled to avoid multiple penalties
+              }
             }
         });
 
