@@ -1,0 +1,24 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "totalXp",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "score",
+          "order": "DESCENDING"
+        }
+      ]
+    }
+  ]
+}
