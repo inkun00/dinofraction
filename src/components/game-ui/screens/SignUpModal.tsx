@@ -22,8 +22,8 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onSignUp, onClose, firebaseEr
       setMessageColor('red');
       return;
     }
-    if (!nickname || !school) {
-      setMessage("학교와 이름을 모두 입력해주세요.");
+    if (!nickname || !school || !email) {
+      setMessage("모든 필드를 입력해주세요.");
       setMessageColor('red');
       return;
     }
@@ -43,17 +43,57 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onSignUp, onClose, firebaseEr
     <div className="modal-overlay" style={{ display: 'flex' }}>
       <div className="modal-content">
         <h2 className="analysis-title">회원가입</h2>
-        <div className="login-form">
-          <Input type="email" value={email} onChange={e => setEmail(e.target.value)} className="login-input" placeholder="이메일" required />
-          <Input type="password" value={password} onChange={e => setPassword(e.target.value)} className="login-input" placeholder="비밀번호 (6자리 이상)" required />
-          <Input type="text" value={school} onChange={e => setSchool(e.target.value)} className="login-input" placeholder="학교 이름" required />
-          <Input type="text" value={nickname} onChange={e => setNickname(e.target.value)} className="login-input" placeholder="이름" required />
+        <form onSubmit={(e) => { e.preventDefault(); handleSignUp(); }} className="login-form">
+          <Input 
+            type="email" 
+            id="signup-email"
+            name="email"
+            value={email} 
+            onChange={e => setEmail(e.target.value)} 
+            className="login-input" 
+            placeholder="이메일" 
+            required 
+            autoComplete="email"
+          />
+          <Input 
+            type="password" 
+            id="signup-password"
+            name="password"
+            value={password} 
+            onChange={e => setPassword(e.target.value)} 
+            className="login-input" 
+            placeholder="비밀번호 (6자리 이상)" 
+            required 
+            autoComplete="new-password"
+          />
+          <Input 
+            type="text" 
+            id="signup-school"
+            name="school"
+            value={school} 
+            onChange={e => setSchool(e.target.value)} 
+            className="login-input" 
+            placeholder="학교 이름" 
+            required 
+            autoComplete="organization"
+          />
+          <Input 
+            type="text" 
+            id="signup-nickname"
+            name="nickname"
+            value={nickname} 
+            onChange={e => setNickname(e.target.value)} 
+            className="login-input" 
+            placeholder="이름" 
+            required 
+            autoComplete="name"
+          />
           <div style={{ color: messageColor, marginTop: '15px', fontWeight: 'bold', height: '20px' }}>{message}</div>
           <div className="auth-buttons">
-            <Button onClick={handleSignUp} className="start-btn">가입하기</Button>
-            <Button onClick={onClose} className="restart-btn close">닫기</Button>
+            <Button type="submit" className="start-btn">가입하기</Button>
+            <Button type="button" onClick={onClose} className="restart-btn close">닫기</Button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );
