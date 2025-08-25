@@ -34,11 +34,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, on
       }
     };
     fetchRank();
-  }, [userData]); // userData가 바뀔 때마다 순위를 다시 가져옵니다.
+  }, [userData.totalXp, userData.score]);
 
   const handleEditToggle = () => {
     if (isEditing) {
-        // 저장 로직
         const currentUser = auth.currentUser;
         if (currentUser) {
             updateUserInfo(currentUser.uid, { nickname, school })
@@ -69,7 +68,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, on
     <div className="profile-screen" style={{ display: 'flex' }}>
       <div className="analysis-content">
         <h2 className="analysis-title">📊 나의 프로필</h2>
-        <div className="analysis-stats grid-cols-3">
+        <div className="analysis-stats grid grid-cols-3 gap-4">
           <div className="stat-item p-4 bg-gray-100 rounded-lg">
             <div className="stat-label">레벨</div>
             <div className="stat-value">{userData.level}</div>
@@ -142,5 +141,3 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, on
 };
 
 export default ProfileScreen;
-
-    
