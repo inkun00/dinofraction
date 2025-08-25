@@ -143,11 +143,13 @@ export default function Home() {
       } else {
         setCurrentUser(null);
         setUserData({ score: 0, totalXp: 0, level: 1, correctProblemTypes: {}, wrongProblemTypes: {}, wrongProblems: [] });
-        setAppState('start');
+        if (appState === 'loading' || appState === 'profile') {
+          setAppState('start');
+        }
       }
     });
     return () => unsubscribe();
-  }, [appState]);
+  }, []);
 
   
   const updateDinosaurEvolution = React.useCallback((currentScore: number) => {
