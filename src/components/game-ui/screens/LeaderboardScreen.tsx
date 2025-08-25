@@ -144,7 +144,7 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({ getLeaderboardDat
             </div>
         )}
         
-        <div className="max-h-96 overflow-y-auto">
+        <div className="max-h-96 overflow-y-auto custom-scrollbar">
             {renderTable()}
         </div>
         <div className="analysis-buttons mt-4">
