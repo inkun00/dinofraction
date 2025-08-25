@@ -68,7 +68,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, on
     <div className="profile-screen" style={{ display: 'flex' }}>
       <div className="analysis-content">
         <h2 className="analysis-title">📊 나의 프로필</h2>
-        <div className="analysis-stats grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <div className="stat-item p-4 bg-gray-100 rounded-lg">
             <div className="stat-label">레벨</div>
             <div className="stat-value">{userData.level}</div>
