@@ -91,7 +91,6 @@ export async function getLeaderboardFromFirestore(type: LeaderboardType, schoolN
         }
     } catch (error) {
         console.error("Error fetching leaderboard data:", error);
-        // Return an empty array to prevent the app from crashing.
         return [];
     }
 }
@@ -111,23 +110,25 @@ export async function getAllSchools(): Promise<string[]> {
 export async function getUserRank(userId: string): Promise<{ xpRank: number | null; scoreRank: number | null }> {
     try {
         const usersRef = collection(db, "users");
-        const currentUserDoc = await getDoc(doc(usersRef, userId));
-        if (!currentUserDoc.exists()) {
+        const allUsersSnapshot = await getDocs(usersRef);
+        const allUsers = allUsersSnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() as UserData }));
+
+        if (!allUsers.some(user => user.uid === userId)) {
             return { xpRank: null, scoreRank: null };
         }
-        const currentUserData = currentUserDoc.data() as UserData;
 
         // XP Rank
-        const xpQuery = query(usersRef, where("totalXp", ">", currentUserData.totalXp || 0));
-        const xpSnapshot = await getDocs(xpQuery);
-        const xpRank = xpSnapshot.size + 1;
-        
-        // Score Rank
-        const scoreQuery = query(usersRef, where("score", ">", currentUserData.score || 0));
-        const scoreSnapshot = await getDocs(scoreQuery);
-        const scoreRank = scoreSnapshot.size + 1;
+        const sortedByXp = [...allUsers].sort((a, b) => (b.totalXp || 0) - (a.totalXp || 0));
+        const xpRank = sortedByXp.findIndex(user => user.uid === userId) + 1;
 
-        return { xpRank, scoreRank };
+        // Score Rank
+        const sortedByScore = [...allUsers].sort((a, b) => (b.score || 0) - (a.score || 0));
+        const scoreRank = sortedByScore.findIndex(user => user.uid === userId) + 1;
+
+        return { 
+            xpRank: xpRank > 0 ? xpRank : null, 
+            scoreRank: scoreRank > 0 ? scoreRank : null 
+        };
     } catch (error) {
         console.error("Error fetching user rank:", error);
         return { xpRank: null, scoreRank: null };
