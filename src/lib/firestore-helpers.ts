@@ -70,7 +70,7 @@ export async function getLeaderboardFromFirestore(type: LeaderboardType, schoolN
 
             case 'school-personal':
                 if (!schoolName) return [];
-                q = query(collection(db, 'users'), where("school", "==", schoolName));
+                q = query(collection(db, 'users'), where("school", "==", schoolName), orderBy("totalXp", "desc"), limit(10));
                 
                 const schoolPersonalSnapshot = await getDocs(q);
                 let personalData: LeaderboardEntry[] = [];
@@ -84,9 +84,7 @@ export async function getLeaderboardFromFirestore(type: LeaderboardType, schoolN
                     })
                 });
                 
-                personalData.sort((a, b) => (b.totalXp || 0) - (a.totalXp || 0));
-                
-                return personalData.slice(0, 10);
+                return personalData;
             
             default:
                 return [];
