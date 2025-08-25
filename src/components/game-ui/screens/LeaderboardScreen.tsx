@@ -5,6 +5,7 @@ import type { LeaderboardEntry, SchoolLeaderboardEntry, LeaderboardType } from '
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getAllSchools } from '@/lib/firestore-helpers';
+import { Input } from '@/components/ui/input';
 
 
 interface LeaderboardScreenProps {
@@ -18,6 +19,7 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({ getLeaderboardDat
   const [loading, setLoading] = useState(true);
   const [schools, setSchools] = useState<string[]>([]);
   const [selectedSchool, setSelectedSchool] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchSchools = async () => {
@@ -58,6 +60,8 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({ getLeaderboardDat
   const handleSchoolChange = (school: string) => {
     setSelectedSchool(school);
   }
+
+  const filteredSchools = schools.filter(school => school.toLowerCase().includes(searchTerm.toLowerCase()));
 
   const renderTable = () => {
     if (loading) {
@@ -130,15 +134,22 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({ getLeaderboardDat
         </div>
 
         {activeTab === 'school-personal-by-school' && (
-            <div className="mb-4">
+            <div className="flex justify-center items-center gap-2 mb-4">
+                <Input 
+                    type="text"
+                    placeholder="학교 이름 검색..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-[180px]"
+                />
                 <Select onValueChange={handleSchoolChange} value={selectedSchool || ''}>
-                    <SelectTrigger className="w-[280px] mx-auto">
+                    <SelectTrigger className="w-[280px]">
                         <SelectValue placeholder="학교를 선택하세요" />
                     </SelectTrigger>
                     <SelectContent>
-                        {schools.map(school => (
+                        {filteredSchools.length > 0 ? filteredSchools.map(school => (
                             <SelectItem key={school} value={school}>{school}</SelectItem>
-                        ))}
+                        )) : <div className="p-2 text-center text-sm">검색 결과가 없습니다.</div>}
                     </SelectContent>
                 </Select>
             </div>
