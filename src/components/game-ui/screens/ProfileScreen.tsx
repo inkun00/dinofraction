@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import type { ProblemType, UserData } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { getUserRank } from '@/lib/firestore-helpers'; // getUserRank 함수 import
+import { Input } from '@/components/ui/input';
+import { getUserRank, updateUserInfo } from '@/lib/firestore-helpers'; // updateUserInfo 함수 import
 import { auth } from '@/lib/firebase';
+import { Edit, Save } from 'lucide-react';
 
 interface ProfileScreenProps {
   userData: UserData;
@@ -16,6 +18,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, on
   
   const [userRank, setUserRank] = useState<{ xpRank: number | null; scoreRank: number | null }>({ xpRank: null, scoreRank: null });
   const [loadingRank, setLoadingRank] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [nickname, setNickname] = useState(userData.nickname || '');
+  const [school, setSchool] = useState(userData.school || '');
+  const [editMessage, setEditMessage] = useState('');
 
   useEffect(() => {
     const fetchRank = async () => {
@@ -28,7 +34,26 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, on
       }
     };
     fetchRank();
-  }, []);
+  }, [userData]); // userData가 바뀔 때마다 순위를 다시 가져옵니다.
+
+  const handleEditToggle = () => {
+    if (isEditing) {
+        // 저장 로직
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+            updateUserInfo(currentUser.uid, { nickname, school })
+                .then(() => {
+                    setEditMessage('성공적으로 저장되었습니다.');
+                    setTimeout(() => setEditMessage(''), 2000);
+                })
+                .catch(() => {
+                    setEditMessage('저장에 실패했습니다.');
+                    setTimeout(() => setEditMessage(''), 2000);
+                });
+        }
+    }
+    setIsEditing(!isEditing);
+  };
 
   const performanceData = allTypes.map(type => {
     const correct = userData.correctProblemTypes[type] || 0;
@@ -44,7 +69,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, on
     <div className="profile-screen" style={{ display: 'flex' }}>
       <div className="analysis-content">
         <h2 className="analysis-title">📊 나의 프로필</h2>
-        <div className="analysis-stats">
+        <div className="analysis-stats grid-cols-3">
           <div className="stat-item p-4 bg-gray-100 rounded-lg">
             <div className="stat-label">레벨</div>
             <div className="stat-value">{userData.level}</div>
@@ -52,18 +77,32 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, on
           <div className="stat-item p-4 bg-gray-100 rounded-lg">
             <div className="stat-label">누적 경험치</div>
             <div className="stat-value">{userData.totalXp}</div>
-            {loadingRank ? <div className="text-xs">순위 로딩중...</div> : userRank.xpRank && <div className="text-sm font-bold text-gray-600">(전체 {userRank.xpRank}위)</div>}
+            {loadingRank ? <div className="text-xs">...</div> : userRank.xpRank && <div className="text-sm font-bold text-gray-600">({userRank.xpRank}위)</div>}
           </div>
-          <div className="stat-item p-4 bg-gray-100 rounded-lg col-span-2">
+          <div className="stat-item p-4 bg-gray-100 rounded-lg">
             <div className="stat-label">최고 점수</div>
             <div className="stat-value">{userData.score}</div>
-             {loadingRank ? <div className="text-xs">순위 로딩중...</div> : userRank.scoreRank && <div className="text-sm font-bold text-gray-600">(전체 {userRank.scoreRank}위)</div>}
+             {loadingRank ? <div className="text-xs">...</div> : userRank.scoreRank && <div className="text-sm font-bold text-gray-600">({userRank.scoreRank}위)</div>}
           </div>
+        </div>
+
+        <div className="mt-6 p-4 bg-gray-100 rounded-lg relative">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                <div className="font-bold">이름</div>
+                <div>{isEditing ? <Input value={nickname} onChange={(e) => setNickname(e.target.value)} /> : (userData.nickname || '미설정')}</div>
+                <div className="font-bold">학교</div>
+                <div>{isEditing ? <Input value={school} onChange={(e) => setSchool(e.target.value)} /> : (userData.school || '미설정')}</div>
+            </div>
+            <Button onClick={handleEditToggle} size="icon" className="absolute top-2 right-2 w-8 h-8">
+                {isEditing ? <Save className="w-4 h-4"/> : <Edit className="w-4 h-4"/>}
+                <span className="sr-only">{isEditing ? 'Save' : 'Edit'}</span>
+            </Button>
+            {editMessage && <div className="text-center text-sm text-green-600 mt-2">{editMessage}</div>}
         </div>
 
         <div className="mt-6">
             <h3 className="text-xl font-bold text-center mb-4">📊 영역별 성취도 (클릭하여 오답 풀기)</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-48 overflow-y-auto p-2 bg-gray-50 rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-48 overflow-y-auto p-2 bg-gray-50 rounded-lg custom-scrollbar">
               {performanceData.length > 0 ? performanceData.map(({ type, correct, wrong, accuracy }) => (
                 <button 
                   key={type} 
@@ -103,3 +142,5 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, on
 };
 
 export default ProfileScreen;
+
+    

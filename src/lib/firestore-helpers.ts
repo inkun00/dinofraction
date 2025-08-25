@@ -19,6 +19,12 @@ export async function saveUserData(userId: string, userData: UserData) {
     }
 }
 
+export async function updateUserInfo(userId: string, data: { nickname?: string, school?: string }) {
+    if(!userId) return;
+    const userDocRef = doc(db, 'users', userId);
+    await updateDoc(userDocRef, data);
+}
+
 export async function loadUserData(userId: string): Promise<UserData> {
     const defaultData: UserData = { score: 0, totalXp: 0, level: 1, correctProblemTypes: {}, wrongProblemTypes: {}, wrongProblems: [] };
     if (!userId) return defaultData;
@@ -135,3 +141,5 @@ export async function getUserRank(userId: string): Promise<{ xpRank: number | nu
         return { xpRank: null, scoreRank: null };
     }
 }
+
+    

@@ -414,6 +414,22 @@
 .analysis-btn.gemini { background: linear-gradient(to right, #4285F4, #34A853, #FBBC05, #EA4335); border-color: transparent; }
 .no-problems { text-align: center; font-size: 18px; color: #27ae60; font-weight: bold; padding: 20px; background: #d5f4e6; border-radius: 15px; margin-bottom: 20px; }
 
+/* Custom scrollbar for better mobile experience */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 12px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
 /* --- Login / Modal --- */
 .login-form { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
 .login-input { padding: 12px; font-size: 16px; border-radius: 10px; border: 2px solid #bdc3c7; text-align: center;}
@@ -440,6 +456,9 @@
 
     
 
+
+
+    
 
 
     
