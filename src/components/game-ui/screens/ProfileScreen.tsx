@@ -43,7 +43,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, on
             updateUserInfo(currentUser.uid, { nickname, school })
                 .then(() => {
                     setEditMessage('성공적으로 저장되었습니다.');
-                    setTimeout(() => setEditMessage(''), 2000);
+                    setTimeout(() => {
+                        setEditMessage('');
+                        window.location.reload();
+                    }, 1000);
                 })
                 .catch(() => {
                     setEditMessage('저장에 실패했습니다.');
