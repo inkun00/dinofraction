@@ -136,26 +136,25 @@ export default function Home() {
       if (user) {
         setCurrentUser(user);
         const data = await loadDBUserData(user.uid);
-        if (data.nickname) { // Check if user data is loaded
-            setUserData(data);
+        setUserData(data);
+        if (data.nickname) { 
             if (appState === 'loading' || appState === 'signup') {
               setAppState('start');
             }
         } else {
-            // New user, data might not be ready, try reloading
             setTimeout(async () => {
                 const freshData = await loadDBUserData(user.uid);
                 setUserData(freshData);
                 if (appState === 'loading' || appState === 'signup') {
                     setAppState('start');
                 }
-            }, 1000); // Give firestore a moment to propagate
+            }, 1000);
         }
       } else {
         setCurrentUser(null);
         setUserData({ score: 0, totalXp: 0, level: 1, correctProblemTypes: {}, wrongProblemTypes: {}, wrongProblems: [] });
-        if (appState === 'loading' || appState === 'profile' || appState === 'signup') {
-          setAppState('start');
+        if (appState !== 'start' && appState !== 'signup') {
+            setAppState('start');
         }
       }
     });
@@ -242,7 +241,16 @@ export default function Home() {
 
     setCurrentProblems(prevProbs => [...prevProbs, newCurrentProblem]);
     setProblemStats(prevStats => ({ ...prevStats, totalProblems: prevStats.totalProblems + 1 }));
-  }, [gameState.score]);
+
+    // Set a timeout to check if the problem was answered
+    setTimeout(() => {
+        if (!answeredProblemsRef.current.has(problemId)) {
+            handleWrongAnswer(problem);
+            answeredProblemsRef.current.add(problemId); // Mark as handled
+        }
+    }, animationDuration * 1000 + 1000); // Add a small buffer
+
+  }, [gameState.score, handleWrongAnswer]);
 
   const gameLoop = React.useCallback(() => {
       if (!gameState.running) {
@@ -304,15 +312,6 @@ export default function Home() {
                 bubble.classList.remove('bouncing');
                 void bubble.offsetWidth;
                 bubble.classList.add('bouncing');
-            }
-            
-            // Check if problem is skipped (off-screen)
-            if (bubbleRect.right < 0) {
-              const problem = currentProblems.find(p => p.id === problemId)?.problem;
-              if (problem && !answeredProblemsRef.current.has(problemId)) {
-                handleWrongAnswer(problem);
-                answeredProblemsRef.current.add(problemId); // Mark as handled to avoid multiple penalties
-              }
             }
         });
 
@@ -442,7 +441,7 @@ export default function Home() {
                       currentUser={currentUser}
                       userData={userData}
                       onLogin={login}
-                      onShowSignUp={() => { setAppState('signup'); }}
+                      onShowSignUp={() => setAppState('signup')}
                       onShowProfile={() => setAppState('profile')}
                       onShowLeaderboard={() => setAppState('leaderboard')}
                       firebaseErrorKorean={firebaseErrorKorean}
@@ -552,3 +551,5 @@ export default function Home() {
     </main>
   );
 }
+
+    
