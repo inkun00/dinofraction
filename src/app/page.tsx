@@ -443,7 +443,7 @@ export default function Home() {
                       currentUser={currentUser}
                       userData={userData}
                       onLogin={login}
-                      onShowSignUp={() => setAppState('signup')}
+                      onShowSignUp={() => { console.log('누름'); setAppState('signup'); }}
                       onShowProfile={() => setAppState('profile')}
                       onShowLeaderboard={() => setAppState('leaderboard')}
                       firebaseErrorKorean={firebaseErrorKorean}
@@ -553,3 +553,5 @@ export default function Home() {
     </main>
   );
 }
+
+    
