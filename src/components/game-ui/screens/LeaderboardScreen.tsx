@@ -62,6 +62,9 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({ getLeaderboardDat
       if (activeTab === 'school-personal' && !selectedSchool) {
         return <p className="text-center my-8">학교를 선택해주세요.</p>;
       }
+       if (activeTab === 'school-total-xp') {
+        return <p className="text-center my-8">아직 집계된 학교 순위가 없습니다.</p>;
+      }
       return <p className="text-center my-8">데이터가 없습니다.</p>;
     }
     
@@ -121,7 +124,7 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({ getLeaderboardDat
         <div className="flex justify-center mb-4 flex-wrap">
           <button onClick={() => setActiveTab('score')} className={cn('tab-btn', { 'active': activeTab === 'score' })}>개인 최고 점수</button>
           <button onClick={() => setActiveTab('xp')} className={cn('tab-btn', { 'active': activeTab === 'xp' })}>개인 경험치</button>
-          <button onClick={() => setActiveTab('school-total-xp')} className={cn('tab-btn', { 'active': activeTab === 'school-total-xp' })}>학교별 총경험치</button>
+          <button onClick={() => setActiveTab('school-total-xp')} className={cn('tab-btn', { 'active': activeTab === 'school-total-xp' })}>학교 대항전</button>
           <button onClick={() => setActiveTab('school-personal')} className={cn('tab-btn', { 'active': activeTab === 'school-personal' })}>학교 내 랭킹</button>
         </div>
         

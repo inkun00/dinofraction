@@ -231,6 +231,28 @@ export default function Home() {
     setProblemStats(prevStats => ({ ...prevStats, totalProblems: prevStats.totalProblems + 1 }));
   }, [gameState.score]);
 
+  // Effect to handle penalty for skipped problems
+  React.useEffect(() => {
+    const problemTimers = new Map<number, NodeJS.Timeout>();
+
+    currentProblems.forEach((p) => {
+      if (!problemTimers.has(p.id)) {
+        const timer = setTimeout(() => {
+          if (!answeredProblemsRef.current.has(p.id)) {
+            // Problem was skipped
+            handleWrongAnswer(p.problem);
+            answeredProblemsRef.current.add(p.id); // Mark as handled
+          }
+        }, p.animationDuration * 1000 + 1000); // Add a 1s buffer
+        problemTimers.set(p.id, timer);
+      }
+    });
+
+    return () => {
+      problemTimers.forEach(timer => clearTimeout(timer));
+    };
+  }, [currentProblems, handleWrongAnswer]);
+
 
   const gameLoop = React.useCallback(() => {
       if (!gameState.running) {

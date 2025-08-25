@@ -96,22 +96,29 @@ export async function getLeaderboardFromFirestore(type: LeaderboardType, schoolN
 }
 
 export async function getAllSchools(): Promise<string[]> {
-    const usersSnapshot = await getDocs(collection(db, 'users'));
-    const schoolSet = new Set<string>();
-    usersSnapshot.forEach(doc => {
-        const user = doc.data() as UserData;
-        if (user.school) {
-            schoolSet.add(user.school);
-        }
-    });
-    return Array.from(schoolSet).sort();
+    try {
+        const usersSnapshot = await getDocs(collection(db, 'users'));
+        const schoolSet = new Set<string>();
+        usersSnapshot.forEach(doc => {
+            const user = doc.data() as UserData;
+            if (user.school) {
+                schoolSet.add(user.school);
+            }
+        });
+        return Array.from(schoolSet).sort();
+    } catch(e) {
+        console.error("Error getting all schools", e);
+        return [];
+    }
 }
 
 export async function getUserRank(userId: string): Promise<{ xpRank: number | null; scoreRank: number | null }> {
     try {
+        if (!userId) return { xpRank: null, scoreRank: null };
+
         const usersRef = collection(db, "users");
         const allUsersSnapshot = await getDocs(usersRef);
-        const allUsers = allUsersSnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() as UserData }));
+        const allUsers = allUsersSnapshot.docs.map(doc => ({ uid: doc.id, ...(doc.data() as UserData) }));
 
         if (!allUsers.some(user => user.uid === userId)) {
             return { xpRank: null, scoreRank: null };
