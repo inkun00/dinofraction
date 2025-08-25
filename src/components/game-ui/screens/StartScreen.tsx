@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { User } from 'firebase/auth';
 import type { UserData } from '@/lib/types';
