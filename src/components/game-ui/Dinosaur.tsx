@@ -23,7 +23,7 @@ const Dinosaur = React.forwardRef<HTMLDivElement, DinosaurProps>(({ evolution, y
   );
   
   const style: React.CSSProperties = {
-    transform: `translateY(${135 - y}px)`,
+    transform: `translateY(${-(y - 135)}px)`,
   };
 
   if (evolution === 'god' && godDinoImage) {
