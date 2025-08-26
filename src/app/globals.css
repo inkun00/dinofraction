@@ -194,6 +194,7 @@
 .dinosaur.boss { width: 240px; height: 200px; font-size: 210px; animation: bossGlow 2s ease-in-out infinite alternate; filter: hue-rotate(0deg) saturate(2.0) brightness(1.2); }
 .dinosaur.boss::before { content: "🦖"; transform: scaleX(-1); display: inline-block; }
 .dinosaur.god { 
+    bottom: 125px;
     width: 240px;
     height: 200px;
     background-size: contain;
