@@ -31,6 +31,17 @@ const GAME_WIDTH = 1280;
 const GAME_HEIGHT = 720;
 const INITIAL_ANIMATION_DURATION = 7.5; // seconds
 
+const GOD_DINO_IMAGES = [
+    'https://i.ibb.co/6rCXYvj/dino-god-red.png',
+    'https://i.ibb.co/bF9p1bB/dino-god-blue.png',
+    'https://i.ibb.co/C0b7kLd/dino-god-green.png',
+    'https://i.ibb.co/tYHk1c3/dino-god-gold.png',
+    'https://i.ibb.co/wJ3Jf0Q/dino-god-purple.png',
+    'https://i.ibb.co/P9t7JHy/dino-god-celestial.png',
+    'https://i.ibb.co/qY0JXLv/dino-god-lava.png',
+    'https://i.ibb.co/mHq3w5b/dino-god-ice.png',
+];
+
 
 export default function Home() {
   const [appState, setAppState] = React.useState<AppState>('loading');
@@ -49,6 +60,7 @@ export default function Home() {
   const [dinoEvolution, setDinoEvolution] = React.useState<EvolutionStage>('egg');
   const [dinoIsEvolving, setDinoIsEvolving] = React.useState(false);
   const [earnedXp, setEarnedXp] = React.useState(0);
+  const [godDinoImage, setGodDinoImage] = React.useState<string | null>(null);
   
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [modalProblemType, setModalProblemType] = React.useState<ProblemType | null>(null);
@@ -176,7 +188,11 @@ export default function Home() {
     setDinoEvolution(prev => {
         if (newStage !== prev) {
             setDinoIsEvolving(true);
-            setTimeout(() => setDinoIsEvolving(false), 1000);
+            if (newStage === 'god') {
+                const randomImage = GOD_DINO_IMAGES[Math.floor(Math.random() * GOD_DINO_IMAGES.length)];
+                setGodDinoImage(randomImage);
+            }
+            setTimeout(() => setDinoIsEvolving(false), newStage === 'god' ? 1500 : 1000);
             return newStage;
         }
         return prev;
@@ -353,10 +369,23 @@ export default function Home() {
       }
   }, [gameState.running, jump]);
 
+  const handleCheatKey = React.useCallback((e: KeyboardEvent) => {
+    if(e.key === 'q' && gameState.running) {
+      setGameState(prev => {
+        const newScore = prev.score + 50;
+        updateDinosaurEvolution(newScore);
+        return { ...prev, score: newScore };
+      });
+    }
+  }, [gameState.running, updateDinosaurEvolution]);
+
   React.useEffect(() => {
       const isInteractiveElement = (target: EventTarget | null) => (target as Element)?.closest('button, a, input, form');
 
-      const onKeyDown = (e: KeyboardEvent) => { if (e.code === 'Space' && !e.repeat) { e.preventDefault(); handlePress(); } };
+      const onKeyDown = (e: KeyboardEvent) => { 
+        if (e.code === 'Space' && !e.repeat) { e.preventDefault(); handlePress(); } 
+        handleCheatKey(e);
+      };
       const onTouchStart = (e: TouchEvent) => { if (!isInteractiveElement(e.target)) { e.preventDefault(); handlePress(); } };
       
       document.addEventListener('keydown', onKeyDown);
@@ -366,7 +395,7 @@ export default function Home() {
           document.removeEventListener('keydown', onKeyDown);
           document.removeEventListener('touchstart', onTouchStart);
       };
-  }, [handlePress]);
+  }, [handlePress, handleCheatKey]);
 
   const startGame = React.useCallback(() => {
     setGameState({ score: 0, lives: 5, time: 0, running: true, started: true });
@@ -381,6 +410,7 @@ export default function Home() {
     dinoPhysicsRef.current = { y: GROUND_POSITION, yVelocity: 0, isJumping: false };
     setDinoEvolution('egg');
     setDinoIsEvolving(false);
+    setGodDinoImage(null);
     setAppState('playing');
 
     const startTime = Date.now();
@@ -409,6 +439,7 @@ export default function Home() {
       dinoPhysicsRef.current = { y: GROUND_POSITION, yVelocity: 0, isJumping: false };
       setDinoEvolution('egg');
       setDinoIsEvolving(false);
+      setGodDinoImage(null);
       setAppState('start');
   }, []);
 
@@ -494,6 +525,7 @@ export default function Home() {
                   evolution={dinoEvolution} 
                   y={dinoPhysicsRef.current.y} 
                   evolving={dinoIsEvolving} 
+                  godDinoImage={godDinoImage}
                 />
                 <ProblemContainer problems={currentProblems} dinoEvolution={dinoEvolution} />
                 <div className="instructions">

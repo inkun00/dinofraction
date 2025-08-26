@@ -1,3 +1,4 @@
+
 /* --- Font Imports --- */
 @import url('https://fonts.googleapis.com/css2?family=Gamja+Flower&family=Jua&family=Do+Hyeon&display=swap');
 
@@ -195,7 +196,6 @@
 .dinosaur.god { 
     width: 240px;
     height: 200px;
-    background-image: url('https://i.ibb.co/6rCXYvj/dino-god-red.png');
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
