@@ -10,10 +10,13 @@ interface DinosaurProps {
 
 const Dinosaur = React.forwardRef<HTMLDivElement, DinosaurProps>(({ evolution, y, evolving }, ref) => {
   const isJumping = y > 135;
+  const isGodEvolving = evolving && evolution === 'god';
+
   const classes = cn(
     'dinosaur',
     evolution,
-    { 'evolving': evolving },
+    { 'evolving': evolving && !isGodEvolving },
+    { 'god-evolving': isGodEvolving },
     { 'jumping': isJumping }
   );
   

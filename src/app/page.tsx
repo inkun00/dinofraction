@@ -144,16 +144,18 @@ export default function Home() {
         } else {
             setTimeout(async () => {
                 const freshData = await loadDBUserData(user.uid);
-                setUserData(freshData);
-                if (appState === 'loading' || appState === 'signup') {
-                    setAppState('start');
+                if (freshData.nickname) {
+                    setUserData(freshData);
+                    if (appState === 'loading' || appState === 'signup') {
+                        setAppState('start');
+                    }
                 }
             }, 1000);
         }
       } else {
         setCurrentUser(null);
         setUserData({ score: 0, totalXp: 0, level: 1, correctProblemTypes: {}, wrongProblemTypes: {}, wrongProblems: [] });
-        if (appState !== 'start' && appState !== 'signup') {
+        if (appState !== 'signup') {
             setAppState('start');
         }
       }
@@ -164,7 +166,8 @@ export default function Home() {
   
   const updateDinosaurEvolution = React.useCallback((currentScore: number) => {
     let newStage: EvolutionStage;
-    if (currentScore >= 400) newStage = 'boss';
+    if (currentScore >= 500) newStage = 'god';
+    else if (currentScore >= 400) newStage = 'boss';
     else if (currentScore >= 300) newStage = 'adult';
     else if (currentScore >= 200) newStage = 'medium';
     else if (currentScore >= 100) newStage = 'baby';
@@ -551,5 +554,3 @@ export default function Home() {
     </main>
   );
 }
-
-    
