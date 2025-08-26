@@ -271,7 +271,6 @@
 }
 
 .answer-bubble {
-    top: 252px; /* 35vh of 720px */
     width: 128px;
     height: 128px;
     border-radius: 50%;
@@ -288,6 +287,15 @@
     flex-wrap: nowrap;
     white-space: nowrap;
 }
+
+/* Bubble positions based on dino evolution */
+.bubble-pos-egg { top: 252px; } /* 35vh */
+.bubble-pos-baby { top: 270px; } /* 37.5vh */
+.bubble-pos-medium { top: 306px; } /* 42.5vh */
+.bubble-pos-adult { top: 342px; } /* 47.5vh */
+.bubble-pos-boss { top: 414px; } /* 57.5vh */
+.bubble-pos-god { top: 450px; } /* 62.5vh */
+
 
 .answer-bubble.bouncing {
     animation-name: scrollProblem, bubble-bounce;

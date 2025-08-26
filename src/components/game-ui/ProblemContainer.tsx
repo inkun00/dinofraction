@@ -1,13 +1,16 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import type { CurrentProblem } from '@/lib/types';
+import type { CurrentProblem, EvolutionStage } from '@/lib/types';
 import FractionDisplay from './FractionDisplay';
 
 interface ProblemContainerProps {
   problems: CurrentProblem[];
+  dinoEvolution: EvolutionStage;
 }
 
-const ProblemContainer: React.FC<ProblemContainerProps> = ({ problems }) => {
+const ProblemContainer: React.FC<ProblemContainerProps> = ({ problems, dinoEvolution }) => {
+  const bubblePositionClass = `bubble-pos-${dinoEvolution}`;
+
   return (
     <>
       {problems.map(({ id, problem, answers, animationDuration }) => (
@@ -30,7 +33,7 @@ const ProblemContainer: React.FC<ProblemContainerProps> = ({ problems }) => {
           {answers.map((answer, index) => (
             <div
               key={`answer-${id}-${index}`}
-              className='answer-bubble'
+              className={cn('answer-bubble', bubblePositionClass)}
               data-correct={answer.isCorrect}
               data-problem-id={id}
               style={{ animationDuration: `${animationDuration}s`, animationDelay: `${index * 0.8}s` }}

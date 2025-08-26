@@ -495,7 +495,7 @@ export default function Home() {
                   y={dinoPhysicsRef.current.y} 
                   evolving={dinoIsEvolving} 
                 />
-                <ProblemContainer problems={currentProblems} />
+                <ProblemContainer problems={currentProblems} dinoEvolution={dinoEvolution} />
                 <div className="instructions">
                   스페이스바 또는 화면 터치로 점프하고 정답을 맞혀보세요!
                 </div>
