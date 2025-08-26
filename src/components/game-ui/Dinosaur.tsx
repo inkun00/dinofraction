@@ -17,7 +17,7 @@ const Dinosaur = React.forwardRef<HTMLDivElement, DinosaurProps>(({ evolution, y
     evolution,
     { 'evolving': evolving && !isGodEvolving },
     { 'god-evolving': isGodEvolving },
-    { 'jumping': isJumping }
+    { 'jumping': isJumping && evolution !== 'god' }
   );
   
   const initialTransform = `translateY(${135 - y}px)`;
