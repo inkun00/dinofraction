@@ -289,12 +289,12 @@
 }
 
 /* Bubble positions based on dino evolution */
-.bubble-pos-egg { top: 252px; } /* 35vh */
-.bubble-pos-baby { top: 270px; } /* 37.5vh */
-.bubble-pos-medium { top: 306px; } /* 42.5vh */
-.bubble-pos-adult { top: 342px; } /* 47.5vh */
-.bubble-pos-boss { top: 414px; } /* 57.5vh */
-.bubble-pos-god { top: 450px; } /* 62.5vh */
+.bubble-pos-egg { top: 450px; } 
+.bubble-pos-baby { top: 414px; }
+.bubble-pos-medium { top: 378px; }
+.bubble-pos-adult { top: 342px; }
+.bubble-pos-boss { top: 270px; }
+.bubble-pos-god { top: 216px; }
 
 
 .answer-bubble.bouncing {
