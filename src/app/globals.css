@@ -190,18 +190,18 @@
 .dinosaur.medium::before { content: "🦕"; transform: scaleX(-1); display: inline-block; }
 .dinosaur.adult { width: 213px; height: 180px; font-size: 192px; filter: hue-rotate(270deg) saturate(1.5) brightness(1.1); }
 .dinosaur.adult::before { content: "🦖"; transform: scaleX(-1); display: inline-block; }
-.dinosaur.boss { width: 266px; height: 225px; font-size: 240px; animation: bossGlow 2s ease-in-out infinite alternate; filter: hue-rotate(0deg) saturate(2.0) brightness(1.2); }
+.dinosaur.boss { width: 240px; height: 200px; font-size: 210px; animation: bossGlow 2s ease-in-out infinite alternate; filter: hue-rotate(0deg) saturate(2.0) brightness(1.2); }
 .dinosaur.boss::before { content: "🦖"; transform: scaleX(-1); display: inline-block; }
 .dinosaur.god { 
-    width: 320px; 
-    height: 270px;
+    width: 240px;
+    height: 200px;
     background-image: url('https://i.ibb.co/hK780b4/dino-god.png');
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    transform-origin: bottom center;
+    font-size: 0;
 }
-.dinosaur.god::before { content: ""; }
+.dinosaur.god::before { content: "" !important; }
 
 
 @keyframes bossGlow {
@@ -294,7 +294,7 @@
 .bubble-pos-medium { top: 260px; }
 .bubble-pos-adult { top: 230px; }
 .bubble-pos-boss { top: 200px; }
-.bubble-pos-god { top: 170px; }
+.bubble-pos-god { top: 200px; }
 
 
 .answer-bubble.bouncing {
