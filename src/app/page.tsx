@@ -32,14 +32,14 @@ const GAME_HEIGHT = 720;
 const INITIAL_ANIMATION_DURATION = 7.5; // seconds
 
 const GOD_DINO_IMAGES = [
-    'https://i.ibb.co/ksfXNRgX/dino-1.png',
-    'https://i.ibb.co/S7nDx9Fq/dino-2.png',
-    'https://i.ibb.co/Kxkncq2Q/dino-3.png',
-    'https://i.ibb.co/bRLScX3F/dino-4.png',
-    'https://i.ibb.co/Ng05nbpr/dino-5.png',
-    'https://i.ibb.co/rfHsHr2R/dino-6.png',
-    'https://i.ibb.co/gMyTwRZQ/dino-7.png',
-    'https://i.ibb.co/R4GXNnbc/dino-8.png',
+    'https://i.postimg.cc/13xsxBRQ/dino-1.png',
+    'https://i.postimg.cc/bwQ8qnd2/dino-2.png',
+    'https://i.postimg.cc/9MfjPNbG/dino-3.png',
+    'https://i.postimg.cc/Xv4Wqvy1/dino-4.png',
+    'https://i.postimg.cc/W48vkPGN/dino-5.png',
+    'https://i.postimg.cc/76QrKMtj/dino-6.png',
+    'https://i.postimg.cc/XqGSmGTq/dino-7.png',
+    'https://i.postimg.cc/Y05KH2H3/dino-8.png',
 ];
 
 
