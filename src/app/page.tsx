@@ -188,16 +188,19 @@ export default function Home() {
     setDinoEvolution(prev => {
         if (newStage !== prev) {
             setDinoIsEvolving(true);
-            if (newStage === 'god') {
-                const randomImage = GOD_DINO_IMAGES[Math.floor(Math.random() * GOD_DINO_IMAGES.length)];
-                setGodDinoImage(randomImage);
-            }
             setTimeout(() => setDinoIsEvolving(false), newStage === 'god' ? 1500 : 1000);
             return newStage;
         }
         return prev;
     });
   }, []);
+
+  React.useEffect(() => {
+    if (dinoEvolution === 'god' && dinoIsEvolving) {
+      const randomImage = GOD_DINO_IMAGES[Math.floor(Math.random() * GOD_DINO_IMAGES.length)];
+      setGodDinoImage(randomImage);
+    }
+  }, [dinoEvolution, dinoIsEvolving]);
 
   const handleCorrectAnswer = React.useCallback((problem: Problem) => {
       const difficulty = problem.difficulty;
