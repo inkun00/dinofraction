@@ -30,6 +30,7 @@ const PROBLEM_GENERATION_INTERVAL = 450; // frames, 60fps -> ~7.5s
 const GAME_WIDTH = 1280;
 const GAME_HEIGHT = 720;
 const INITIAL_ANIMATION_DURATION = 7.5; // seconds
+const GAME_DURATION_SECONDS = 300; // 5 minutes
 
 const GOD_DINO_IMAGES = [
     'https://i.postimg.cc/13xsxBRQ/dino-1.png',
@@ -101,6 +102,8 @@ export default function Home() {
   }, []);
 
   const endGame = React.useCallback(() => {
+      if (!gameState.running) return; // Prevent multiple calls
+
       setGameState(prev => ({...prev, running: false, started: false}));
 
       if (gameTimerRef.current) clearInterval(gameTimerRef.current);
@@ -141,7 +144,7 @@ export default function Home() {
       } else {
           setAppState('gameover');
       }
-  }, [userData, problemStats, currentUser, gameState.score, earnedXp]);
+  }, [userData, problemStats, currentUser, gameState.score, earnedXp, gameState.running]);
 
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -197,16 +200,19 @@ export default function Home() {
 
   React.useEffect(() => {
     if (dinoEvolution === 'god' && dinoIsEvolving) {
+      // This runs only on the client after hydration, preventing mismatches
       const randomImage = GOD_DINO_IMAGES[Math.floor(Math.random() * GOD_DINO_IMAGES.length)];
       setGodDinoImage(randomImage);
     }
   }, [dinoEvolution, dinoIsEvolving]);
+
 
   const handleCorrectAnswer = React.useCallback((problem: Problem) => {
       const difficulty = problem.difficulty;
       const { score: scoreToAdd, xp: xpToAdd } = PROBLEM_DIFFICULTY[difficulty] || { score: 10, xp: 2 };
 
       setGameState(prev => {
+        if (!prev.running) return prev;
         const newScore = prev.score + scoreToAdd;
         updateDinosaurEvolution(newScore);
         return { ...prev, score: newScore };
@@ -221,6 +227,7 @@ export default function Home() {
 
   const handleWrongAnswer = React.useCallback((problem: Problem) => {
       setGameState(prev => {
+          if (!prev.running) return prev;
           const newLives = prev.lives - 1;
           return { ...prev, lives: newLives };
       });
@@ -372,22 +379,11 @@ export default function Home() {
       }
   }, [gameState.running, jump]);
 
-  const handleCheatKey = React.useCallback((e: KeyboardEvent) => {
-    if(e.key === 'q' && gameState.running) {
-      setGameState(prev => {
-        const newScore = prev.score + 50;
-        updateDinosaurEvolution(newScore);
-        return { ...prev, score: newScore };
-      });
-    }
-  }, [gameState.running, updateDinosaurEvolution]);
-
   React.useEffect(() => {
       const isInteractiveElement = (target: EventTarget | null) => (target as Element)?.closest('button, a, input, form');
 
       const onKeyDown = (e: KeyboardEvent) => { 
         if (e.code === 'Space' && !e.repeat) { e.preventDefault(); handlePress(); } 
-        handleCheatKey(e);
       };
       const onTouchStart = (e: TouchEvent) => { if (!isInteractiveElement(e.target)) { e.preventDefault(); handlePress(); } };
       
@@ -398,7 +394,7 @@ export default function Home() {
           document.removeEventListener('keydown', onKeyDown);
           document.removeEventListener('touchstart', onTouchStart);
       };
-  }, [handlePress, handleCheatKey]);
+  }, [handlePress]);
 
   const startGame = React.useCallback(() => {
     setGameState({ score: 0, lives: 5, time: 0, running: true, started: true });
@@ -423,12 +419,17 @@ export default function Home() {
                 if(gameTimerRef.current) clearInterval(gameTimerRef.current);
                 return prev;
             }
-            return {...prev, time: Math.floor((Date.now() - startTime) / 1000)}
+            const currentTime = Math.floor((Date.now() - startTime) / 1000);
+            if (currentTime >= GAME_DURATION_SECONDS) {
+                endGame();
+                return {...prev, time: GAME_DURATION_SECONDS };
+            }
+            return {...prev, time: currentTime}
         });
     }, 1000);
 
     generateProblem();
-  }, [generateProblem, updateDinosaurEvolution]);
+  }, [generateProblem, updateDinosaurEvolution, endGame]);
 
   const restartGame = React.useCallback(() => {
       if (gameTimerRef.current) clearInterval(gameTimerRef.current);
@@ -522,6 +523,7 @@ export default function Home() {
                   lives={gameState.lives} 
                   time={gameState.time} 
                   userData={userData}
+                  maxTime={GAME_DURATION_SECONDS}
                 />
                 <Dinosaur 
                   ref={dinosaurRef} 
