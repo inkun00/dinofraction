@@ -399,111 +399,122 @@ export default function Home() {
   }, []);
 
   const gameLoop = React.useCallback(() => {
-      if (!gameState.running) {
-          if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-          return;
-      }
+    if (!gameState.running) {
+        if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+        return;
+    }
+
+    // Update time
+    const remainingTime = Math.max(0, Math.round((endTimeRef.current - Date.now()) / 1000));
+    if (remainingTime !== gameState.time) {
+        setGameState(prev => ({ ...prev, time: remainingTime }));
+    }
+
+    if (remainingTime <= 0) {
+        endGame();
+        return;
+    }
+    
+    frameCountRef.current++;
+    if (frameCountRef.current % PROBLEM_GENERATION_INTERVAL === 0) {
+        generateProblem();
+    }
+
+    // Randomly generate mystery box
+    if (frameCountRef.current >= nextMysteryBoxFrame.current && mysteryBoxes.length < 2) {
+        generateMysteryBox();
+        // Set next box frame to be between 15 to 30 seconds from now (900 to 1800 frames)
+        const nextInterval = 900 + Math.random() * 900;
+        nextMysteryBoxFrame.current = frameCountRef.current + nextInterval;
+    }
+
+    // Physics update (using ref, no re-render)
+    let { y, yVelocity, isJumping } = dinoPhysicsRef.current;
+    yVelocity += GRAVITY;
+    y += yVelocity;
+    
+    if (y <= GROUND_POSITION) {
+        y = GROUND_POSITION;
+        yVelocity = 0;
+        isJumping = false;
+    }
+    
+    // DOM update (using ref, no re-render)
+    if (dinosaurRef.current) {
+      const dinoRect = dinosaurRef.current.getBoundingClientRect();
       
-      frameCountRef.current++;
-      if (frameCountRef.current % PROBLEM_GENERATION_INTERVAL === 0) {
-          generateProblem();
-      }
+      // Answer bubble collision
+      document.querySelectorAll('.answer-bubble').forEach(bubbleEl => {
+          const bubble = bubbleEl as HTMLDivElement;
+          const problemId = parseInt(bubble.dataset.problemId || '-1');
+          
+          if(problemId === -1 || answeredProblemsRef.current.has(problemId)) return;
 
-      // Randomly generate mystery box
-      if (frameCountRef.current >= nextMysteryBoxFrame.current && mysteryBoxes.length < 2) {
-          generateMysteryBox();
-          // Set next box frame to be between 15 to 30 seconds from now (900 to 1800 frames)
-          const nextInterval = 900 + Math.random() * 900;
-          nextMysteryBoxFrame.current = frameCountRef.current + nextInterval;
-      }
+          const bubbleRect = bubble.getBoundingClientRect();
+          
+          const isColliding = dinoRect.left < bubbleRect.right &&
+                              dinoRect.right > bubbleRect.left &&
+                              dinoRect.top < bubbleRect.bottom &&
+                              dinoRect.bottom > bubbleRect.top;
 
-      // Physics update (using ref, no re-render)
-      let { y, yVelocity, isJumping } = dinoPhysicsRef.current;
-      yVelocity += GRAVITY;
-      y += yVelocity;
-      
-      if (y <= GROUND_POSITION) {
-          y = GROUND_POSITION;
-          yVelocity = 0;
-          isJumping = false;
-      }
-      
-      // DOM update (using ref, no re-render)
-      if (dinosaurRef.current) {
-        const dinoRect = dinosaurRef.current.getBoundingClientRect();
-        
-        // Answer bubble collision
-        document.querySelectorAll('.answer-bubble').forEach(bubbleEl => {
-            const bubble = bubbleEl as HTMLDivElement;
-            const problemId = parseInt(bubble.dataset.problemId || '-1');
-            
-            if(problemId === -1 || answeredProblemsRef.current.has(problemId)) return;
-
-            const bubbleRect = bubble.getBoundingClientRect();
-            
-            const isColliding = dinoRect.left < bubbleRect.right &&
-                                dinoRect.right > bubbleRect.left &&
-                                dinoRect.top < bubbleRect.bottom &&
-                                dinoRect.bottom > bubbleRect.top;
-
-            if (isColliding) {
-                yVelocity = -10; // Bounce down
-                y += yVelocity;
-                
-                answeredProblemsRef.current.add(problemId);
-                const isCorrect = bubble.dataset.correct === 'true';
-                const problem = currentProblems.find(p => p.id === problemId)?.problem;
-                
-                if(problem) {
-                  if (isCorrect) {
-                      handleCorrectAnswer(problem);
-                      bubble.style.background = '#2ecc71';
-                  } else {
-                      handleWrongAnswer(problem);
-                      bubble.style.background = '#e74c3c';
-                  }
+          if (isColliding) {
+              yVelocity = -10; // Bounce down
+              y += yVelocity;
+              
+              answeredProblemsRef.current.add(problemId);
+              const isCorrect = bubble.dataset.correct === 'true';
+              const problem = currentProblems.find(p => p.id === problemId)?.problem;
+              
+              if(problem) {
+                if (isCorrect) {
+                    handleCorrectAnswer(problem);
+                    bubble.style.background = '#2ecc71';
+                } else {
+                    handleWrongAnswer(problem);
+                    bubble.style.background = '#e74c3c';
                 }
-                bubble.classList.remove('bouncing');
-                void bubble.offsetWidth;
-                bubble.classList.add('bouncing');
-            }
-        });
-
-        // Mystery box collision
-        document.querySelectorAll('.mystery-box').forEach(boxEl => {
-            const box = boxEl as HTMLDivElement;
-            const boxId = parseInt(box.dataset.boxId || '-1');
-
-            if(boxId === -1 || collectedMysteryBoxesRef.current.has(boxId)) return;
-
-            const boxRect = box.getBoundingClientRect();
-            
-            const isColliding = dinoRect.left < boxRect.right &&
-                                dinoRect.right > boxRect.left &&
-                                dinoRect.top < boxRect.bottom &&
-                                dinoRect.bottom > boxRect.top;
-
-            if (isColliding) {
-              collectedMysteryBoxesRef.current.add(boxId);
-              const gameContainerRect = gameContainerRef.current?.getBoundingClientRect();
-              if (gameContainerRect) {
-                  const x = boxRect.left - gameContainerRect.left + boxRect.width / 2;
-                  const y = boxRect.top - gameContainerRect.top;
-                  handleMysteryBoxCollision(x, y);
               }
-              box.style.display = 'none'; // Hide the box immediately
+              bubble.classList.remove('bouncing');
+              void bubble.offsetWidth;
+              bubble.classList.add('bouncing');
+          }
+      });
+
+      // Mystery box collision
+      document.querySelectorAll('.mystery-box').forEach(boxEl => {
+          const box = boxEl as HTMLDivElement;
+          const boxId = parseInt(box.dataset.boxId || '-1');
+
+          if(boxId === -1 || collectedMysteryBoxesRef.current.has(boxId)) return;
+
+          const boxRect = box.getBoundingClientRect();
+          
+          const isColliding = dinoRect.left < boxRect.right &&
+                              dinoRect.right > boxRect.left &&
+                              dinoRect.top < boxRect.bottom &&
+                              dinoRect.bottom > boxRect.top;
+
+          if (isColliding) {
+            collectedMysteryBoxesRef.current.add(boxId);
+            const gameContainerRect = gameContainerRef.current?.getBoundingClientRect();
+            if (gameContainerRect) {
+                const x = boxRect.left - gameContainerRect.left + boxRect.width / 2;
+                const y = boxRect.top - gameContainerRect.top;
+                handleMysteryBoxCollision(x, y);
             }
-        });
+            box.style.display = 'none'; // Hide the box immediately
+          }
+      });
 
-        dinosaurRef.current.style.transform = `translateY(${-(y - 135)}px)`;
-      }
-      
-      dinoPhysicsRef.current.y = y;
-      dinoPhysicsRef.current.yVelocity = yVelocity;
-      dinoPhysicsRef.current.isJumping = isJumping;
+      dinosaurRef.current.style.transform = `translateY(${-(y - 135)}px)`;
+    }
+    
+    dinoPhysicsRef.current.y = y;
+    dinoPhysicsRef.current.yVelocity = yVelocity;
+    dinoPhysicsRef.current.isJumping = isJumping;
 
-      animationFrameRef.current = requestAnimationFrame(gameLoop);
-  }, [gameState.running, handleCorrectAnswer, handleWrongAnswer, generateProblem, currentProblems, mysteryBoxes.length, generateMysteryBox, handleMysteryBoxCollision]);
+    animationFrameRef.current = requestAnimationFrame(gameLoop);
+  }, [gameState.running, gameState.time, handleCorrectAnswer, handleWrongAnswer, generateProblem, currentProblems, mysteryBoxes.length, generateMysteryBox, handleMysteryBoxCollision, endGame]);
 
 
   React.useEffect(() => {
@@ -598,23 +609,6 @@ export default function Home() {
     setAppState('playing');
 
     endTimeRef.current = Date.now() + initialTime * 1000;
-    
-    const timerCallback = () => {
-      const remainingTime = Math.max(0, Math.round((endTimeRef.current - Date.now()) / 1000));
-      setGameState(prev => {
-        if (!prev.running) {
-          if (gameTimerRef.current) clearInterval(gameTimerRef.current);
-          return prev;
-        }
-        if (remainingTime <= 0) {
-          endGame();
-          return { ...prev, time: 0 };
-        }
-        return { ...prev, time: remainingTime };
-      });
-    };
-    
-    gameTimerRef.current = setInterval(timerCallback, 1000);
 
     generateProblem();
   }, [generateProblem, updateDinosaurEvolution, endGame, userData]);
