@@ -83,3 +83,9 @@ export type GameState = {
 export type EvolutionStage = 'egg' | 'baby' | 'medium' | 'adult' | 'boss' | 'god';
 
 export type LeaderboardType = 'score' | 'xp' | 'school-total-xp' | 'school-personal-by-school';
+
+export type EffectMessage = {
+  id: number;
+  text: string;
+  type: 'score-plus' | 'score-minus' | 'life-plus' | 'life-minus';
+};

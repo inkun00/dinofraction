@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from 'react';
-import { GameState, Problem, UserData, ProblemStats, CurrentProblem, AppState, EvolutionStage, ProblemType, MysteryBoxItem } from '@/lib/types';
+import { GameState, Problem, UserData, ProblemStats, CurrentProblem, AppState, EvolutionStage, ProblemType, MysteryBoxItem, EffectMessage } from '@/lib/types';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { loadUserData as loadDBUserData, saveUserData as saveDBUserData, getLeaderboardFromFirestore } from '@/lib/firestore-helpers';
@@ -42,6 +42,22 @@ const GOD_DINO_IMAGES = [
     'https://i.postimg.cc/Y05KH2H3/dino-8.png',
 ];
 
+interface EffectMessagesProps {
+  messages: EffectMessage[];
+}
+
+const EffectMessages: React.FC<EffectMessagesProps> = ({ messages }) => {
+  return (
+    <div className="effect-message-container">
+      {messages.map((msg) => (
+        <div key={msg.id} className={`effect-message ${msg.type}`}>
+          {msg.text}
+        </div>
+      ))}
+    </div>
+  );
+};
+
 
 export default function Home() {
   const [appState, setAppState] = React.useState<AppState>('loading');
@@ -65,17 +81,20 @@ export default function Home() {
   
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [modalProblemType, setModalProblemType] = React.useState<ProblemType | null>(null);
+  const [effectMessages, setEffectMessages] = React.useState<EffectMessage[]>([]);
 
   const gameTimerRef = React.useRef<NodeJS.Timeout | null>(null);
   const usedProblemsRef = React.useRef<Set<string>>(new Set());
   const problemCounterRef = React.useRef(0);
   const mysteryBoxCounterRef = React.useRef(0);
+  const effectMessageCounterRef = React.useRef(0);
   const dinosaurRef = React.useRef<HTMLDivElement>(null);
   const animationFrameRef = React.useRef<number>();
   const frameCountRef = React.useRef(0);
   const gameContainerRef = React.useRef<HTMLDivElement>(null);
   const answeredProblemsRef = React.useRef<Set<number>>(new Set());
   const collectedMysteryBoxesRef = React.useRef<Set<number>>(new Set());
+  const nextMysteryBoxFrame = React.useRef(0);
 
   // Use refs for physics to avoid re-renders
   const dinoPhysicsRef = React.useRef({
@@ -83,6 +102,14 @@ export default function Home() {
     yVelocity: 0,
     isJumping: false,
   });
+
+  const addEffectMessage = (text: string, type: EffectMessage['type']) => {
+    const id = effectMessageCounterRef.current++;
+    setEffectMessages(prev => [...prev, { id, text, type }]);
+    setTimeout(() => {
+      setEffectMessages(prev => prev.filter(msg => msg.id !== id));
+    }, 2000);
+  };
 
   React.useEffect(() => {
     const resizeGame = () => {
@@ -241,7 +268,7 @@ export default function Home() {
   }, []);
 
   const handleMysteryBoxCollision = React.useCallback(() => {
-    const effects = ['life_plus', 'score_plus', 'life_minus', 'score_minus'];
+    const effects = ['life-plus', 'score-plus', 'life-minus', 'score-minus'];
     const randomEffect = effects[Math.floor(Math.random() * effects.length)];
     
     setGameState(prev => {
@@ -252,17 +279,21 @@ export default function Home() {
       switch(randomEffect) {
         case 'life_plus':
           newLives = prev.lives + 1;
+          addEffectMessage('+1 생명', 'life-plus');
           break;
         case 'score_plus':
           newScore = prev.score + 50;
           updateDinosaurEvolution(newScore);
+          addEffectMessage('+50 점수', 'score-plus');
           break;
         case 'life_minus':
           newLives = prev.lives - 1;
+          addEffectMessage('-1 생명', 'life-minus');
           break;
         case 'score_minus':
           newScore = Math.max(0, prev.score - 50);
           updateDinosaurEvolution(newScore);
+          addEffectMessage('-50 점수', 'score-minus');
           break;
       }
       return {...prev, lives: newLives, score: newScore};
@@ -336,11 +367,11 @@ export default function Home() {
       }
 
       // Randomly generate mystery box
-      if (frameCountRef.current % 100 === 0 && Math.random() < 0.25) {
-        // Ensure it appears after a problem has been spawned
-        if (currentProblems.length > 0 && mysteryBoxes.length < 1) {
-            generateMysteryBox();
-        }
+      if (frameCountRef.current >= nextMysteryBoxFrame.current && mysteryBoxes.length < 1) {
+          generateMysteryBox();
+          // Set next box frame to be between 30 to 50 seconds from now (1800 to 3000 frames)
+          const nextInterval = 1800 + Math.random() * 1200;
+          nextMysteryBoxFrame.current = frameCountRef.current + nextInterval;
       }
 
       // Physics update (using ref, no re-render)
@@ -416,7 +447,7 @@ export default function Home() {
             }
         });
 
-        dinosaurRef.current.style.transform = `translateY(${-(y - GROUND_POSITION)}px)`;
+        dinosaurRef.current.style.transform = `translateY(${-(y - 135)}px)`;
       }
       
       dinoPhysicsRef.current.y = y;
@@ -474,12 +505,17 @@ export default function Home() {
     setEarnedXp(0);
     setCurrentProblems([]);
     setMysteryBoxes([]);
+    setEffectMessages([]);
     usedProblemsRef.current.clear();
     answeredProblemsRef.current.clear();
     collectedMysteryBoxesRef.current.clear();
     problemCounterRef.current = 0;
     mysteryBoxCounterRef.current = 0;
+    effectMessageCounterRef.current = 0;
     frameCountRef.current = 0;
+    // Set first mystery box frame to be between 20 to 40 seconds (1200 to 2400 frames)
+    nextMysteryBoxFrame.current = 1200 + Math.random() * 1200;
+
     updateDinosaurEvolution(0);
     dinoPhysicsRef.current = { y: GROUND_POSITION, yVelocity: 0, isJumping: false };
     setDinoEvolution('egg');
@@ -514,6 +550,7 @@ export default function Home() {
       setProblemStats({ correct: [], wrong: [], totalProblems: 0, correctProblemTypes: {}, wrongProblemTypes: {} });
       setCurrentProblems([]);
       setMysteryBoxes([]);
+      setEffectMessages([]);
       usedProblemsRef.current.clear();
       answeredProblemsRef.current.clear();
       collectedMysteryBoxesRef.current.clear();
@@ -602,6 +639,7 @@ export default function Home() {
                   userData={userData}
                   maxTime={GAME_DURATION_SECONDS}
                 />
+                <EffectMessages messages={effectMessages} />
                 <Dinosaur 
                   ref={dinosaurRef} 
                   evolution={dinoEvolution} 
