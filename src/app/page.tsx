@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from 'react';
-import { GameState, Problem, UserData, ProblemStats, CurrentProblem, AppState, EvolutionStage, ProblemType, MysteryBoxItem, EffectMessage, CollectedDinosaur, DinoEffect } from '@/lib/types';
+import { GameState, Problem, UserData, ProblemStats, CurrentProblem, AppState, EvolutionStage, ProblemType, MysteryBoxItem, EffectMessage, CollectedDinosaur, DinoSpecialEffect, DinoEffectType } from '@/lib/types';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { loadUserData as loadDBUserData, saveUserData as saveDBUserData, getLeaderboardFromFirestore } from '@/lib/firestore-helpers';
@@ -61,7 +61,8 @@ const DINO_NAMES = [
     '도담이', '토담이', '알콩', '달콩', '새싹이', '나무', '풀잎이', '이슬이', '샘물이', '바다',
     '하늘이', '우주', '행성이', '혜성이', '반짝이', '꼬꼬', '야옹이', '멍멍이', '음메', '어흥이'
 ];
-const DINO_EFFECTS: DinoEffect[] = ['SCORE_BONUS', 'TIME_BONUS', 'LIFE_BONUS', 'XP_BONUS'];
+const DINO_EFFECT_TYPES: DinoEffectType[] = ['TIME', 'SCORE', 'LIFE', 'JUMP', 'XP'];
+
 
 interface EffectMessagesProps {
   messages: EffectMessage[];
@@ -187,24 +188,44 @@ export default function Home() {
       };
 
       if (finalScore >= 500 && godDinoImage) {
-          const isRare = Math.random() < 0.1; // 10% chance for a rare dino
-          const effects: DinoEffect[] = [];
-          const availableEffects = [...DINO_EFFECTS];
-          
-          const effect1Index = Math.floor(Math.random() * availableEffects.length);
-          effects.push(availableEffects.splice(effect1Index, 1)[0]);
-          
-          if (isRare && availableEffects.length > 0) {
-              const effect2Index = Math.floor(Math.random() * availableEffects.length);
-              effects.push(availableEffects.splice(effect2Index, 1)[0]);
+          const isRare = Math.random() < 0.05; // 5% chance for a rare dino (2 effects)
+          const effectsToGenerate = isRare ? 2 : 1;
+          const generatedEffects: DinoSpecialEffect[] = [];
+          const availableEffectTypes = [...DINO_EFFECT_TYPES];
+
+          for (let i = 0; i < effectsToGenerate; i++) {
+              if (availableEffectTypes.length === 0) break;
+
+              const effectTypeIndex = Math.floor(Math.random() * availableEffectTypes.length);
+              const selectedType = availableEffectTypes.splice(effectTypeIndex, 1)[0];
+              let value = 0;
+
+              switch (selectedType) {
+                  case 'TIME':
+                      value = Math.floor(Math.random() * (30 - 10 + 1)) + 10; // 10~30
+                      break;
+                  case 'SCORE':
+                      value = Math.floor(Math.random() * 5) + 1; // 1~5
+                      break;
+                  case 'LIFE':
+                      value = 1;
+                      break;
+                  case 'JUMP':
+                      value = Math.floor(Math.random() * 6) + 5; // 5~10%
+                      break;
+                  case 'XP':
+                      value = Math.round((Math.random() * 0.4 + 0.1) * 10) / 10; // 0.1 ~ 0.5
+                      break;
+              }
+              generatedEffects.push({ type: selectedType, value });
           }
 
           const newDinosaur: CollectedDinosaur = {
               id: `${Date.now()}-${godDinoImage}`,
               imageUrl: godDinoImage,
               name: DINO_NAMES[Math.floor(Math.random() * DINO_NAMES.length)],
-              effects,
-              isRare,
+              effects: generatedEffects,
+              isRare: generatedEffects.length > 1,
           };
 
           finalUserData.collectedDinosaurs?.push(newDinosaur);
@@ -290,14 +311,16 @@ export default function Home() {
 
 
   const handleCorrectAnswer = React.useCallback((problem: Problem) => {
-      const difficulty = problem.difficulty;
-      let { score: scoreToAdd, xp: xpToAdd } = PROBLEM_DIFFICULTY[difficulty] || { score: 10, xp: 2 };
+      let { score: scoreToAdd, xp: xpToAdd } = PROBLEM_DIFFICULTY[problem.difficulty] || { score: 10, xp: 2 };
       
-      if (equippedDinoRef.current?.effects?.includes('SCORE_BONUS')) {
-        scoreToAdd += 1;
+      const scoreBonusEffect = equippedDinoRef.current?.effects?.find(e => e.type === 'SCORE');
+      if (scoreBonusEffect) {
+        scoreToAdd += scoreBonusEffect.value;
       }
-       if (equippedDinoRef.current?.effects?.includes('XP_BONUS')) {
-        xpToAdd += 0.1;
+
+      const xpBonusEffect = equippedDinoRef.current?.effects?.find(e => e.type === 'XP');
+      if (xpBonusEffect) {
+        xpToAdd += xpBonusEffect.value;
       }
 
       setGameState(prev => {
@@ -548,7 +571,12 @@ export default function Home() {
   const jump = React.useCallback(() => {
     if (dinoPhysicsRef.current.y <= GROUND_POSITION && gameState.running && !dinoPhysicsRef.current.isJumping) {
       dinoPhysicsRef.current.isJumping = true;
-      dinoPhysicsRef.current.yVelocity = JUMP_VELOCITY;
+      let finalJumpVelocity = JUMP_VELOCITY;
+      const jumpEffect = equippedDinoRef.current?.effects?.find(e => e.type === 'JUMP');
+      if (jumpEffect) {
+          finalJumpVelocity *= (1 + jumpEffect.value / 100);
+      }
+      dinoPhysicsRef.current.yVelocity = finalJumpVelocity;
     }
   }, [gameState.running]);
 
@@ -594,11 +622,13 @@ export default function Home() {
     equippedDinoRef.current = equippedDino || null;
 
     if (equippedDino) {
-        if (equippedDino.effects?.includes('LIFE_BONUS')) {
-            initialLives += 1;
+        const lifeEffect = equippedDino.effects?.find(e => e.type === 'LIFE');
+        if (lifeEffect) {
+            initialLives += lifeEffect.value;
         }
-        if (equippedDino.effects?.includes('TIME_BONUS')) {
-            initialTime += 30;
+        const timeEffect = equippedDino.effects?.find(e => e.type === 'TIME');
+        if (timeEffect) {
+            initialTime += timeEffect.value;
         }
     }
 
@@ -810,9 +840,3 @@ export default function Home() {
     </main>
   );
 }
-
-    
-
-    
-
-

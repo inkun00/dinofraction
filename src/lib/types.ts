@@ -47,13 +47,18 @@ export type ProblemStats = {
   wrongProblemTypes: Record<string, number>;
 };
 
-export type DinoEffect = 'SCORE_BONUS' | 'TIME_BONUS' | 'LIFE_BONUS' | 'XP_BONUS';
+export type DinoEffectType = 'TIME' | 'SCORE' | 'LIFE' | 'JUMP' | 'XP';
+
+export type DinoSpecialEffect = {
+  type: DinoEffectType;
+  value: number;
+};
 
 export type CollectedDinosaur = {
   id: string;
   imageUrl: string;
   name: string;
-  effects: DinoEffect[];
+  effects: DinoSpecialEffect[];
   isRare: boolean;
 };
 
