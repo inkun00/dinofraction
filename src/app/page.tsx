@@ -69,7 +69,7 @@ export default function Home() {
   const [gameState, setGameState] = React.useState<GameState>({
     score: 0,
     lives: 5,
-    time: 0,
+    time: GAME_DURATION_SECONDS,
     running: false,
     started: false,
   });
@@ -90,7 +90,6 @@ export default function Home() {
   const [showCollection, setShowCollection] = React.useState(false);
 
   const gameTimerRef = React.useRef<NodeJS.Timeout | null>(null);
-  const startTimeRef = React.useRef<number>(0);
   const usedProblemsRef = React.useRef<Set<string>>(new Set());
   const problemCounterRef = React.useRef(0);
   const mysteryBoxCounterRef = React.useRef(0);
@@ -102,6 +101,7 @@ export default function Home() {
   const answeredProblemsRef = React.useRef<Set<number>>(new Set());
   const collectedMysteryBoxesRef = React.useRef<Set<number>>(new Set());
   const nextMysteryBoxFrame = React.useRef(0);
+  const endTimeRef = React.useRef<number>(0);
 
   // Use refs for physics to avoid re-renders
   const dinoPhysicsRef = React.useRef({
@@ -247,7 +247,6 @@ export default function Home() {
   
   React.useEffect(() => {
     if (dinoEvolution === 'god' && dinoIsEvolving) {
-        // This now runs only on the client, after the evolution state changes.
         const randomImage = GOD_DINO_IMAGES[Math.floor(Math.random() * GOD_DINO_IMAGES.length)];
         setGodDinoImage(randomImage);
     }
@@ -518,7 +517,7 @@ export default function Home() {
             });
         }
         if (e.key === 'w' && gameState.running) {
-            startTimeRef.current = Date.now() - ((GAME_DURATION_SECONDS - 5) * 1000);
+             endTimeRef.current = Date.now() + 5000;
         }
       };
       const onTouchStart = (e: TouchEvent) => { if (!isInteractiveElement(e.target)) { e.preventDefault(); handlePress(); } };
@@ -533,7 +532,7 @@ export default function Home() {
   }, [handlePress, gameState.running, updateDinosaurEvolution]);
 
   const startGame = React.useCallback(() => {
-    setGameState({ score: 0, lives: 5, time: 0, running: true, started: true });
+    setGameState({ score: 0, lives: 5, time: GAME_DURATION_SECONDS, running: true, started: true });
     setProblemStats({ correct: [], wrong: [], totalProblems: 0, correctProblemTypes: {}, wrongProblemTypes: {} });
     setEarnedXp(0);
     setCurrentProblems([]);
@@ -556,19 +555,18 @@ export default function Home() {
     setGodDinoImage(null);
     setAppState('playing');
 
-    startTimeRef.current = Date.now();
+    endTimeRef.current = Date.now() + GAME_DURATION_SECONDS * 1000;
     gameTimerRef.current = setInterval(() => {
         setGameState(prev => {
             if (!prev.running) {
                 if(gameTimerRef.current) clearInterval(gameTimerRef.current);
                 return prev;
             }
-            const currentTime = Math.floor((Date.now() - startTimeRef.current) / 1000);
-            if (currentTime >= GAME_DURATION_SECONDS) {
+            const remainingTime = Math.max(0, Math.round((endTimeRef.current - Date.now()) / 1000));
+            if (remainingTime <= 0) {
                 endGame();
-                return {...prev, time: GAME_DURATION_SECONDS };
             }
-            return {...prev, time: currentTime}
+            return {...prev, time: remainingTime}
         });
     }, 1000);
 
@@ -579,7 +577,7 @@ export default function Home() {
       if (gameTimerRef.current) clearInterval(gameTimerRef.current);
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
 
-      setGameState({ score: 0, lives: 5, time: 0, running: false, started: false });
+      setGameState({ score: 0, lives: 5, time: GAME_DURATION_SECONDS, running: false, started: false });
       setProblemStats({ correct: [], wrong: [], totalProblems: 0, correctProblemTypes: {}, wrongProblemTypes: {} });
       setCurrentProblems([]);
       setMysteryBoxes([]);
@@ -746,3 +744,5 @@ export default function Home() {
     </main>
   );
 }
+
+    

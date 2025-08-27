@@ -11,9 +11,8 @@ interface GameHUDProps {
 
 const GameHUD: React.FC<GameHUDProps> = ({ score, lives, time, userData, maxTime }) => {
   const formatTime = (seconds: number) => {
-    const remainingSeconds = maxTime - seconds;
-    const minutes = Math.floor(remainingSeconds / 60);
-    const secs = remainingSeconds % 60;
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
     return `${minutes}:${secs.toString().padStart(2, '0')}`;
   };
 
@@ -33,3 +32,5 @@ const GameHUD: React.FC<GameHUDProps> = ({ score, lives, time, userData, maxTime
 };
 
 export default GameHUD;
+
+    
