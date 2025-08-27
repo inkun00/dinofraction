@@ -36,11 +36,11 @@ const CollectionCard: React.FC<CollectionCardProps> = ({ dino, isEquipped, onEqu
       <div className="absolute top-1 right-1">
         {isEquipped && <ShieldCheck className="w-5 h-5 text-white bg-green-500 rounded-full p-0.5" />}
       </div>
-      <div className="w-full bg-black bg-opacity-50 text-white p-1 rounded-b-lg mt-auto flex flex-col items-center justify-center h-24">
-        <p className={cn('font-bold text-sm', dino.isRare ? 'text-yellow-300' : 'text-white')}>
+      <div className="w-full bg-black bg-opacity-50 p-1 rounded-b-lg mt-auto flex flex-col items-center justify-center">
+        <p className={cn('font-bold text-sm text-white', dino.isRare ? 'text-yellow-300' : 'text-white')}>
           {dino.name}
         </p>
-        <div className="text-xs space-y-0.5">
+        <div className="text-xs space-y-0.5 text-white">
           {(dino.effects ?? []).map((effect, i) => {
             const effectInfo = effectMap[effect.type];
             return (
