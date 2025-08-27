@@ -2,9 +2,9 @@
 "use client";
 
 import * as React from 'react';
-import { GameState, Problem, UserData, ProblemStats, CurrentProblem, AppState, Fraction, EvolutionStage, ProblemType } from '@/lib/types';
+import { GameState, Problem, UserData, ProblemStats, CurrentProblem, AppState, EvolutionStage, ProblemType, MysteryBoxItem } from '@/lib/types';
 import { auth, db } from '@/lib/firebase';
-import { onAuthStateChanged, signInAnonymously, User } from 'firebase/auth';
+import { onAuthStateChanged, User } from 'firebase/auth';
 import { loadUserData as loadDBUserData, saveUserData as saveDBUserData, getLeaderboardFromFirestore } from '@/lib/firestore-helpers';
 import { generateProblem as generateProblemUtil, calculateLevel, firebaseErrorKorean, PROBLEM_DIFFICULTY } from '@/lib/game-logic';
 import { login, signUp, logout } from '@/lib/auth-helpers';
@@ -21,7 +21,6 @@ import AnalysisScreen from '@/components/game-ui/screens/AnalysisScreen';
 import LeaderboardScreen from '@/components/game-ui/screens/LeaderboardScreen';
 import LevelUpModal from '@/components/game-ui/screens/LevelUpModal';
 import WrongProblemsModal from '@/components/game-ui/screens/WrongProblemsModal';
-import { normalizeFraction } from '@/lib/game-logic';
 
 const JUMP_VELOCITY = 22;
 const GRAVITY = -0.8;
@@ -57,6 +56,7 @@ export default function Home() {
   const [userData, setUserData] = React.useState<UserData>({ score: 0, totalXp: 0, level: 1, correctProblemTypes: {}, wrongProblemTypes: {}, wrongProblems: [] });
   const [problemStats, setProblemStats] = React.useState<ProblemStats>({ correct: [], wrong: [], totalProblems: 0, correctProblemTypes: {}, wrongProblemTypes: {} });
   const [currentProblems, setCurrentProblems] = React.useState<CurrentProblem[]>([]);
+  const [mysteryBoxes, setMysteryBoxes] = React.useState<MysteryBoxItem[]>([]);
   
   const [dinoEvolution, setDinoEvolution] = React.useState<EvolutionStage>('egg');
   const [dinoIsEvolving, setDinoIsEvolving] = React.useState(false);
@@ -69,11 +69,13 @@ export default function Home() {
   const gameTimerRef = React.useRef<NodeJS.Timeout | null>(null);
   const usedProblemsRef = React.useRef<Set<string>>(new Set());
   const problemCounterRef = React.useRef(0);
+  const mysteryBoxCounterRef = React.useRef(0);
   const dinosaurRef = React.useRef<HTMLDivElement>(null);
   const animationFrameRef = React.useRef<number>();
   const frameCountRef = React.useRef(0);
   const gameContainerRef = React.useRef<HTMLDivElement>(null);
   const answeredProblemsRef = React.useRef<Set<number>>(new Set());
+  const collectedMysteryBoxesRef = React.useRef<Set<number>>(new Set());
 
   // Use refs for physics to avoid re-renders
   const dinoPhysicsRef = React.useRef({
@@ -110,6 +112,7 @@ export default function Home() {
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
 
       answeredProblemsRef.current.clear();
+      collectedMysteryBoxesRef.current.clear();
 
       const finalScore = gameState.score;
       const oldLevel = userData.level;
@@ -176,7 +179,7 @@ export default function Home() {
       }
     });
     return () => unsubscribe();
-  }, []);
+  }, [appState]);
 
   
   const updateDinosaurEvolution = React.useCallback((currentScore: number) => {
@@ -200,7 +203,6 @@ export default function Home() {
 
   React.useEffect(() => {
     if (dinoEvolution === 'god' && dinoIsEvolving) {
-      // This runs only on the client after hydration, preventing mismatches
       const randomImage = GOD_DINO_IMAGES[Math.floor(Math.random() * GOD_DINO_IMAGES.length)];
       setGodDinoImage(randomImage);
     }
@@ -237,6 +239,36 @@ export default function Home() {
           return {...prevStats, wrong: newWrong, wrongProblemTypes: newWrongTypes };
       });
   }, []);
+
+  const handleMysteryBoxCollision = React.useCallback(() => {
+    const effects = ['life_plus', 'score_plus', 'life_minus', 'score_minus'];
+    const randomEffect = effects[Math.floor(Math.random() * effects.length)];
+    
+    setGameState(prev => {
+      if (!prev.running) return prev;
+      let newLives = prev.lives;
+      let newScore = prev.score;
+
+      switch(randomEffect) {
+        case 'life_plus':
+          newLives = prev.lives + 1;
+          break;
+        case 'score_plus':
+          newScore = prev.score + 50;
+          updateDinosaurEvolution(newScore);
+          break;
+        case 'life_minus':
+          newLives = prev.lives - 1;
+          break;
+        case 'score_minus':
+          newScore = Math.max(0, prev.score - 50);
+          updateDinosaurEvolution(newScore);
+          break;
+      }
+      return {...prev, lives: newLives, score: newScore};
+    });
+
+  }, [updateDinosaurEvolution]);
 
   React.useEffect(() => {
       if (gameState.started && gameState.lives <= 0 && gameState.running) {
@@ -281,6 +313,17 @@ export default function Home() {
 
   }, [gameState.score, handleWrongAnswer]);
 
+  const generateMysteryBox = React.useCallback(() => {
+    const id = mysteryBoxCounterRef.current++;
+    const animationDuration = INITIAL_ANIMATION_DURATION * 0.9;
+    const newBox: MysteryBoxItem = {
+      id,
+      collected: false,
+      animationDuration,
+    };
+    setMysteryBoxes(prev => [...prev, newBox]);
+  }, []);
+
   const gameLoop = React.useCallback(() => {
       if (!gameState.running) {
           if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
@@ -290,6 +333,14 @@ export default function Home() {
       frameCountRef.current++;
       if (frameCountRef.current % PROBLEM_GENERATION_INTERVAL === 0) {
           generateProblem();
+      }
+
+      // Randomly generate mystery box
+      if (frameCountRef.current % 100 === 0 && Math.random() < 0.25) {
+        // Ensure it appears after a problem has been spawned
+        if (currentProblems.length > 0 && mysteryBoxes.length < 1) {
+            generateMysteryBox();
+        }
       }
 
       // Physics update (using ref, no re-render)
@@ -307,6 +358,7 @@ export default function Home() {
       if (dinosaurRef.current) {
         const dinoRect = dinosaurRef.current.getBoundingClientRect();
         
+        // Answer bubble collision
         document.querySelectorAll('.answer-bubble').forEach(bubbleEl => {
             const bubble = bubbleEl as HTMLDivElement;
             const problemId = parseInt(bubble.dataset.problemId || '-1');
@@ -315,7 +367,6 @@ export default function Home() {
 
             const bubbleRect = bubble.getBoundingClientRect();
             
-            // Check for collision
             const isColliding = dinoRect.left < bubbleRect.right &&
                                 dinoRect.right > bubbleRect.left &&
                                 dinoRect.top < bubbleRect.bottom &&
@@ -344,6 +395,27 @@ export default function Home() {
             }
         });
 
+        // Mystery box collision
+        document.querySelectorAll('.mystery-box').forEach(boxEl => {
+            const box = boxEl as HTMLDivElement;
+            const boxId = parseInt(box.dataset.boxId || '-1');
+
+            if(boxId === -1 || collectedMysteryBoxesRef.current.has(boxId)) return;
+
+            const boxRect = box.getBoundingClientRect();
+
+            const isColliding = dinoRect.left < boxRect.right &&
+                                dinoRect.right > boxRect.left &&
+                                dinoRect.top < boxRect.bottom &&
+                                dinoRect.bottom > boxRect.top;
+
+            if (isColliding) {
+              collectedMysteryBoxesRef.current.add(boxId);
+              handleMysteryBoxCollision();
+              box.style.display = 'none'; // Hide the box immediately
+            }
+        });
+
         dinosaurRef.current.style.transform = `translateY(${-(y - GROUND_POSITION)}px)`;
       }
       
@@ -352,7 +424,7 @@ export default function Home() {
       dinoPhysicsRef.current.isJumping = isJumping;
 
       animationFrameRef.current = requestAnimationFrame(gameLoop);
-  }, [gameState.running, handleCorrectAnswer, handleWrongAnswer, generateProblem, currentProblems]);
+  }, [gameState.running, handleCorrectAnswer, handleWrongAnswer, generateProblem, currentProblems, mysteryBoxes.length, generateMysteryBox, handleMysteryBoxCollision]);
 
 
   React.useEffect(() => {
@@ -401,9 +473,12 @@ export default function Home() {
     setProblemStats({ correct: [], wrong: [], totalProblems: 0, correctProblemTypes: {}, wrongProblemTypes: {} });
     setEarnedXp(0);
     setCurrentProblems([]);
+    setMysteryBoxes([]);
     usedProblemsRef.current.clear();
     answeredProblemsRef.current.clear();
+    collectedMysteryBoxesRef.current.clear();
     problemCounterRef.current = 0;
+    mysteryBoxCounterRef.current = 0;
     frameCountRef.current = 0;
     updateDinosaurEvolution(0);
     dinoPhysicsRef.current = { y: GROUND_POSITION, yVelocity: 0, isJumping: false };
@@ -438,8 +513,10 @@ export default function Home() {
       setGameState({ score: 0, lives: 5, time: 0, running: false, started: false });
       setProblemStats({ correct: [], wrong: [], totalProblems: 0, correctProblemTypes: {}, wrongProblemTypes: {} });
       setCurrentProblems([]);
+      setMysteryBoxes([]);
       usedProblemsRef.current.clear();
       answeredProblemsRef.current.clear();
+      collectedMysteryBoxesRef.current.clear();
       dinoPhysicsRef.current = { y: GROUND_POSITION, yVelocity: 0, isJumping: false };
       setDinoEvolution('egg');
       setDinoIsEvolving(false);
@@ -532,7 +609,7 @@ export default function Home() {
                   evolving={dinoIsEvolving} 
                   godDinoImage={godDinoImage}
                 />
-                <ProblemContainer problems={currentProblems} dinoEvolution={dinoEvolution} />
+                <ProblemContainer problems={currentProblems} mysteryBoxes={mysteryBoxes} dinoEvolution={dinoEvolution} />
                 <div className="instructions">
                   스페이스바 또는 화면 터치로 점프하고 정답을 맞혀보세요!
                 </div>

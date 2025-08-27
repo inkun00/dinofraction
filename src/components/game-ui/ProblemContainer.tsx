@@ -1,14 +1,15 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import type { CurrentProblem, EvolutionStage } from '@/lib/types';
+import type { CurrentProblem, EvolutionStage, MysteryBoxItem } from '@/lib/types';
 import FractionDisplay from './FractionDisplay';
 
 interface ProblemContainerProps {
   problems: CurrentProblem[];
+  mysteryBoxes: MysteryBoxItem[];
   dinoEvolution: EvolutionStage;
 }
 
-const ProblemContainer: React.FC<ProblemContainerProps> = ({ problems, dinoEvolution }) => {
+const ProblemContainer: React.FC<ProblemContainerProps> = ({ problems, mysteryBoxes, dinoEvolution }) => {
   const bubblePositionClass = `bubble-pos-${dinoEvolution}`;
 
   return (
@@ -42,6 +43,14 @@ const ProblemContainer: React.FC<ProblemContainerProps> = ({ problems, dinoEvolu
             </div>
           ))}
         </React.Fragment>
+      ))}
+      {mysteryBoxes.map(({ id, animationDuration }) => (
+        <div
+            key={`mystery-box-${id}`}
+            className="mystery-box"
+            data-box-id={id}
+            style={{ animationDuration: `${animationDuration}s`, animationDelay: `${Math.random() * 2}s` }}
+        />
       ))}
     </>
   );

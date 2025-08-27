@@ -33,6 +33,12 @@ export type CurrentProblem = {
   animationDuration: number;
 };
 
+export type MysteryBoxItem = {
+  id: number;
+  collected: boolean;
+  animationDuration: number;
+};
+
 export type ProblemStats = {
   correct: Problem[];
   wrong: Problem[];
