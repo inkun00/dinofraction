@@ -47,7 +47,7 @@ const CollectionCard: React.FC<CollectionCardProps> = ({ dino, isEquipped, onEqu
           <div className="absolute top-1 right-1">
             {isEquipped && <ShieldCheck className="w-5 h-5 text-white bg-green-500 rounded-full p-0.5" />}
           </div>
-          <div className="w-full bg-black bg-opacity-50 p-1 mt-auto flex items-center justify-center">
+          <div className="w-full bg-black bg-opacity-50 p-2 mt-auto flex items-center justify-center">
             <p className={cn('font-bold text-sm text-center truncate', dino.isRare ? 'text-yellow-300' : 'text-white')}>
               {dino.name}
             </p>
@@ -55,7 +55,6 @@ const CollectionCard: React.FC<CollectionCardProps> = ({ dino, isEquipped, onEqu
         </div>
         <TooltipContent className="bg-gray-800 text-white border-gray-700">
           <div className="p-2">
-            <h3 className={cn("font-bold text-lg mb-2", dino.isRare ? 'text-yellow-300' : 'text-white')}>{dino.name}</h3>
             {(dino.effects ?? []).length > 0 ? (
                 <ul className="space-y-1 text-left">
                 {(dino.effects).map((effect, index) => {
