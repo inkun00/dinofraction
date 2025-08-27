@@ -481,7 +481,7 @@ export default function Home() {
             const isColliding = dinoRect.left < boxRect.right &&
                                 dinoRect.right > boxRect.left &&
                                 dinoRect.top < boxRect.bottom &&
-                                dinoRect.bottom > bubbleRect.top;
+                                dinoRect.bottom > boxRect.top;
 
             if (isColliding) {
               collectedMysteryBoxesRef.current.add(boxId);
