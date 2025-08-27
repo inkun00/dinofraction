@@ -88,4 +88,6 @@ export type EffectMessage = {
   id: number;
   text: string;
   type: 'score-plus' | 'score-minus' | 'life-plus' | 'life-minus';
+  x: number;
+  y: number;
 };
