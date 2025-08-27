@@ -506,6 +506,13 @@ export default function Home() {
 
       const onKeyDown = (e: KeyboardEvent) => { 
         if (e.code === 'Space' && !e.repeat) { e.preventDefault(); handlePress(); } 
+        if (e.key === 'q' && gameState.running) {
+            setGameState(prev => {
+                const newScore = prev.score + 100;
+                updateDinosaurEvolution(newScore);
+                return { ...prev, score: newScore };
+            });
+        }
       };
       const onTouchStart = (e: TouchEvent) => { if (!isInteractiveElement(e.target)) { e.preventDefault(); handlePress(); } };
       
@@ -516,7 +523,7 @@ export default function Home() {
           document.removeEventListener('keydown', onKeyDown);
           document.removeEventListener('touchstart', onTouchStart);
       };
-  }, [handlePress]);
+  }, [handlePress, gameState.running, updateDinosaurEvolution]);
 
   const startGame = React.useCallback(() => {
     setGameState({ score: 0, lives: 5, time: 0, running: true, started: true });
