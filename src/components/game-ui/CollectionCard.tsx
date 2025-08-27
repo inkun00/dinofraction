@@ -1,5 +1,5 @@
 import React from 'react';
-import type { CollectedDinosaur, DinoSpecialEffect } from '@/lib/types';
+import type { CollectedDinosaur } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Gem, ShieldCheck, Timer, ArrowUp, Star, PlusCircle } from 'lucide-react';
 
