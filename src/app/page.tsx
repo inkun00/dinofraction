@@ -21,6 +21,7 @@ import AnalysisScreen from '@/components/game-ui/screens/AnalysisScreen';
 import LeaderboardScreen from '@/components/game-ui/screens/LeaderboardScreen';
 import LevelUpModal from '@/components/game-ui/screens/LevelUpModal';
 import WrongProblemsModal from '@/components/game-ui/screens/WrongProblemsModal';
+import CollectionScreen from '@/components/game-ui/screens/CollectionScreen';
 
 const JUMP_VELOCITY = 22;
 const GRAVITY = -0.8;
@@ -73,7 +74,7 @@ export default function Home() {
     started: false,
   });
   const [currentUser, setCurrentUser] = React.useState<User | null>(null);
-  const [userData, setUserData] = React.useState<UserData>({ score: 0, totalXp: 0, level: 1, correctProblemTypes: {}, wrongProblemTypes: {}, wrongProblems: [] });
+  const [userData, setUserData] = React.useState<UserData>({ score: 0, totalXp: 0, level: 1, correctProblemTypes: {}, wrongProblemTypes: {}, wrongProblems: [], collectedDinosaurs: [] });
   const [problemStats, setProblemStats] = React.useState<ProblemStats>({ correct: [], wrong: [], totalProblems: 0, correctProblemTypes: {}, wrongProblemTypes: {} });
   const [currentProblems, setCurrentProblems] = React.useState<CurrentProblem[]>([]);
   const [mysteryBoxes, setMysteryBoxes] = React.useState<MysteryBoxItem[]>([]);
@@ -86,6 +87,7 @@ export default function Home() {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [modalProblemType, setModalProblemType] = React.useState<ProblemType | null>(null);
   const [effectMessages, setEffectMessages] = React.useState<EffectMessage[]>([]);
+  const [showCollection, setShowCollection] = React.useState(false);
 
   const gameTimerRef = React.useRef<NodeJS.Timeout | null>(null);
   const usedProblemsRef = React.useRef<Set<string>>(new Set());
@@ -159,7 +161,12 @@ export default function Home() {
           correctProblemTypes: { ...userData.correctProblemTypes },
           wrongProblemTypes: { ...userData.wrongProblemTypes },
           wrongProblems: [...(userData.wrongProblems || []), ...problemStats.wrong],
+          collectedDinosaurs: [...(userData.collectedDinosaurs || [])],
       };
+
+      if (finalScore >= 500 && godDinoImage) {
+          finalUserData.collectedDinosaurs.push(godDinoImage);
+      }
 
       for (const type in problemStats.correctProblemTypes) {
           finalUserData.correctProblemTypes[type] = (finalUserData.correctProblemTypes[type] || 0) + problemStats.correctProblemTypes[type];
@@ -178,7 +185,7 @@ export default function Home() {
       } else {
           setAppState('gameover');
       }
-  }, [userData, problemStats, currentUser, gameState.score, earnedXp, gameState.running]);
+  }, [userData, problemStats, currentUser, gameState.score, earnedXp, gameState.running, godDinoImage]);
 
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -203,7 +210,7 @@ export default function Home() {
         }
       } else {
         setCurrentUser(null);
-        setUserData({ score: 0, totalXp: 0, level: 1, correctProblemTypes: {}, wrongProblemTypes: {}, wrongProblems: [] });
+        setUserData({ score: 0, totalXp: 0, level: 1, correctProblemTypes: {}, wrongProblemTypes: {}, wrongProblems: [], collectedDinosaurs: [] });
         if (appState !== 'signup') {
             setAppState('start');
         }
@@ -440,9 +447,9 @@ export default function Home() {
             const boxRect = box.getBoundingClientRect();
 
             const isColliding = dinoRect.left < boxRect.right &&
-                                dinoRect.right > boxRect.left &&
+                                dinoRect.right > bubbleRect.left &&
                                 dinoRect.top < boxRect.bottom &&
-                                dinoRect.bottom > boxRect.top;
+                                dinoRect.bottom > bubbleRect.top;
 
             if (isColliding) {
               collectedMysteryBoxesRef.current.add(boxId);
@@ -626,6 +633,7 @@ export default function Home() {
                     restartGame();
                   }}
                   onShowWrongProblems={handleOpenModal}
+                  onShowCollection={() => setShowCollection(true)}
                 />
                 {isModalOpen && modalProblemType && (
                   <WrongProblemsModal
@@ -633,6 +641,12 @@ export default function Home() {
                     allWrongProblems={userData.wrongProblems || []}
                     onClose={handleCloseModal}
                     onCorrectAnswer={handleCorrectReviewAnswer}
+                  />
+                )}
+                 {showCollection && (
+                  <CollectionScreen 
+                    collectedDinos={userData.collectedDinosaurs || []}
+                    onClose={() => setShowCollection(false)}
                   />
                 )}
               </>

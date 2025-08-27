@@ -56,6 +56,7 @@ export type UserData = {
   correctProblemTypes: Record<string, number>;
   wrongProblemTypes: Record<string, number>;
   wrongProblems?: Problem[];
+  collectedDinosaurs?: string[];
 };
 
 export type LeaderboardEntry = {

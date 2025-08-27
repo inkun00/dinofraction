@@ -4,16 +4,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { getUserRank, updateUserInfo } from '@/lib/firestore-helpers'; // updateUserInfo 함수 import
 import { auth } from '@/lib/firebase';
-import { Edit, Save } from 'lucide-react';
+import { Edit, Save, BookImage } from 'lucide-react';
 
 interface ProfileScreenProps {
   userData: UserData;
   onStartGame: () => void;
   onLogout: () => void;
   onShowWrongProblems: (type: ProblemType) => void;
+  onShowCollection: () => void;
 }
 
-const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, onLogout, onShowWrongProblems }) => {
+const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, onLogout, onShowWrongProblems, onShowCollection }) => {
   const allTypes = Array.from(new Set([...Object.keys(userData.correctProblemTypes), ...Object.keys(userData.wrongProblemTypes)]));
   
   const [userRank, setUserRank] = useState<{ xpRank: number | null; scoreRank: number | null }>({ xpRank: null, scoreRank: null });
@@ -130,17 +131,23 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, on
             </div>
         </div>
 
-        <div className="analysis-buttons">
-          <Button onClick={onStartGame} className="start-btn" disabled={!allMistakesCleared}>
-            게임 시작!
-          </Button>
-          <Button onClick={onLogout} className="restart-btn close">로그아웃</Button>
+        <div className="analysis-buttons mt-4 flex justify-center items-center gap-4">
+            <Button onClick={onShowCollection} className="restart-btn bg-purple-500 hover:bg-purple-600 border-purple-700">
+                <BookImage className="mr-2" /> 수집한 공룡
+            </Button>
+            <Button onClick={onLogout} className="restart-btn close">로그아웃</Button>
         </div>
-        {!allMistakesCleared && (
-            <p className="text-center text-red-600 font-bold mt-2">
-              모든 오답 문제를 해결해야 게임을 시작할 수 있습니다.
-            </p>
-        )}
+
+        <div className="mt-4 text-center">
+            <Button onClick={onStartGame} className="start-btn w-full" disabled={!allMistakesCleared}>
+                게임 시작!
+            </Button>
+            {!allMistakesCleared && (
+                <p className="text-center text-red-600 font-bold mt-2">
+                    모든 오답 문제를 해결해야 게임을 시작할 수 있습니다.
+                </p>
+            )}
+        </div>
       </div>
     </div>
   );
