@@ -276,10 +276,10 @@ export default function Home() {
       const difficulty = problem.difficulty;
       let { score: scoreToAdd, xp: xpToAdd } = PROBLEM_DIFFICULTY[difficulty] || { score: 10, xp: 2 };
       
-      if (equippedDinoRef.current?.effects.includes('SCORE_BONUS')) {
+      if (equippedDinoRef.current?.effects?.includes('SCORE_BONUS')) {
         scoreToAdd += 1;
       }
-       if (equippedDinoRef.current?.effects.includes('XP_BONUS')) {
+       if (equippedDinoRef.current?.effects?.includes('XP_BONUS')) {
         xpToAdd += 0.1;
       }
 
@@ -566,10 +566,10 @@ export default function Home() {
     equippedDinoRef.current = equippedDino || null;
 
     if (equippedDino) {
-        if (equippedDino.effects.includes('LIFE_BONUS')) {
+        if (equippedDino.effects?.includes('LIFE_BONUS')) {
             initialLives += 1;
         }
-        if (equippedDino.effects.includes('TIME_BONUS')) {
+        if (equippedDino.effects?.includes('TIME_BONUS')) {
             initialTime += 30;
         }
     }
