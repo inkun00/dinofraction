@@ -48,7 +48,7 @@ const CollectionCard: React.FC<CollectionCardProps> = ({ dino, isEquipped, onEqu
             {isEquipped && <ShieldCheck className="w-5 h-5 text-white bg-green-500 rounded-full p-0.5" />}
           </div>
           <div className="w-full bg-black bg-opacity-50 p-2 rounded-b-lg mt-auto flex items-center justify-center">
-            <p className={cn('font-bold text-sm text-center', dino.isRare ? 'text-yellow-300' : 'text-white')}>
+            <p className={cn('font-bold text-sm text-center truncate', dino.isRare ? 'text-yellow-300' : 'text-white')}>
               {dino.name}
             </p>
           </div>
