@@ -165,6 +165,9 @@ export default function Home() {
       };
 
       if (finalScore >= 500 && godDinoImage) {
+          if (!finalUserData.collectedDinosaurs) {
+            finalUserData.collectedDinosaurs = [];
+          }
           finalUserData.collectedDinosaurs.push(godDinoImage);
       }
 
@@ -238,12 +241,12 @@ export default function Home() {
         return prev;
     });
   }, []);
-
+  
   React.useEffect(() => {
-    if (dinoEvolution === 'god' && dinoIsEvolving) {
-      const randomImage = GOD_DINO_IMAGES[Math.floor(Math.random() * GOD_DINO_IMAGES.length)];
-      setGodDinoImage(randomImage);
-    }
+      if (dinoEvolution === 'god' && dinoIsEvolving) {
+          const randomImage = GOD_DINO_IMAGES[Math.floor(Math.random() * GOD_DINO_IMAGES.length)];
+          setGodDinoImage(randomImage);
+      }
   }, [dinoEvolution, dinoIsEvolving]);
 
 
@@ -445,11 +448,11 @@ export default function Home() {
             if(boxId === -1 || collectedMysteryBoxesRef.current.has(boxId)) return;
 
             const boxRect = box.getBoundingClientRect();
-
+            
             const isColliding = dinoRect.left < boxRect.right &&
-                                dinoRect.right > bubbleRect.left &&
+                                dinoRect.right > boxRect.left &&
                                 dinoRect.top < boxRect.bottom &&
-                                dinoRect.bottom > bubbleRect.top;
+                                dinoRect.bottom > boxRect.top;
 
             if (isColliding) {
               collectedMysteryBoxesRef.current.add(boxId);

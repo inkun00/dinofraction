@@ -9,6 +9,7 @@ export async function saveUserData(userId: string, userData: UserData) {
     const dataToSave = {
         ...userData,
         wrongProblems: userData.wrongProblems || [], 
+        collectedDinosaurs: userData.collectedDinosaurs || [],
         timestamp: serverTimestamp()
     };
 
@@ -26,7 +27,7 @@ export async function updateUserInfo(userId: string, data: { nickname?: string, 
 }
 
 export async function loadUserData(userId: string): Promise<UserData> {
-    const defaultData: UserData = { score: 0, totalXp: 0, level: 1, correctProblemTypes: {}, wrongProblemTypes: {}, wrongProblems: [] };
+    const defaultData: UserData = { score: 0, totalXp: 0, level: 1, correctProblemTypes: {}, wrongProblemTypes: {}, wrongProblems: [], collectedDinosaurs: [] };
     if (!userId) return defaultData;
 
     const userDocRef = doc(db, 'users', userId);
@@ -34,7 +35,7 @@ export async function loadUserData(userId: string): Promise<UserData> {
         const docSnap = await getDoc(userDocRef);
         if (docSnap.exists()) {
             const data = docSnap.data();
-            return { ...defaultData, ...data, wrongProblems: data.wrongProblems || [] } as UserData;
+            return { ...defaultData, ...data, wrongProblems: data.wrongProblems || [], collectedDinosaurs: data.collectedDinosaurs || [] } as UserData;
         }
         return defaultData;
     } catch (e) {
@@ -141,5 +142,3 @@ export async function getUserRank(userId: string): Promise<{ xpRank: number | nu
         return { xpRank: null, scoreRank: null };
     }
 }
-
-    
