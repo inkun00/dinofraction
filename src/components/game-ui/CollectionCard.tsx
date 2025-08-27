@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { CollectedDinosaur } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -39,7 +40,7 @@ const CollectionCard: React.FC<CollectionCardProps> = ({ dino, isEquipped, onEqu
           {dino.name}
         </p>
         <div className="text-xs space-y-0.5">
-          {dino.effects.map((effect, i) => (
+          {(dino.effects ?? []).map((effect, i) => (
             <div key={i} className="flex items-center justify-center gap-1">
               {effectMap[effect]?.icon}
               <span>{effectMap[effect]?.text}</span>
