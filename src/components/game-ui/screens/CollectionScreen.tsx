@@ -23,12 +23,13 @@ const CollectionScreen: React.FC<CollectionScreenProps> = ({ userData, onClose, 
         {collectedDinos.length > 0 ? (
           <div className="collection-grid custom-scrollbar">
             {collectedDinos.map((dino) => (
-              <CollectionCard 
-                key={dino.id}
-                dino={dino}
-                isEquipped={userData.equippedDinosaurId === dino.id}
-                onEquip={onEquipDinosaur}
-              />
+              <div key={dino.id}>
+                <CollectionCard 
+                  dino={dino}
+                  isEquipped={userData.equippedDinosaurId === dino.id}
+                  onEquip={onEquipDinosaur}
+                />
+              </div>
             ))}
           </div>
         ) : (
