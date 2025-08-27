@@ -47,6 +47,16 @@ export type ProblemStats = {
   wrongProblemTypes: Record<string, number>;
 };
 
+export type DinoEffect = 'SCORE_BONUS' | 'TIME_BONUS' | 'LIFE_BONUS' | 'XP_BONUS';
+
+export type CollectedDinosaur = {
+  id: string;
+  imageUrl: string;
+  name: string;
+  effects: DinoEffect[];
+  isRare: boolean;
+};
+
 export type UserData = {
   score: number;
   totalXp: number;
@@ -56,7 +66,8 @@ export type UserData = {
   correctProblemTypes: Record<string, number>;
   wrongProblemTypes: Record<string, number>;
   wrongProblems?: Problem[];
-  collectedDinosaurs?: string[];
+  collectedDinosaurs?: CollectedDinosaur[];
+  equippedDinosaurId?: string | null;
 };
 
 export type LeaderboardEntry = {

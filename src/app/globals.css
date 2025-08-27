@@ -557,7 +557,7 @@
 /* --- Collection Screen --- */
 .collection-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 20px;
     padding: 20px;
     max-height: 50vh;
@@ -579,14 +579,19 @@
     border-radius: 15px;
 }
 .collection-card {
-    width: 120px;
-    height: 120px;
+    width: 150px;
+    height: 180px;
     border-radius: 15px;
     background-color: #fff;
-    border: 4px solid #3498db;
+    border: 4px solid;
     box-shadow: 0 5px 10px rgba(0,0,0,0.2);
     overflow: hidden;
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+.collection-card.equipped-card {
+    border-color: #2ecc71; /* Green border for equipped */
+    box-shadow: 0 8px 15px rgba(46, 204, 113, 0.5);
+    transform: scale(1.05);
 }
 .collection-card:hover {
     transform: scale(1.05);
@@ -594,6 +599,7 @@
 }
 .collection-card-image {
     width: 100%;
-    height: 100%;
+    height: 120px;
     object-fit: cover;
 }
+

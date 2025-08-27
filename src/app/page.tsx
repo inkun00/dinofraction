@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from 'react';
-import { GameState, Problem, UserData, ProblemStats, CurrentProblem, AppState, EvolutionStage, ProblemType, MysteryBoxItem, EffectMessage } from '@/lib/types';
+import { GameState, Problem, UserData, ProblemStats, CurrentProblem, AppState, EvolutionStage, ProblemType, MysteryBoxItem, EffectMessage, CollectedDinosaur, DinoEffect } from '@/lib/types';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { loadUserData as loadDBUserData, saveUserData as saveDBUserData, getLeaderboardFromFirestore } from '@/lib/firestore-helpers';
@@ -43,6 +43,9 @@ const GOD_DINO_IMAGES = [
     'https://i.postimg.cc/Y05KH2H3/dino-8.png',
 ];
 
+const DINO_NAMES = ['용용이', '쿠키', '털뭉치', '숑숑이', '바둑이', '치치', '렉시', '스파키', '블루', '딩키'];
+const DINO_EFFECTS: DinoEffect[] = ['SCORE_BONUS', 'TIME_BONUS', 'LIFE_BONUS', 'XP_BONUS'];
+
 interface EffectMessagesProps {
   messages: EffectMessage[];
 }
@@ -74,7 +77,7 @@ export default function Home() {
     started: false,
   });
   const [currentUser, setCurrentUser] = React.useState<User | null>(null);
-  const [userData, setUserData] = React.useState<UserData>({ score: 0, totalXp: 0, level: 1, correctProblemTypes: {}, wrongProblemTypes: {}, wrongProblems: [], collectedDinosaurs: [] });
+  const [userData, setUserData] = React.useState<UserData>({ score: 0, totalXp: 0, level: 1, correctProblemTypes: {}, wrongProblemTypes: {}, wrongProblems: [], collectedDinosaurs: [], equippedDinosaurId: null });
   const [problemStats, setProblemStats] = React.useState<ProblemStats>({ correct: [], wrong: [], totalProblems: 0, correctProblemTypes: {}, wrongProblemTypes: {} });
   const [currentProblems, setCurrentProblems] = React.useState<CurrentProblem[]>([]);
   const [mysteryBoxes, setMysteryBoxes] = React.useState<MysteryBoxItem[]>([]);
@@ -102,6 +105,7 @@ export default function Home() {
   const collectedMysteryBoxesRef = React.useRef<Set<number>>(new Set());
   const nextMysteryBoxFrame = React.useRef(0);
   const endTimeRef = React.useRef<number>(0);
+  const equippedDinoRef = React.useRef<CollectedDinosaur | null>(null);
 
   // Use refs for physics to avoid re-renders
   const dinoPhysicsRef = React.useRef({
@@ -138,7 +142,7 @@ export default function Home() {
   }, []);
 
   const endGame = React.useCallback(() => {
-      if (!gameState.running) return; // Prevent multiple calls
+      if (!gameState.running) return;
 
       setGameState(prev => ({...prev, running: false, started: false}));
 
@@ -166,12 +170,27 @@ export default function Home() {
       };
 
       if (finalScore >= 500 && godDinoImage) {
-          if (!finalUserData.collectedDinosaurs) {
-            finalUserData.collectedDinosaurs = [];
+          const isRare = Math.random() < 0.1; // 10% chance for a rare dino
+          const effects: DinoEffect[] = [];
+          const availableEffects = [...DINO_EFFECTS];
+          
+          const effect1Index = Math.floor(Math.random() * availableEffects.length);
+          effects.push(availableEffects.splice(effect1Index, 1)[0]);
+          
+          if (isRare && availableEffects.length > 0) {
+              const effect2Index = Math.floor(Math.random() * availableEffects.length);
+              effects.push(availableEffects.splice(effect2Index, 1)[0]);
           }
-          if (!finalUserData.collectedDinosaurs.includes(godDinoImage)) {
-            finalUserData.collectedDinosaurs.push(godDinoImage);
-          }
+
+          const newDinosaur: CollectedDinosaur = {
+              id: `${Date.now()}-${godDinoImage}`,
+              imageUrl: godDinoImage,
+              name: DINO_NAMES[Math.floor(Math.random() * DINO_NAMES.length)],
+              effects,
+              isRare,
+          };
+
+          finalUserData.collectedDinosaurs?.push(newDinosaur);
       }
 
       for (const type in problemStats.correctProblemTypes) {
@@ -216,7 +235,7 @@ export default function Home() {
         }
       } else {
         setCurrentUser(null);
-        setUserData({ score: 0, totalXp: 0, level: 1, correctProblemTypes: {}, wrongProblemTypes: {}, wrongProblems: [], collectedDinosaurs: [] });
+        setUserData({ score: 0, totalXp: 0, level: 1, correctProblemTypes: {}, wrongProblemTypes: {}, wrongProblems: [], collectedDinosaurs: [], equippedDinosaurId: null });
         if (appState !== 'signup') {
             setAppState('start');
         }
@@ -255,7 +274,14 @@ export default function Home() {
 
   const handleCorrectAnswer = React.useCallback((problem: Problem) => {
       const difficulty = problem.difficulty;
-      const { score: scoreToAdd, xp: xpToAdd } = PROBLEM_DIFFICULTY[difficulty] || { score: 10, xp: 2 };
+      let { score: scoreToAdd, xp: xpToAdd } = PROBLEM_DIFFICULTY[difficulty] || { score: 10, xp: 2 };
+      
+      if (equippedDinoRef.current?.effects.includes('SCORE_BONUS')) {
+        scoreToAdd += 1;
+      }
+       if (equippedDinoRef.current?.effects.includes('XP_BONUS')) {
+        xpToAdd += 0.1;
+      }
 
       setGameState(prev => {
         if (!prev.running) return prev;
@@ -455,7 +481,7 @@ export default function Home() {
             const isColliding = dinoRect.left < boxRect.right &&
                                 dinoRect.right > boxRect.left &&
                                 dinoRect.top < boxRect.bottom &&
-                                dinoRect.bottom > boxRect.top;
+                                dinoRect.bottom > bubbleRect.top;
 
             if (isColliding) {
               collectedMysteryBoxesRef.current.add(boxId);
@@ -532,7 +558,23 @@ export default function Home() {
   }, [handlePress, gameState.running, updateDinosaurEvolution]);
 
   const startGame = React.useCallback(() => {
-    setGameState({ score: 0, lives: 5, time: GAME_DURATION_SECONDS, running: true, started: true });
+    
+    let initialLives = 5;
+    let initialTime = GAME_DURATION_SECONDS;
+
+    const equippedDino = userData.collectedDinosaurs?.find(d => d.id === userData.equippedDinosaurId);
+    equippedDinoRef.current = equippedDino || null;
+
+    if (equippedDino) {
+        if (equippedDino.effects.includes('LIFE_BONUS')) {
+            initialLives += 1;
+        }
+        if (equippedDino.effects.includes('TIME_BONUS')) {
+            initialTime += 30;
+        }
+    }
+
+    setGameState({ score: 0, lives: initialLives, time: initialTime, running: true, started: true });
     setProblemStats({ correct: [], wrong: [], totalProblems: 0, correctProblemTypes: {}, wrongProblemTypes: {} });
     setEarnedXp(0);
     setCurrentProblems([]);
@@ -555,7 +597,7 @@ export default function Home() {
     setGodDinoImage(null);
     setAppState('playing');
 
-    endTimeRef.current = Date.now() + GAME_DURATION_SECONDS * 1000;
+    endTimeRef.current = Date.now() + initialTime * 1000;
     gameTimerRef.current = setInterval(() => {
         setGameState(prev => {
             if (!prev.running) {
@@ -571,7 +613,7 @@ export default function Home() {
     }, 1000);
 
     generateProblem();
-  }, [generateProblem, updateDinosaurEvolution, endGame]);
+  }, [generateProblem, updateDinosaurEvolution, endGame, userData]);
 
   const restartGame = React.useCallback(() => {
       if (gameTimerRef.current) clearInterval(gameTimerRef.current);
@@ -611,6 +653,14 @@ export default function Home() {
     if (currentUser) {
         saveDBUserData(currentUser.uid, updatedUserData);
     }
+  };
+
+  const handleEquipDinosaur = async (dinoId: string | null) => {
+    if (!currentUser) return;
+    const newEquippedId = userData.equippedDinosaurId === dinoId ? null : dinoId;
+    const updatedUserData: UserData = { ...userData, equippedDinosaurId: newEquippedId };
+    setUserData(updatedUserData);
+    await saveDBUserData(currentUser.uid, updatedUserData);
   };
 
 
@@ -660,8 +710,9 @@ export default function Home() {
                 )}
                  {showCollection && (
                   <CollectionScreen 
-                    collectedDinos={userData.collectedDinosaurs || []}
+                    userData={userData}
                     onClose={() => setShowCollection(false)}
+                    onEquipDinosaur={handleEquipDinosaur}
                   />
                 )}
               </>
