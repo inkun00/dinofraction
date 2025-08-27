@@ -28,7 +28,7 @@ const CollectionCard: React.FC<CollectionCardProps> = ({ dino, isEquipped, onEqu
       className={cn(
         'collection-card',
         isEquipped ? 'equipped-card' : 'border-blue-400',
-        'relative flex flex-col items-center justify-end p-1 text-center cursor-pointer'
+        'relative flex flex-col items-center justify-start p-1 text-center cursor-pointer'
       )}
       onClick={handleCardClick}
     >
@@ -36,7 +36,7 @@ const CollectionCard: React.FC<CollectionCardProps> = ({ dino, isEquipped, onEqu
       <div className="absolute top-1 right-1">
         {isEquipped && <ShieldCheck className="w-5 h-5 text-white bg-green-500 rounded-full p-0.5" />}
       </div>
-      <div className="absolute bottom-0 w-full bg-black bg-opacity-50 text-white p-1 rounded-b-lg">
+      <div className="w-full bg-black bg-opacity-50 text-white p-1 rounded-b-lg mt-auto flex flex-col items-center">
         <p className={cn('font-bold text-sm truncate', dino.isRare ? 'text-yellow-300' : 'text-white')}>
           {dino.name}
         </p>
