@@ -41,6 +41,12 @@ const GOD_DINO_IMAGES = [
     'https://i.postimg.cc/76QrKMtj/dino-6.png',
     'https://i.postimg.cc/XqGSmGTq/dino-7.png',
     'https://i.postimg.cc/Y05KH2H3/dino-8.png',
+    'https://i.postimg.cc/xdYMNTHQ/dino-9.png',
+    'https://i.postimg.cc/j5SfvgZk/dino-10.png',
+    'https://i.postimg.cc/FKZcy5gL/dino-11.png',
+    'https://i.postimg.cc/RFpHY7YC/dino-12.png',
+    'https://i.postimg.cc/7hC2rCv3/dino-13.png',
+    'https://i.postimg.cc/Zn1ybTZ1/dino-14.png',
 ];
 
 const DINO_NAMES = [
@@ -808,4 +814,5 @@ export default function Home() {
     
 
     
+
 
