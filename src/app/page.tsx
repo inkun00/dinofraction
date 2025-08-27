@@ -90,6 +90,7 @@ export default function Home() {
   const [showCollection, setShowCollection] = React.useState(false);
 
   const gameTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const startTimeRef = React.useRef<number>(0);
   const usedProblemsRef = React.useRef<Set<string>>(new Set());
   const problemCounterRef = React.useRef(0);
   const mysteryBoxCounterRef = React.useRef(0);
@@ -168,7 +169,9 @@ export default function Home() {
           if (!finalUserData.collectedDinosaurs) {
             finalUserData.collectedDinosaurs = [];
           }
-          finalUserData.collectedDinosaurs.push(godDinoImage);
+          if (!finalUserData.collectedDinosaurs.includes(godDinoImage)) {
+            finalUserData.collectedDinosaurs.push(godDinoImage);
+          }
       }
 
       for (const type in problemStats.correctProblemTypes) {
@@ -243,10 +246,11 @@ export default function Home() {
   }, []);
   
   React.useEffect(() => {
-      if (dinoEvolution === 'god' && dinoIsEvolving) {
-          const randomImage = GOD_DINO_IMAGES[Math.floor(Math.random() * GOD_DINO_IMAGES.length)];
-          setGodDinoImage(randomImage);
-      }
+    if (dinoEvolution === 'god' && dinoIsEvolving) {
+        // This now runs only on the client, after the evolution state changes.
+        const randomImage = GOD_DINO_IMAGES[Math.floor(Math.random() * GOD_DINO_IMAGES.length)];
+        setGodDinoImage(randomImage);
+    }
   }, [dinoEvolution, dinoIsEvolving]);
 
 
@@ -513,6 +517,9 @@ export default function Home() {
                 return { ...prev, score: newScore };
             });
         }
+        if (e.key === 'w' && gameState.running) {
+            startTimeRef.current = Date.now() - ((GAME_DURATION_SECONDS - 5) * 1000);
+        }
       };
       const onTouchStart = (e: TouchEvent) => { if (!isInteractiveElement(e.target)) { e.preventDefault(); handlePress(); } };
       
@@ -549,14 +556,14 @@ export default function Home() {
     setGodDinoImage(null);
     setAppState('playing');
 
-    const startTime = Date.now();
+    startTimeRef.current = Date.now();
     gameTimerRef.current = setInterval(() => {
         setGameState(prev => {
             if (!prev.running) {
                 if(gameTimerRef.current) clearInterval(gameTimerRef.current);
                 return prev;
             }
-            const currentTime = Math.floor((Date.now() - startTime) / 1000);
+            const currentTime = Math.floor((Date.now() - startTimeRef.current) / 1000);
             if (currentTime >= GAME_DURATION_SECONDS) {
                 endGame();
                 return {...prev, time: GAME_DURATION_SECONDS };
