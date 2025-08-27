@@ -61,8 +61,111 @@ const DINO_NAMES = [
     '도담이', '토담이', '알콩', '달콩', '새싹이', '나무', '풀잎이', '이슬이', '샘물이', '바다',
     '하늘이', '우주', '행성이', '혜성이', '반짝이', '꼬꼬', '야옹이', '멍멍이', '음메', '어흥이'
 ];
-const DINO_EFFECT_TYPES: DinoEffectType[] = ['TIME', 'SCORE', 'LIFE', 'JUMP', 'XP'];
 
+const PREDEFINED_EFFECTS: { effects: DinoSpecialEffect[], isRare: boolean }[] = [
+  // 일반 효과 (95개)
+  { effects: [{ type: 'TIME', value: 25 }], isRare: false },
+  { effects: [{ type: 'SCORE', value: 3 }], isRare: false },
+  { effects: [{ type: 'JUMP', value: 8 }], isRare: false },
+  { effects: [{ type: 'XP', value: 0.3 }], isRare: false },
+  { effects: [{ type: 'TIME', value: 15 }], isRare: false },
+  { effects: [{ type: 'SCORE', value: 5 }], isRare: false },
+  { effects: [{ type: 'JUMP', value: 6 }], isRare: false },
+  { effects: [{ type: 'XP', value: 0.1 }], isRare: false },
+  { effects: [{ type: 'LIFE', value: 1 }], isRare: false },
+  { effects: [{ type: 'TIME', value: 18 }], isRare: false },
+  { effects: [{ type: 'SCORE', value: 2 }], isRare: false },
+  { effects: [{ type: 'JUMP', value: 10 }], isRare: false },
+  { effects: [{ type: 'XP', value: 0.5 }], isRare: false },
+  { effects: [{ type: 'TIME', value: 28 }], isRare: false },
+  { effects: [{ type: 'SCORE', value: 4 }], isRare: false },
+  { effects: [{ type: 'JUMP', value: 5 }], isRare: false },
+  { effects: [{ type: 'XP', value: 0.2 }], isRare: false },
+  { effects: [{ type: 'TIME', value: 12 }], isRare: false },
+  { effects: [{ type: 'SCORE', value: 1 }], isRare: false },
+  { effects: [{ type: 'JUMP', value: 9 }], isRare: false },
+  { effects: [{ type: 'XP', value: 0.4 }], isRare: false },
+  { effects: [{ type: 'TIME', value: 22 }], isRare: false },
+  { effects: [{ type: 'SCORE', value: 3 }], isRare: false },
+  { effects: [{ type: 'JUMP', value: 7 }], isRare: false },
+  { effects: [{ type: 'XP', value: 0.3 }], isRare: false },
+  { effects: [{ type: 'TIME', value: 11 }], isRare: false },
+  { effects: [{ type: 'SCORE', value: 5 }], isRare: false },
+  { effects: [{ type: 'JUMP', value: 5 }], isRare: false },
+  { effects: [{ type: 'XP', value: 0.1 }], isRare: false },
+  { effects: [{ type: 'LIFE', value: 1 }], isRare: false },
+  { effects: [{ type: 'TIME', value: 29 }], isRare: false },
+  { effects: [{ type: 'SCORE', value: 1 }], isRare: false },
+  { effects: [{ type: 'JUMP', value: 10 }], isRare: false },
+  { effects: [{ type: 'XP', value: 0.5 }], isRare: false },
+  { effects: [{ type: 'TIME', value: 14 }], isRare: false },
+  { effects: [{ type: 'SCORE', value: 4 }], isRare: false },
+  { effects: [{ type: 'JUMP', value: 6 }], isRare: false },
+  { effects: [{ type: 'XP', value: 0.2 }], isRare: false },
+  { effects: [{ type: 'TIME', value: 21 }], isRare: false },
+  { effects: [{ type: 'SCORE', value: 2 }], isRare: false },
+  { effects: [{ type: 'JUMP', value: 8 }], isRare: false },
+  { effects: [{ type: 'XP', value: 0.4 }], isRare: false },
+  { effects: [{ type: 'TIME', value: 17 }], isRare: false },
+  { effects: [{ type: 'SCORE', value: 3 }], isRare: false },
+  { effects: [{ type: 'JUMP', value: 9 }], isRare: false },
+  { effects: [{ type: 'XP', value: 0.3 }], isRare: false },
+  { effects: [{ type: 'TIME', value: 26 }], isRare: false },
+  { effects: [{ type: 'SCORE', value: 5 }], isRare: false },
+  { effects: [{ type: 'JUMP', value: 7 }], isRare: false },
+  { effects: [{ type: 'XP', value: 0.1 }], isRare: false },
+  { effects: [{ type: 'LIFE', value: 1 }], isRare: false },
+  { effects: [{ type: 'TIME', value: 19 }], isRare: false },
+  { effects: [{ type: 'SCORE', value: 1 }], isRare: false },
+  { effects: [{ type: 'JUMP', value: 5 }], isRare: false },
+  { effects: [{ type: 'XP', value: 0.5 }], isRare: false },
+  { effects: [{ type: 'TIME', value: 10 }], isRare: false },
+  { effects: [{ type: 'SCORE', value: 4 }], isRare: false },
+  { effects: [{ type: 'JUMP', value: 6 }], isRare: false },
+  { effects: [{ type: 'XP', value: 0.2 }], isRare: false },
+  { effects: [{ type: 'TIME', value: 23 }], isRare: false },
+  { effects: [{ type: 'SCORE', value: 2 }], isRare: false },
+  { effects: [{ type: 'JUMP', value: 8 }], isRare: false },
+  { effects: [{ type: 'XP', value: 0.4 }], isRare: false },
+  { effects: [{ type: 'TIME', value: 16 }], isRare: false },
+  { effects: [{ type: 'SCORE', value: 3 }], isRare: false },
+  { effects: [{ type: 'JUMP', value: 10 }], isRare: false },
+  { effects: [{ type: 'XP', value: 0.3 }], isRare: false },
+  { effects: [{ type: 'TIME', value: 27 }], isRare: false },
+  { effects: [{ type: 'SCORE', value: 5 }], isRare: false },
+  { effects: [{ type: 'JUMP', value: 7 }], isRare: false },
+  { effects: [{ type: 'XP', value: 0.1 }], isRare: false },
+  { effects: [{ type: 'LIFE', value: 1 }], isRare: false },
+  { effects: [{ type: 'TIME', value: 20 }], isRare: false },
+  { effects: [{ type: 'SCORE', value: 1 }], isRare: false },
+  { effects: [{ type: 'JUMP', value: 9 }], isRare: false },
+  { effects: [{ type: 'XP', value: 0.5 }], isRare: false },
+  { effects: [{ type: 'TIME', value: 13 }], isRare: false },
+  { effects: [{ type: 'SCORE', value: 4 }], isRare: false },
+  { effects: [{ type: 'JUMP', value: 5 }], isRare: false },
+  { effects: [{ type: 'XP', value: 0.2 }], isRare: false },
+  { effects: [{ type: 'TIME', value: 24 }], isRare: false },
+  { effects: [{ type: 'SCORE', value: 2 }], isRare: false },
+  { effects: [{ type: 'JUMP', value: 6 }], isRare: false },
+  { effects: [{ type: 'XP', value: 0.4 }], isRare: false },
+  { effects: [{ type: 'TIME', value: 30 }], isRare: false },
+  { effects: [{ type: 'SCORE', value: 3 }], isRare: false },
+  { effects: [{ type: 'JUMP', value: 8 }], isRare: false },
+  { effects: [{ type: 'XP', value: 0.3 }], isRare: false },
+  { effects: [{ type: 'TIME', value: 18 }], isRare: false },
+  { effects: [{ type: 'SCORE', value: 4 }], isRare: false },
+  { effects: [{ type: 'JUMP', value: 9 }], isRare: false },
+  { effects: [{ type: 'XP', value: 0.2 }], isRare: false },
+  { effects: [{ type: 'LIFE', value: 1 }], isRare: false },
+  { effects: [{ type: 'TIME', value: 26 }], isRare: false },
+
+  // 희귀 효과 (5개)
+  { effects: [{ type: 'TIME', value: 20 }, { type: 'SCORE', value: 5 }], isRare: true },
+  { effects: [{ type: 'LIFE', value: 1 }, { type: 'XP', value: 0.5 }], isRare: true },
+  { effects: [{ type: 'JUMP', value: 10 }, { type: 'SCORE', value: 3 }], isRare: true },
+  { effects: [{ type: 'TIME', value: 15 }, { type: 'XP', value: 0.4 }], isRare: true },
+  { effects: [{ type: 'SCORE', value: 2 }, { type: 'JUMP', value: 7 }], isRare: true },
+];
 
 interface EffectMessagesProps {
   messages: EffectMessage[];
@@ -188,47 +291,26 @@ export default function Home() {
       };
 
       if (finalScore >= 500 && godDinoImage) {
-          const isRare = Math.random() < 0.05; // 5% chance for a rare dino (2 effects)
-          const effectsToGenerate = isRare ? 2 : 1;
-          const generatedEffects: DinoSpecialEffect[] = [];
-          const availableEffectTypes = [...DINO_EFFECT_TYPES];
+        const isRareDinoTime = Math.random() < 0.05;
+        let availableEffects;
 
-          for (let i = 0; i < effectsToGenerate; i++) {
-              if (availableEffectTypes.length === 0) break;
+        if (isRareDinoTime) {
+            availableEffects = PREDEFINED_EFFECTS.filter(e => e.isRare);
+        } else {
+            availableEffects = PREDEFINED_EFFECTS.filter(e => !e.isRare);
+        }
+        
+        const selectedEffect = availableEffects[Math.floor(Math.random() * availableEffects.length)];
 
-              const effectTypeIndex = Math.floor(Math.random() * availableEffectTypes.length);
-              const selectedType = availableEffectTypes.splice(effectTypeIndex, 1)[0];
-              let value = 0;
+        const newDinosaur: CollectedDinosaur = {
+            id: `${Date.now()}-${godDinoImage}`,
+            imageUrl: godDinoImage,
+            name: DINO_NAMES[Math.floor(Math.random() * DINO_NAMES.length)],
+            effects: selectedEffect.effects,
+            isRare: selectedEffect.isRare,
+        };
 
-              switch (selectedType) {
-                  case 'TIME':
-                      value = Math.floor(Math.random() * (30 - 10 + 1)) + 10; // 10~30
-                      break;
-                  case 'SCORE':
-                      value = Math.floor(Math.random() * 5) + 1; // 1~5
-                      break;
-                  case 'LIFE':
-                      value = 1;
-                      break;
-                  case 'JUMP':
-                      value = Math.floor(Math.random() * 6) + 5; // 5~10%
-                      break;
-                  case 'XP':
-                      value = Math.round((Math.random() * 0.4 + 0.1) * 10) / 10; // 0.1 ~ 0.5
-                      break;
-              }
-              generatedEffects.push({ type: selectedType, value });
-          }
-
-          const newDinosaur: CollectedDinosaur = {
-              id: `${Date.now()}-${godDinoImage}`,
-              imageUrl: godDinoImage,
-              name: DINO_NAMES[Math.floor(Math.random() * DINO_NAMES.length)],
-              effects: generatedEffects,
-              isRare: generatedEffects.length > 1,
-          };
-
-          finalUserData.collectedDinosaurs?.push(newDinosaur);
+        finalUserData.collectedDinosaurs?.push(newDinosaur);
       }
 
       for (const type in problemStats.correctProblemTypes) {
@@ -591,16 +673,6 @@ export default function Home() {
 
       const onKeyDown = (e: KeyboardEvent) => { 
         if (e.code === 'Space' && !e.repeat) { e.preventDefault(); handlePress(); } 
-        if (e.key === 'q' && gameState.running) {
-            setGameState(prev => {
-                const newScore = prev.score + 100;
-                updateDinosaurEvolution(newScore);
-                return { ...prev, score: newScore };
-            });
-        }
-        if (e.key === 'w' && gameState.running) {
-             endTimeRef.current = Date.now() + 5000;
-        }
       };
       const onTouchStart = (e: TouchEvent) => { if (!isInteractiveElement(e.target)) { e.preventDefault(); handlePress(); } };
       
