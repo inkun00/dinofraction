@@ -598,19 +598,23 @@ export default function Home() {
     setAppState('playing');
 
     endTimeRef.current = Date.now() + initialTime * 1000;
-    gameTimerRef.current = setInterval(() => {
-        setGameState(prev => {
-            if (!prev.running) {
-                if(gameTimerRef.current) clearInterval(gameTimerRef.current);
-                return prev;
-            }
-            const remainingTime = Math.max(0, Math.round((endTimeRef.current - Date.now()) / 1000));
-            if (remainingTime <= 0) {
-                endGame();
-            }
-            return {...prev, time: remainingTime}
-        });
-    }, 1000);
+    
+    const timerCallback = () => {
+      const remainingTime = Math.max(0, Math.round((endTimeRef.current - Date.now()) / 1000));
+      setGameState(prev => {
+        if (!prev.running) {
+          if (gameTimerRef.current) clearInterval(gameTimerRef.current);
+          return prev;
+        }
+        if (remainingTime <= 0) {
+          endGame();
+          return { ...prev, time: 0 };
+        }
+        return { ...prev, time: remainingTime };
+      });
+    };
+    
+    gameTimerRef.current = setInterval(timerCallback, 1000);
 
     generateProblem();
   }, [generateProblem, updateDinosaurEvolution, endGame, userData]);
@@ -795,5 +799,7 @@ export default function Home() {
     </main>
   );
 }
+
+    
 
     
