@@ -47,6 +47,13 @@ const GOD_DINO_IMAGES = [
     'https://i.postimg.cc/RFpHY7YC/dino-12.png',
     'https://i.postimg.cc/7hC2rCv3/dino-13.png',
     'https://i.postimg.cc/Zn1ybTZ1/dino-14.png',
+    'https://i.postimg.cc/yxB0mMVX/dino-15.png',
+    'https://i.postimg.cc/3rCX8xBL/dino-16.png',
+    'https://i.postimg.cc/GhLkHngb/dino-17.png',
+    'https://i.postimg.cc/wTwDN4nL/dino-18.png',
+    'https://i.postimg.cc/8cHMtZc8/dino-19.png',
+    'https://i.postimg.cc/nhMBGYt5/dino-20.png',
+    'https://i.postimg.cc/Z5g37Bbq/dino-21.png',
 ];
 
 const DINO_NAMES = [
@@ -683,7 +690,7 @@ export default function Home() {
           document.removeEventListener('keydown', onKeyDown);
           document.removeEventListener('touchstart', onTouchStart);
       };
-  }, [handlePress, gameState.running, updateDinosaurEvolution]);
+  }, [handlePress]);
 
   const startGame = React.useCallback(() => {
     
@@ -730,7 +737,7 @@ export default function Home() {
     endTimeRef.current = Date.now() + initialTime * 1000;
 
     generateProblem();
-  }, [generateProblem, updateDinosaurEvolution, endGame, userData]);
+  }, [generateProblem, updateDinosaurEvolution, userData]);
 
   const restartGame = React.useCallback(() => {
       if (gameTimerRef.current) clearInterval(gameTimerRef.current);
