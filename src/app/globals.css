@@ -290,7 +290,6 @@
 }
 
 .mystery-box {
-    top: 320px;
     width: 90px;
     height: 90px;
     background: #f1c40f;
@@ -303,10 +302,8 @@
     font-weight: bold;
     color: white;
     box-shadow: 0 5px 10px rgba(0,0,0,0.3);
-    animation-name: scrollProblem, mysteryBox-float;
-    animation-timing-function: linear, ease-in-out;
-    animation-iteration-count: 1, infinite;
-    animation-direction: normal, alternate;
+    animation-timing-function: linear;
+    animation-iteration-count: 1;
 }
 .mystery-box::before {
     content: '?';

@@ -516,16 +516,31 @@ export default function Home() {
 
   }, [gameState.score, handleWrongAnswer]);
 
+  const getBubblePosition = React.useCallback((stage: EvolutionStage) => {
+    const positions = { egg: 320, baby: 290, medium: 260, adult: 230, boss: 200, god: 200 };
+    return positions[stage];
+  }, []);
+
   const generateMysteryBox = React.useCallback(() => {
     const id = mysteryBoxCounterRef.current++;
     const animationDuration = INITIAL_ANIMATION_DURATION / (1 + (problemCounterRef.current * 0.01));
+
+    const currentBubblePosition = getBubblePosition(dinoEvolution);
+    const possibleTopPositions = [200, 260, 320];
+    let availablePositions = possibleTopPositions.filter(p => p !== currentBubblePosition);
+    if (availablePositions.length === 0) {
+      availablePositions = [200, 260, 320];
+    }
+    const top = availablePositions[Math.floor(Math.random() * availablePositions.length)];
+
     const newBox: MysteryBoxItem = {
       id,
       collected: false,
       animationDuration,
+      top,
     };
     setMysteryBoxes(prev => [...prev, newBox]);
-  }, []);
+  }, [dinoEvolution, getBubblePosition]);
 
   const gameLoop = React.useCallback(() => {
     if (!gameState.running) {
@@ -679,7 +694,7 @@ export default function Home() {
       const isInteractiveElement = (target: EventTarget | null) => (target as Element)?.closest('button, a, input, form');
 
       const onKeyDown = (e: KeyboardEvent) => { 
-        if (e.code === 'Space' && !e.repeat) { e.preventDefault(); handlePress(); } 
+        if (e.code === 'Space' && !e.repeat) { e.preventDefault(); handlePress(); }
       };
       const onTouchStart = (e: TouchEvent) => { if (!isInteractiveElement(e.target)) { e.preventDefault(); handlePress(); } };
       

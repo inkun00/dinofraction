@@ -44,12 +44,16 @@ const ProblemContainer: React.FC<ProblemContainerProps> = ({ problems, mysteryBo
           ))}
         </React.Fragment>
       ))}
-      {mysteryBoxes.map(({ id, animationDuration }) => (
+      {mysteryBoxes.map(({ id, animationDuration, top }) => (
         <div
             key={`mystery-box-${id}`}
             className="mystery-box"
             data-box-id={id}
-            style={{ animationDuration: `${animationDuration}s`, animationDelay: `${Math.random() * 2}s` }}
+            style={{ 
+              animationDuration: `${animationDuration}s`, 
+              animationDelay: `${Math.random() * 2}s`,
+              top: `${top}px`
+            }}
         />
       ))}
     </>

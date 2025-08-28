@@ -37,6 +37,7 @@ export type MysteryBoxItem = {
   id: number;
   collected: boolean;
   animationDuration: number;
+  top: number;
 };
 
 export type ProblemStats = {
