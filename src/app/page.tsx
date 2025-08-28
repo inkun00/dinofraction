@@ -518,7 +518,7 @@ export default function Home() {
 
   const generateMysteryBox = React.useCallback(() => {
     const id = mysteryBoxCounterRef.current++;
-    const animationDuration = INITIAL_ANIMATION_DURATION * 0.9;
+    const animationDuration = INITIAL_ANIMATION_DURATION / (1 + (problemCounterRef.current * 0.01));
     const newBox: MysteryBoxItem = {
       id,
       collected: false,
