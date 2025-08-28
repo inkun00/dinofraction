@@ -3,6 +3,7 @@
 
 
 
+
 import type { Fraction, Problem, Answer, ProblemType, ProblemPart } from './types';
 
 export const firebaseErrorKorean: Record<string, string> = {
@@ -38,17 +39,22 @@ function getDifficultyLevel(score: number): number {
 }
 
 export function normalizeFraction(whole: number, numerator: number, denominator: number): Fraction {
-    if (denominator === 0) return { whole, numerator, denominator }; // avoid division by zero
-    if (numerator < 0) {
-        const borrow = Math.ceil(Math.abs(numerator) / denominator);
-        whole -= borrow;
-        numerator += borrow * denominator;
+    // Handle cases where denominator might be 0 or 1 from user input.
+    if (denominator === 0) denominator = 1;
+
+    // Add numerator to whole * denominator to get total numerator
+    let totalNumerator = (whole * denominator) + numerator;
+
+    // Calculate new whole and numerator
+    let newWhole = Math.floor(totalNumerator / denominator);
+    let newNumerator = totalNumerator % denominator;
+    
+    // If numerator is 0, we just have a whole number
+    if (newNumerator === 0) {
+        return { whole: newWhole, numerator: 0, denominator: 1 };
     }
-    if (numerator >= denominator && denominator > 0) {
-        whole += Math.floor(numerator / denominator);
-        numerator %= denominator;
-    }
-    return { whole, numerator, denominator };
+
+    return { whole: newWhole, numerator: newNumerator, denominator };
 }
 
 export function generateProblem(score: number, usedProblems: Set<string>): { problem: Problem, answers: Answer[], problemKey: string } | null {

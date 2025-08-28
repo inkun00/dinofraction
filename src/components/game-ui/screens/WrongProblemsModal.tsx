@@ -29,10 +29,21 @@ const WrongProblemsModal: React.FC<WrongProblemsModalProps> = ({ problemType, al
   const checkAnswer = (index: number) => {
     const problem = problems[index];
     const userAnswer = userAnswers[index] || {};
-    const normalizedUserAnswer = normalizeFraction(userAnswer.whole || 0, userAnswer.numerator || 0, userAnswer.denominator || 1);
     
-    const correctAnswer = normalizeFraction(problem.answer.whole, problem.answer.numerator, problem.answer.denominator);
+    // Normalize both the user's answer and the correct answer for fair comparison
+    const normalizedUserAnswer = normalizeFraction(
+      userAnswer.whole || 0,
+      userAnswer.numerator || 0,
+      userAnswer.denominator || 1
+    );
+    
+    const correctAnswer = normalizeFraction(
+      problem.answer.whole,
+      problem.answer.numerator,
+      problem.answer.denominator
+    );
 
+    // Compare the normalized fractions
     if (normalizedUserAnswer.whole === correctAnswer.whole &&
         normalizedUserAnswer.numerator === correctAnswer.numerator &&
         normalizedUserAnswer.denominator === correctAnswer.denominator) 
