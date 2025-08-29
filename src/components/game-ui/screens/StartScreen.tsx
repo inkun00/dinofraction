@@ -64,7 +64,7 @@ const StartScreen: React.FC<StartScreenProps> = ({ currentUser, userData, onLogi
             </div>
           </div>
         )}
-         <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-sm text-gray-600">
+         <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-base text-white">
           에러 및 오류 신고 : inkun00@hanmail.net
         </p>
       </div>
