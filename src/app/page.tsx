@@ -295,6 +295,7 @@ export default function Home() {
           wrongProblemTypes: { ...userData.wrongProblemTypes },
           wrongProblems: [...(userData.wrongProblems || []), ...problemStats.wrong],
           collectedDinosaurs: [...(userData.collectedDinosaurs || [])],
+          equippedDinosaurId: userData.equippedDinosaurId,
       };
 
       if (finalScore >= 500 && godDinoImage) {
@@ -440,35 +441,57 @@ export default function Home() {
   }, []);
 
   const handleMysteryBoxCollision = React.useCallback((x: number, y: number) => {
-    const effects = ['life_plus', 'score_plus', 'life_minus', 'score_minus'];
-    const randomEffect = effects[Math.floor(Math.random() * effects.length)];
+    const effects = ['time', 'life', 'score'];
+    const randomEffectType = effects[Math.floor(Math.random() * effects.length)];
     
     setGameState(prev => {
       if (!prev.running) return prev;
+      
       let newLives = prev.lives;
       let newScore = prev.score;
+      let newTime = prev.time;
 
-      switch(randomEffect) {
-        case 'life_plus':
-          newLives = prev.lives + 1;
-          addEffectMessage('+1 생명', 'life-plus', x, y);
-          break;
-        case 'score_plus':
-          newScore = prev.score + 50;
-          updateDinosaurEvolution(newScore);
-          addEffectMessage('+50 점수', 'score-plus', x, y);
-          break;
-        case 'life_minus':
-          newLives = prev.lives - 1;
-          addEffectMessage('-1 생명', 'life-minus', x, y);
-          break;
-        case 'score_minus':
-          newScore = Math.max(0, prev.score - 50);
-          updateDinosaurEvolution(newScore);
-          addEffectMessage('-50 점수', 'score-minus', x, y);
-          break;
+      switch(randomEffectType) {
+        case 'time': {
+            const amount = (Math.floor(Math.random() * 5) + 1) * 10; // 10 to 50
+            const isPositive = Math.random() > 0.5;
+            if (isPositive) {
+                endTimeRef.current += amount * 1000;
+                addEffectMessage(`+${amount}초`, 'life-plus', x, y);
+            } else {
+                endTimeRef.current -= amount * 1000;
+                addEffectMessage(`-${amount}초`, 'life-minus', x, y);
+            }
+            newTime = Math.max(0, Math.round((endTimeRef.current - Date.now()) / 1000));
+            break;
+        }
+        case 'life': {
+            const isPositive = Math.random() > 0.5;
+            if (isPositive) {
+              newLives += 1;
+              addEffectMessage('+1 생명', 'life-plus', x, y);
+            } else {
+              newLives -= 1;
+              addEffectMessage('-1 생명', 'life-minus', x, y);
+            }
+            break;
+        }
+        case 'score': {
+            const amount = (Math.floor(Math.random() * 6)) * 10; // 0 to 50
+            if (amount === 0) break;
+            const isPositive = Math.random() > 0.5;
+             if (isPositive) {
+                newScore += amount;
+                addEffectMessage(`+${amount} 점수`, 'score-plus', x, y);
+            } else {
+                newScore = Math.max(0, newScore - amount);
+                addEffectMessage(`-${amount} 점수`, 'score-minus', x, y);
+            }
+            updateDinosaurEvolution(newScore);
+            break;
+        }
       }
-      return {...prev, lives: newLives, score: newScore};
+      return {...prev, lives: newLives, score: newScore, time: newTime};
     });
 
   }, [updateDinosaurEvolution]);
@@ -567,8 +590,8 @@ export default function Home() {
     // Randomly generate mystery box
     if (frameCountRef.current >= nextMysteryBoxFrame.current) {
         generateMysteryBox();
-        // Set next box frame to be between 15 to 30 seconds from now (900 to 1800 frames)
-        const nextInterval = 900 + Math.random() * 900;
+        // Set next box frame to be between 20 to 40 seconds from now (1200 to 2400 frames)
+        const nextInterval = 1200 + Math.random() * 1200;
         nextMysteryBoxFrame.current = frameCountRef.current + nextInterval;
     }
 
@@ -739,8 +762,8 @@ export default function Home() {
     mysteryBoxCounterRef.current = 0;
     effectMessageCounterRef.current = 0;
     frameCountRef.current = 0;
-    // Set first mystery box frame to be between 10 to 20 seconds (600 to 1200 frames)
-    nextMysteryBoxFrame.current = 600 + Math.random() * 600;
+    // Set first mystery box frame to be between 20 to 40 seconds (1200 to 2400 frames)
+    nextMysteryBoxFrame.current = 1200 + Math.random() * 1200;
 
     updateDinosaurEvolution(0);
     dinoPhysicsRef.current = { y: GROUND_POSITION, yVelocity: 0, isJumping: false };
@@ -934,3 +957,5 @@ export default function Home() {
     </main>
   );
 }
+
+    
