@@ -565,7 +565,7 @@ export default function Home() {
     }
 
     // Randomly generate mystery box
-    if (frameCountRef.current >= nextMysteryBoxFrame.current && mysteryBoxes.length < 2) {
+    if (frameCountRef.current >= nextMysteryBoxFrame.current) {
         generateMysteryBox();
         // Set next box frame to be between 15 to 30 seconds from now (900 to 1800 frames)
         const nextInterval = 900 + Math.random() * 900;
@@ -658,7 +658,7 @@ export default function Home() {
     dinoPhysicsRef.current.isJumping = isJumping;
 
     animationFrameRef.current = requestAnimationFrame(gameLoop);
-  }, [gameState.running, gameState.time, handleCorrectAnswer, handleWrongAnswer, generateProblem, currentProblems, mysteryBoxes.length, generateMysteryBox, handleMysteryBoxCollision, endGame]);
+  }, [gameState.running, gameState.time, handleCorrectAnswer, handleWrongAnswer, generateProblem, currentProblems, generateMysteryBox, handleMysteryBoxCollision, endGame]);
 
 
   React.useEffect(() => {
