@@ -548,13 +548,7 @@ export default function Home() {
     const id = mysteryBoxCounterRef.current++;
     const animationDuration = INITIAL_ANIMATION_DURATION / (1 + (problemCounterRef.current * 0.01));
 
-    const currentBubblePosition = getBubblePosition(dinoEvolution);
-    const possibleTopPositions = [200, 260, 320];
-    let availablePositions = possibleTopPositions.filter(p => p !== currentBubblePosition);
-    if (availablePositions.length === 0) {
-      availablePositions = [200, 260, 320];
-    }
-    const top = availablePositions[Math.floor(Math.random() * availablePositions.length)];
+    const top = getBubblePosition(dinoEvolution);
 
     const newBox: MysteryBoxItem = {
       id,
@@ -590,8 +584,8 @@ export default function Home() {
     // Randomly generate mystery box
     if (frameCountRef.current >= nextMysteryBoxFrame.current) {
         generateMysteryBox();
-        // Set next box frame to be between 20 to 40 seconds from now (1200 to 2400 frames)
-        const nextInterval = 1200 + Math.random() * 1200;
+        // Set next box frame to be between 30 to 40 seconds from now (1800 to 2400 frames)
+        const nextInterval = 1800 + Math.random() * 600;
         nextMysteryBoxFrame.current = frameCountRef.current + nextInterval;
     }
 
@@ -762,8 +756,8 @@ export default function Home() {
     mysteryBoxCounterRef.current = 0;
     effectMessageCounterRef.current = 0;
     frameCountRef.current = 0;
-    // Set first mystery box frame to be between 20 to 40 seconds (1200 to 2400 frames)
-    nextMysteryBoxFrame.current = 1200 + Math.random() * 1200;
+    // Set first mystery box frame to be between 30 to 40 seconds (1800 to 2400 frames)
+    nextMysteryBoxFrame.current = 1800 + Math.random() * 600;
 
     updateDinosaurEvolution(0);
     dinoPhysicsRef.current = { y: GROUND_POSITION, yVelocity: 0, isJumping: false };
@@ -957,5 +951,3 @@ export default function Home() {
     </main>
   );
 }
-
-    
