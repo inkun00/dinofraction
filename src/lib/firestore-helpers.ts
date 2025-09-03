@@ -81,8 +81,7 @@ export async function getLeaderboardFromFirestore(type: LeaderboardType, schoolN
                 q = query(
                     collection(db, 'users'), 
                     where("school", "==", schoolName),
-                    orderBy("totalXp", "desc"), 
-                    limit(10)
+                    orderBy("totalXp", "desc")
                 );
                 const schoolPersonalSnapshot = await getDocs(q);
                 return schoolPersonalSnapshot.docs.map(doc => doc.data() as LeaderboardEntry);
