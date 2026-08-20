@@ -36,7 +36,7 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({ getLeaderboardDat
     const fetchData = async () => {
       setLoading(true);
       try {
-        let data;
+        let data: Array<LeaderboardEntry | SchoolLeaderboardEntry> = [];
         if (activeTab === 'school-personal-by-school') {
             if (selectedSchool) {
                 data = await getLeaderboardData(activeTab, selectedSchool);
@@ -88,7 +88,7 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({ getLeaderboardDat
                     {(leaderboardData as SchoolLeaderboardEntry[]).map((entry, index) => (
                         <TableRow key={index}>
                             <TableCell>{index + 1}</TableCell>
-                            <TableCell>{entry.school}</TableCell>
+                            <TableCell>{entry.school ? (entry.school.length > 8 ? entry.school.slice(0, 8) : entry.school) : '미입력'}</TableCell>
                             <TableCell>{entry.totalXp}</TableCell>
                         </TableRow>
                     ))}
@@ -111,8 +111,8 @@ const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({ getLeaderboardDat
                 {(leaderboardData as LeaderboardEntry[]).map((entry, index) => (
                     <TableRow key={index}>
                         <TableCell>{index + 1}</TableCell>
-                        <TableCell>{entry.nickname}</TableCell>
-                        <TableCell>{entry.school || '미입력'}</TableCell>
+                        <TableCell>{entry.nickname ? (entry.nickname.length > 6 ? entry.nickname.slice(0, 6) : entry.nickname) : '익명'}</TableCell>
+                        <TableCell>{entry.school ? (entry.school.length > 8 ? entry.school.slice(0, 8) : entry.school) : '미입력'}</TableCell>
                         <TableCell>{activeTab === 'xp' || activeTab === 'school-personal-by-school' ? entry.totalXp : entry.score}</TableCell>
                     </TableRow>
                 ))}

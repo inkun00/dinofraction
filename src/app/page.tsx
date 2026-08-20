@@ -25,11 +25,11 @@ import CollectionScreen from '@/components/game-ui/screens/CollectionScreen';
 
 const JUMP_VELOCITY = 22;
 const GRAVITY = -0.8;
-const GROUND_POSITION = 135;
+const GROUND_POSITION = 105;
 const PROBLEM_GENERATION_INTERVAL = 450; // frames, 60fps -> ~7.5s
 const GAME_WIDTH = 1280;
 const GAME_HEIGHT = 720;
-const INITIAL_ANIMATION_DURATION = 7.5; // seconds
+const INITIAL_ANIMATION_DURATION = 10.5; // seconds (comfortable slow movement for reading)
 const GAME_DURATION_SECONDS = 300; // 5 minutes
 
 const GOD_DINO_IMAGES = [
@@ -212,6 +212,7 @@ export default function Home() {
   
   const [dinoEvolution, setDinoEvolution] = React.useState<EvolutionStage>('egg');
   const [dinoIsEvolving, setDinoIsEvolving] = React.useState(false);
+  const [isAttacking, setIsAttacking] = React.useState(false);
   const [earnedXp, setEarnedXp] = React.useState(0);
   const [godDinoImage, setGodDinoImage] = React.useState<string | null>(null);
   
@@ -400,6 +401,23 @@ export default function Home() {
   }, [dinoEvolution, dinoIsEvolving]);
 
 
+  const comboRef = React.useRef(0);
+
+  const getComboBonusInfo = (currentCombo: number) => {
+    if (currentCombo < 2) return { bonus: 0, title: '' };
+    if (currentCombo < 5) {
+      return { bonus: Math.floor(currentCombo * 2.5), title: `✨ COMBO x${currentCombo}` };
+    } else if (currentCombo < 8) {
+      return { bonus: 12 + currentCombo * 6, title: `🔥 GREAT COMBO x${currentCombo}!` };
+    } else if (currentCombo < 11) {
+      return { bonus: 40 + currentCombo * 11, title: `⚡ MEGA COMBO x${currentCombo}!!` };
+    } else if (currentCombo < 15) {
+      return { bonus: 90 + currentCombo * 19, title: `🌟 ULTRA COMBO x${currentCombo}!!!` };
+    } else {
+      return { bonus: 175 + currentCombo * 32, title: `👑 GODLIKE COMBO x${currentCombo}!!!!` };
+    }
+  };
+
   const handleCorrectAnswer = React.useCallback((problem: Problem) => {
       let { score: scoreToAdd, xp: xpToAdd } = PROBLEM_DIFFICULTY[problem.difficulty] || { score: 10, xp: 2 };
       
@@ -412,6 +430,10 @@ export default function Home() {
       if (xpBonusEffect) {
         xpToAdd += xpBonusEffect.value;
       }
+
+      comboRef.current += 1;
+      const comboInfo = getComboBonusInfo(comboRef.current);
+      scoreToAdd += comboInfo.bonus;
 
       setGameState(prev => {
         if (!prev.running) return prev;
@@ -428,6 +450,7 @@ export default function Home() {
   }, [updateDinosaurEvolution]);
 
   const handleWrongAnswer = React.useCallback((problem: Problem) => {
+      comboRef.current = 0;
       setGameState(prev => {
           if (!prev.running) return prev;
           const newLives = prev.lives - 1;
@@ -441,7 +464,7 @@ export default function Home() {
   }, []);
 
   const handleMysteryBoxCollision = React.useCallback((x: number, y: number) => {
-    const effects = ['time', 'life', 'score'];
+    const effects = ['life', 'score'];
     const randomEffectType = effects[Math.floor(Math.random() * effects.length)];
     
     setGameState(prev => {
@@ -452,19 +475,6 @@ export default function Home() {
       let newTime = prev.time;
 
       switch(randomEffectType) {
-        case 'time': {
-            const amount = (Math.floor(Math.random() * 5) + 1) * 10; // 10 to 50
-            const isPositive = Math.random() > 0.5;
-            if (isPositive) {
-                endTimeRef.current += amount * 1000;
-                addEffectMessage(`+${amount}초`, 'life-plus', x, y);
-            } else {
-                endTimeRef.current -= amount * 1000;
-                addEffectMessage(`-${amount}초`, 'life-minus', x, y);
-            }
-            newTime = Math.max(0, Math.round((endTimeRef.current - Date.now()) / 1000));
-            break;
-        }
         case 'life': {
             const isPositive = Math.random() > 0.5;
             if (isPositive) {
@@ -477,10 +487,9 @@ export default function Home() {
             break;
         }
         case 'score': {
-            const amount = (Math.floor(Math.random() * 6)) * 10; // 0 to 50
-            if (amount === 0) break;
+            const amount = (Math.floor(Math.random() * 6) + 1) * 20; // 20 to 120
             const isPositive = Math.random() > 0.5;
-             if (isPositive) {
+            if (isPositive) {
                 newScore += amount;
                 addEffectMessage(`+${amount} 점수`, 'score-plus', x, y);
             } else {
@@ -515,7 +524,8 @@ export default function Home() {
     
     const problemId = problemCounterRef.current;
     
-    const animationDuration = INITIAL_ANIMATION_DURATION / (1 + (problemCounterRef.current * 0.01));
+    const timeElapsedRatio = Math.min(1.0, Math.max(0, (GAME_DURATION_SECONDS - gameState.time) / GAME_DURATION_SECONDS));
+    const animationDuration = Math.max(8.5, INITIAL_ANIMATION_DURATION - (timeElapsedRatio * 1.8) - Math.min(0.5, problemCounterRef.current * 0.01));
     problemCounterRef.current++;
 
     const newCurrentProblem: CurrentProblem = {
@@ -537,7 +547,7 @@ export default function Home() {
         }
     }, animationDuration * 1000 + 1000); // Add a small buffer
 
-  }, [gameState.score, handleWrongAnswer]);
+  }, [gameState.score, gameState.time, handleWrongAnswer]);
 
   const getBubblePosition = React.useCallback((stage: EvolutionStage) => {
     const positions = { egg: 320, baby: 290, medium: 260, adult: 230, boss: 200, god: 200 };
@@ -546,7 +556,8 @@ export default function Home() {
 
   const generateMysteryBox = React.useCallback(() => {
     const id = mysteryBoxCounterRef.current++;
-    const animationDuration = INITIAL_ANIMATION_DURATION / (1 + (problemCounterRef.current * 0.01));
+    const timeElapsedRatio = Math.min(1.0, Math.max(0, (GAME_DURATION_SECONDS - gameState.time) / GAME_DURATION_SECONDS));
+    const animationDuration = Math.max(8.5, INITIAL_ANIMATION_DURATION - (timeElapsedRatio * 1.8) - Math.min(0.5, problemCounterRef.current * 0.01));
 
     const top = getBubblePosition(dinoEvolution);
 
@@ -667,7 +678,7 @@ export default function Home() {
           }
       });
 
-      dinosaurRef.current.style.transform = `translateY(${-(y - 135)}px)`;
+      dinosaurRef.current.style.transform = `translateY(${-(y - 105)}px)`;
     }
     
     dinoPhysicsRef.current.y = y;
@@ -701,6 +712,14 @@ export default function Home() {
     }
   }, [gameState.running]);
 
+  const triggerAttack = React.useCallback(() => {
+    if (!gameState.running || isAttacking) return;
+    setIsAttacking(true);
+    setTimeout(() => {
+      setIsAttacking(false);
+    }, 350);
+  }, [gameState.running, isAttacking]);
+
   const handlePress = React.useCallback(() => {
       if (gameState.running) {
           jump();
@@ -711,7 +730,13 @@ export default function Home() {
       const isInteractiveElement = (target: EventTarget | null) => (target as Element)?.closest('button, a, input, form');
 
       const onKeyDown = (e: KeyboardEvent) => { 
-        if (e.code === 'Space' && !e.repeat) { e.preventDefault(); handlePress(); }
+        if (e.code === 'Space' && !e.repeat) { 
+          e.preventDefault(); 
+          handlePress(); 
+        } else if ((e.key === 'Control' || e.code === 'ControlLeft' || e.code === 'ControlRight' || e.code === 'KeyZ') && !e.repeat) {
+          e.preventDefault();
+          triggerAttack();
+        }
       };
       const onTouchStart = (e: TouchEvent) => { if (!isInteractiveElement(e.target)) { e.preventDefault(); handlePress(); } };
       
@@ -855,6 +880,7 @@ export default function Home() {
                   }}
                   onShowWrongProblems={handleOpenModal}
                   onShowCollection={() => setShowCollection(true)}
+                  onShowLeaderboard={() => setAppState('leaderboard')}
                 />
                 {isModalOpen && modalProblemType && (
                   <WrongProblemsModal
@@ -890,11 +916,12 @@ export default function Home() {
                   evolution={dinoEvolution} 
                   y={dinoPhysicsRef.current.y} 
                   evolving={dinoIsEvolving} 
+                  isAttacking={isAttacking}
                   godDinoImage={godDinoImage}
                 />
                 <ProblemContainer problems={currentProblems} mysteryBoxes={mysteryBoxes} dinoEvolution={dinoEvolution} />
                 <div className="instructions">
-                  스페이스바 또는 화면 터치로 점프하고 정답을 맞혀보세요!
+                  스페이스바: 점프 🦘 | Ctrl 키: 공룡 공격 💥
                 </div>
               </>
             );
@@ -922,7 +949,9 @@ export default function Home() {
             return <LeaderboardScreen 
                       getLeaderboardData={getLeaderboardFromFirestore}
                       onClose={() => {
-                        if (!gameState.started) {
+                        if (currentUser) {
+                            setAppState('profile');
+                        } else if (!gameState.started) {
                             setAppState('start');
                         } else {
                             setAppState('gameover');
@@ -942,9 +971,11 @@ export default function Home() {
     }
   }
 
+  const currentBiome = (GAME_DURATION_SECONDS - gameState.time < 90) ? 'biome-jungle' : (GAME_DURATION_SECONDS - gameState.time < 180) ? 'biome-volcano' : (GAME_DURATION_SECONDS - gameState.time < 270) ? 'biome-starlight' : 'biome-jungle';
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center">
-      <div className="game-container" ref={gameContainerRef}>
+      <div className={`game-container ${currentBiome}`} ref={gameContainerRef}>
         <AnimatedBackground />
         {renderContent()}
       </div>

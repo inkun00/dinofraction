@@ -7,11 +7,12 @@ interface DinosaurProps {
   evolution: EvolutionStage;
   y: number;
   evolving: boolean;
+  isAttacking?: boolean;
   godDinoImage: string | null;
 }
 
-const Dinosaur = React.forwardRef<HTMLDivElement, DinosaurProps>(({ evolution, y, evolving, godDinoImage }, ref) => {
-  const isJumping = y > 135;
+const Dinosaur = React.forwardRef<HTMLDivElement, DinosaurProps>(({ evolution, y, evolving, isAttacking = false, godDinoImage }, ref) => {
+  const isJumping = y > 105;
   const isGodEvolving = evolving && evolution === 'god';
 
   const classes = cn(
@@ -19,20 +20,30 @@ const Dinosaur = React.forwardRef<HTMLDivElement, DinosaurProps>(({ evolution, y
     evolution,
     { 'evolving': evolving && !isGodEvolving },
     { 'god-evolving': isGodEvolving },
-    { 'jumping': isJumping && evolution !== 'god' }
+    { 'attacking': isAttacking },
+    { 'jumping': isJumping }
   );
   
-  const style: React.CSSProperties = {
-    transform: `translateY(${-(y - 135)}px)`,
+  const containerStyle: React.CSSProperties = {
+    transform: `translateY(${-(y - 105)}px)`,
   };
 
+  const spriteStyle: React.CSSProperties = {};
   if (evolution === 'god' && godDinoImage) {
-    style.backgroundImage = `url(${godDinoImage})`;
+    spriteStyle.backgroundImage = `url(${godDinoImage})`;
+    spriteStyle.backgroundSize = 'contain';
+    spriteStyle.backgroundPosition = 'center';
+    spriteStyle.animation = 'none';
   }
 
-  return <div ref={ref} className={classes} style={style}></div>;
+  return (
+    <div ref={ref} className={classes} style={containerStyle}>
+      <div className="dino-sprite" style={spriteStyle} />
+    </div>
+  );
 });
 
 Dinosaur.displayName = 'Dinosaur';
 
 export default Dinosaur;
+

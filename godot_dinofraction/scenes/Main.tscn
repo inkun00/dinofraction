@@ -1,0 +1,22 @@
+[gd_scene load_steps=5 format=3 uid="uid://main_game_scene"]
+
+[ext_resource type="Script" path="res://scripts/Main.gd" id="1_main_script"]
+[ext_resource type="PackedScene" uid="uid://parallax_bg_dino" path="res://scenes/ParallaxBackground.tscn" id="2_bg_scene"]
+[ext_resource type="PackedScene" uid="uid://player_scene_dino" path="res://scenes/Player.tscn" id="3_player_scene"]
+[ext_resource type="PackedScene" uid="uid://hud_scene_dino" path="res://scenes/HUD.tscn" id="4_hud_scene"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main_script")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(640, 360)
+
+[node name="ParallaxBackground" parent="." instance=ExtResource("2_bg_scene")]
+
+[node name="Player" parent="." instance=ExtResource("3_player_scene")]
+position = Vector2(300, 540)
+
+[node name="HUD" parent="." instance=ExtResource("4_hud_scene")]
+
+[node name="SpawnTimer" type="Timer" parent="."]
+one_shot = true

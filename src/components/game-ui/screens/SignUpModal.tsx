@@ -71,9 +71,10 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onSignUp, onClose, firebaseEr
             id="signup-school"
             name="school"
             value={school} 
-            onChange={e => setSchool(e.target.value)} 
+            onChange={e => setSchool(e.target.value.slice(0, 8))} 
+            maxLength={8}
             className="login-input" 
-            placeholder="학교 이름" 
+            placeholder="학교 이름 (최대 8글자)" 
             required 
             autoComplete="organization"
           />
@@ -82,9 +83,10 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ onSignUp, onClose, firebaseEr
             id="signup-nickname"
             name="nickname"
             value={nickname} 
-            onChange={e => setNickname(e.target.value)} 
+            onChange={e => setNickname(e.target.value.slice(0, 6))} 
+            maxLength={6}
             className="login-input" 
-            placeholder="이름" 
+            placeholder="이름/닉네임 (최대 6글자)" 
             required 
             autoComplete="name"
           />

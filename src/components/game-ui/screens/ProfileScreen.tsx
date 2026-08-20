@@ -12,9 +12,10 @@ interface ProfileScreenProps {
   onLogout: () => void;
   onShowWrongProblems: (type: ProblemType) => void;
   onShowCollection: () => void;
+  onShowLeaderboard: () => void;
 }
 
-const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, onLogout, onShowWrongProblems, onShowCollection }) => {
+const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, onLogout, onShowWrongProblems, onShowCollection, onShowLeaderboard }) => {
   const allTypes = Array.from(new Set([...Object.keys(userData.correctProblemTypes), ...Object.keys(userData.wrongProblemTypes)]));
   
   const [userRank, setUserRank] = useState<{ xpRank: number | null; scoreRank: number | null }>({ xpRank: null, scoreRank: null });
@@ -92,9 +93,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, on
         <div className="mb-4 p-4 bg-gray-100 rounded-lg relative">
             <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                 <div className="font-bold">이름</div>
-                <div>{isEditing ? <Input value={nickname} onChange={(e) => setNickname(e.target.value)} /> : (userData.nickname || '미설정')}</div>
+                <div>{isEditing ? <Input value={nickname} maxLength={6} onChange={(e) => setNickname(e.target.value.slice(0, 6))} placeholder="최대 6글자" /> : (userData.nickname || '미설정')}</div>
                 <div className="font-bold">학교</div>
-                <div>{isEditing ? <Input value={school} onChange={(e) => setSchool(e.target.value)} /> : (userData.school || '미설정')}</div>
+                <div>{isEditing ? <Input value={school} maxLength={8} onChange={(e) => setSchool(e.target.value.slice(0, 8))} placeholder="최대 8글자" /> : (userData.school || '미설정')}</div>
             </div>
              <p className="text-xs text-gray-500 mt-2">
               이름과 학교에 부적절한 단어가 포함된 계정은 삭제될 수 있으니 주의해주시기 바랍니다.
@@ -131,9 +132,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ userData, onStartGame, on
             </div>
         </div>
 
-        <div className="analysis-buttons mt-4 flex justify-center items-center gap-4">
+        <div className="analysis-buttons mt-4 flex justify-center items-center gap-3 flex-wrap">
+            <Button onClick={onShowLeaderboard} className="restart-btn bg-yellow-500 hover:bg-yellow-600 border-yellow-700">
+                🏆 리더보드
+            </Button>
             <Button onClick={onShowCollection} className="restart-btn bg-purple-500 hover:bg-purple-600 border-purple-700">
-                <BookImage className="mr-2" /> 수집한 공룡
+                <BookImage className="mr-2 w-4 h-4 inline" /> 수집한 공룡
             </Button>
             <Button onClick={onLogout} className="restart-btn close">로그아웃</Button>
         </div>

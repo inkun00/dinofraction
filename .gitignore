@@ -43,3 +43,12 @@ next-env.d.ts
 # firebase
 firebase-debug.log
 firestore-debug.log
+
+# Godot 4
+.godot/
+*.translation
+
+# Python & temp
+__pycache__/
+*.py[cod]
+project.zip

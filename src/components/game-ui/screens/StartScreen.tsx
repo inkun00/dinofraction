@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 interface StartScreenProps {
   currentUser: User | null;
   userData: UserData;
-  onLogin: (email: string, pass: string) => Promise<void>;
+  onLogin: (email: string, pass: string) => Promise<any>;
   onShowSignUp: () => void;
   onShowProfile: () => void;
   onShowLeaderboard: () => void;
@@ -53,14 +53,17 @@ const StartScreen: React.FC<StartScreenProps> = ({ currentUser, userData, onLogi
                 <Button onClick={handleLogin} className="restart-btn">로그인</Button>
                 <Button onClick={onShowSignUp} className="start-btn">회원가입</Button>
               </div>
+              <div className="mt-3">
+                <Button onClick={onShowLeaderboard} className="restart-btn bg-yellow-500 hover:bg-yellow-600 border-yellow-700 w-full text-base font-bold">🏆 랭킹 & 리더보드 확인</Button>
+              </div>
             </div>
           </div>
         ) : (
           <div id="postLoginContainer">
-            <div className="text-xl my-4">{userData.nickname || '사용자'}님, 환영합니다!</div>
-            <div className="analysis-buttons">
-              <Button onClick={onShowProfile} className="start-btn">게임 시작</Button>
-              <Button onClick={onShowLeaderboard} className="restart-btn bg-yellow-500 hover:bg-yellow-600 border-yellow-700">🏆 리더보드</Button>
+            <div className="text-xl my-4 font-bold text-emerald-300">{userData.nickname || '사용자'}님, 환영합니다!</div>
+            <div className="analysis-buttons flex flex-col gap-2 w-full max-w-xs mx-auto">
+              <Button onClick={onShowProfile} className="start-btn w-full">🎮 게임 시작</Button>
+              <Button onClick={onShowLeaderboard} className="restart-btn bg-yellow-500 hover:bg-yellow-600 border-yellow-700 w-full text-base font-bold">🏆 리더보드</Button>
             </div>
           </div>
         )}

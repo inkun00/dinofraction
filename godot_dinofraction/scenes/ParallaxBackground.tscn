@@ -1,0 +1,71 @@
+[gd_scene load_steps=10 format=3 uid="uid://parallax_bg_dino"]
+
+[ext_resource type="Script" path="res://scripts/ParallaxBackground.gd" id="1_bg_script"]
+[ext_resource type="Texture2D" path="res://assets/sprites/bg_sky.png" id="2_sky"]
+[ext_resource type="Texture2D" path="res://assets/sprites/bg_rocks.png" id="3_rocks"]
+[ext_resource type="Texture2D" path="res://assets/sprites/bg_clouds.png" id="4_clouds"]
+[ext_resource type="Texture2D" path="res://assets/sprites/bg_hills_far.png" id="5_hills_far"]
+[ext_resource type="Texture2D" path="res://assets/sprites/bg_hills_mid.png" id="6_hills_mid"]
+[ext_resource type="Texture2D" path="res://assets/sprites/bg_trees_near.png" id="7_trees_near"]
+[ext_resource type="Texture2D" path="res://assets/sprites/bg_ground.png" id="8_ground"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ground"]
+size = Vector2(1300, 160)
+
+[node name="ParallaxBackground" type="ParallaxBackground"]
+script = ExtResource("1_bg_script")
+
+[node name="SkyLayer" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0, 0)
+
+[node name="SkySprite" type="Sprite2D" parent="SkyLayer"]
+texture = ExtResource("2_sky")
+centered = false
+
+[node name="RocksLayer" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0.1, 0.1)
+motion_mirroring = Vector2(1280, 0)
+
+[node name="RocksSprite" type="Sprite2D" parent="RocksLayer"]
+texture = ExtResource("3_rocks")
+centered = false
+
+[node name="CloudsLayer" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0.2, 0.2)
+motion_mirroring = Vector2(1280, 0)
+
+[node name="CloudsSprite" type="Sprite2D" parent="CloudsLayer"]
+texture = ExtResource("4_clouds")
+centered = false
+
+[node name="HillsFarLayer" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0.35, 0.35)
+motion_mirroring = Vector2(1280, 0)
+
+[node name="HillsFarSprite" type="Sprite2D" parent="HillsFarLayer"]
+texture = ExtResource("5_hills_far")
+centered = false
+
+[node name="HillsMidLayer" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0.55, 0.55)
+motion_mirroring = Vector2(1280, 0)
+
+[node name="HillsMidSprite" type="Sprite2D" parent="HillsMidLayer"]
+texture = ExtResource("6_hills_mid")
+centered = false
+
+[node name="TreesNearLayer" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0.8, 0.8)
+motion_mirroring = Vector2(1280, 0)
+
+[node name="TreesNearSprite" type="Sprite2D" parent="TreesNearLayer"]
+texture = ExtResource("7_trees_near")
+centered = false
+
+[node name="GroundLayer" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(1, 1)
+motion_mirroring = Vector2(1280, 0)
+
+[node name="GroundSprite" type="Sprite2D" parent="GroundLayer"]
+texture = ExtResource("8_ground")
+centered = false

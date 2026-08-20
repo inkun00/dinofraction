@@ -115,7 +115,7 @@ const WrongProblemsModal: React.FC<WrongProblemsModalProps> = ({ problemType, al
         )}
         
         <div className="analysis-buttons mt-6">
-          <Button onClick={onClose} className="restart-btn close">닫기</Button>
+          <Button onClick={onClose} className="restart-btn close">🏠 처음으로</Button>
         </div>
       </div>
     </div>

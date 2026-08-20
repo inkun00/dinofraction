@@ -75,7 +75,20 @@
     transform: translate(-50%, -50%);
     overflow: hidden;
     background: linear-gradient(to bottom, #87CEEB 0%, #98FB98 100%);
+    transition: background 1.8s ease-in-out;
     user-select: none;
+}
+
+.game-container.biome-jungle {
+    background: linear-gradient(to bottom, #74b9ff 0%, #a8e6cf 50%, #55efc4 100%);
+}
+
+.game-container.biome-volcano {
+    background: linear-gradient(to bottom, #2d3436 0%, #d63031 40%, #e17055 75%, #fdcb6e 100%);
+}
+
+.game-container.biome-starlight {
+    background: linear-gradient(to bottom, #0c1033 0%, #1e1347 45%, #4834d4 75%, #686de0 100%);
 }
 
 /* --- Heads-Up Display (HUD) --- */
@@ -172,49 +185,139 @@
 /* --- Dinosaur & Problem Elements --- */
 .dinosaur {
     position: absolute;
-    bottom: 135px; /* 18.75vh of 720px */
+    bottom: 105px; /* Ground alignment */
     left: 35%;
     transition: bottom 0s; /* No transition for physics based movement */
     z-index: 50;
-    filter: drop-shadow(3px 3px 6px rgba(0,0,0,0.3));
+    filter: drop-shadow(2px 4px 8px rgba(0,0,0,0.2));
     display: flex;
     align-items: center;
     justify-content: center;
+    pointer-events: none;
 }
 
-/* Dinosaur Evolution Stages */
-.dinosaur.egg { width: 53px; height: 45px; font-size: 42px; }
-.dinosaur.egg::before { content: "🥚"; }
-.dinosaur.baby { width: 106px; height: 90px; font-size: 96px; filter: hue-rotate(60deg) saturate(1.3) brightness(1.1); }
-.dinosaur.baby::before { content: "🦕"; transform: scaleX(-1); display: inline-block; }
-.dinosaur.medium { width: 160px; height: 135px; font-size: 138px; filter: hue-rotate(180deg) saturate(1.4) brightness(1.0); }
-.dinosaur.medium::before { content: "🦕"; transform: scaleX(-1); display: inline-block; }
-.dinosaur.adult { width: 213px; height: 180px; font-size: 192px; filter: hue-rotate(270deg) saturate(1.5) brightness(1.1); }
-.dinosaur.adult::before { content: "🦖"; transform: scaleX(-1); display: inline-block; }
-.dinosaur.boss { width: 240px; height: 200px; font-size: 210px; animation: bossGlow 2s ease-in-out infinite alternate; filter: hue-rotate(0deg) saturate(2.0) brightness(1.2); }
-.dinosaur.boss::before { content: "🦖"; transform: scaleX(-1); display: inline-block; }
-.dinosaur.god { 
-    bottom: 115px;
-    width: 240px;
-    height: 200px;
-    background-size: contain;
+.dino-sprite {
+    width: 100%;
+    height: 100%;
     background-repeat: no-repeat;
-    background-position: center;
-    font-size: 0;
+    transition: transform 0.15s ease-out;
 }
-.dinosaur.god::before { content: "" !important; }
 
+/* --- Sprite Animations --- */
+@keyframes dinoRun8Frames {
+    0% { background-position: 0% 0; }
+    14.285% { background-position: 14.285% 0; }
+    28.571% { background-position: 28.571% 0; }
+    42.857% { background-position: 42.857% 0; }
+    57.142% { background-position: 57.142% 0; }
+    71.428% { background-position: 71.428% 0; }
+    85.714% { background-position: 85.714% 0; }
+    100% { background-position: 100% 0; }
+}
 
-@keyframes bossGlow {
-    100% { filter: drop-shadow(3px 3px 6px rgba(0,0,0,0.3)) drop-shadow(0 0 20px rgba(255,0,0,0.8)); }
+@keyframes eggBounceAnim {
+    0% { background-position: 0% 0; transform: scale(1) translateY(0); }
+    33.333% { background-position: 33.333% 0; transform: scale(1.05, 0.95) translateY(2px); }
+    66.666% { background-position: 66.666% 0; transform: scale(0.95, 1.05) translateY(-5px); }
+    100% { background-position: 100% 0; transform: scale(1) translateY(0); }
+}
+
+/* 0. Egg */
+.dinosaur.egg { width: 95px; height: 95px; }
+.dinosaur.egg .dino-sprite {
+    background-image: url('/images/dino/egg_strip.png');
+    background-size: 400% 100%;
+    animation: eggBounceAnim 0.7s steps(1) infinite;
+}
+.dinosaur.egg.jumping .dino-sprite {
+    background-image: url('/images/dino/egg_jump_strip.png');
+    background-size: 100% 100%;
+    background-position: 0 0;
+    animation: none;
+    transform: translateY(-8px) scale(1.05);
+}
+
+/* 1. Baby (Green Dino) */
+.dinosaur.baby { width: 135px; height: 135px; }
+.dinosaur.baby .dino-sprite {
+    background-image: url('/images/dino/baby_run_strip.png');
+    background-size: 800% 100%;
+    animation: dinoRun8Frames 0.55s steps(1) infinite;
+}
+.dinosaur.baby.jumping .dino-sprite {
+    background-image: url('/images/dino/baby_jump_strip.png');
+    background-size: 100% 100%;
+    background-position: 0 0;
+    animation: none;
+    transform: translateY(-8px) scale(1.05);
+}
+
+/* 2. Medium (Blue Dino) */
+.dinosaur.medium { width: 155px; height: 155px; }
+.dinosaur.medium .dino-sprite {
+    background-image: url('/images/dino/medium_run_strip.png');
+    background-size: 800% 100%;
+    animation: dinoRun8Frames 0.55s steps(1) infinite;
+}
+.dinosaur.medium.jumping .dino-sprite {
+    background-image: url('/images/dino/medium_jump_strip.png');
+    background-size: 100% 100%;
+    background-position: 0 0;
+    animation: none;
+    transform: translateY(-10px) scale(1.05);
+}
+
+/* 3. Adult (Crimson Dino) */
+.dinosaur.adult { width: 175px; height: 175px; }
+.dinosaur.adult .dino-sprite {
+    background-image: url('/images/dino/adult_run_strip.png');
+    background-size: 800% 100%;
+    animation: dinoRun8Frames 0.55s steps(1) infinite;
+}
+.dinosaur.adult.jumping .dino-sprite {
+    background-image: url('/images/dino/adult_jump_strip.png');
+    background-size: 100% 100%;
+    background-position: 0 0;
+    animation: none;
+    transform: translateY(-12px) scale(1.05);
+}
+
+/* 4. Boss (Dark Purple Dino) */
+.dinosaur.boss { width: 195px; height: 195px; }
+.dinosaur.boss .dino-sprite {
+    background-image: url('/images/dino/boss_run_strip.png');
+    background-size: 800% 100%;
+    animation: dinoRun8Frames 0.55s steps(1) infinite;
+}
+.dinosaur.boss.jumping .dino-sprite {
+    background-image: url('/images/dino/boss_jump_strip.png');
+    background-size: 100% 100%;
+    background-position: 0 0;
+    animation: none;
+    transform: translateY(-14px) scale(1.05);
+}
+
+/* 5. God (Radiant Gold Dino) */
+.dinosaur.god { width: 215px; height: 215px; }
+.dinosaur.god .dino-sprite {
+    background-image: url('/images/dino/god_run_strip.png');
+    background-size: 800% 100%;
+    animation: dinoRun8Frames 0.55s steps(1) infinite;
+}
+.dinosaur.god.jumping .dino-sprite {
+    background-image: url('/images/dino/god_jump_strip.png');
+    background-size: 100% 100%;
+    background-position: 0 0;
+    animation: none;
+    transform: translateY(-16px) scale(1.05);
 }
 
 /* Evolution Effect */
 .dinosaur.evolving { animation: evolutionEffect 1s ease-in-out; }
 @keyframes evolutionEffect {
-    25% { transform: scale(1.2) rotate(5deg); filter: brightness(1.5) drop-shadow(0 0 15px gold); }
-    50% { transform: scale(0.8) rotate(-5deg); filter: brightness(2) drop-shadow(0 0 25px gold); }
-    75% { transform: scale(1.1) rotate(3deg); filter: brightness(1.5) drop-shadow(0 0 15px gold); }
+    25% { transform: scale(1.2) rotate(5deg); filter: brightness(1.5) drop-shadow(0 0 20px gold); }
+    50% { transform: scale(0.8) rotate(-5deg); filter: brightness(2) drop-shadow(0 0 30px gold); }
+    75% { transform: scale(1.1) rotate(3deg); filter: brightness(1.5) drop-shadow(0 0 20px gold); }
 }
 
 .dinosaur.god-evolving { animation: godEvolutionEffect 1.5s ease-in-out; }
@@ -227,15 +330,33 @@
     100% { transform: scale(1) rotate(0deg) translateY(0); filter: brightness(1.2) saturate(1.5) drop-shadow(0 0 25px rgba(255,100,100,0.8)); opacity: 1; }
 }
 
-
-.dinosaur.jumping::before {
-    animation: jump-rotate 0.6s linear;
+/* Attack Animation */
+.dinosaur.attacking {
+    animation: dinoAttackSlash 0.35s ease-out;
 }
-
-@keyframes jump-rotate {
-    0% { transform: rotate(0deg); }
-    50% { transform: rotate(10deg); }
-    100% { transform: rotate(0deg); }
+.dinosaur.attacking::after {
+    content: '';
+    position: absolute;
+    top: 20%;
+    right: -30px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 3px solid #00f2fe;
+    box-shadow: 0 0 20px #00f2fe, inset 0 0 15px #4facfe;
+    animation: shockwavePulse 0.35s ease-out forwards;
+    pointer-events: none;
+}
+@keyframes dinoAttackSlash {
+    0% { transform: scale(1.0) translateX(0); filter: brightness(1.0); }
+    30% { transform: scale(1.25) translateX(30px); filter: brightness(1.8) drop-shadow(0 0 25px gold); }
+    70% { transform: scale(1.15) translateX(15px); filter: brightness(1.4) drop-shadow(0 0 15px orange); }
+    100% { transform: scale(1.0) translateX(0); filter: brightness(1.0); }
+}
+@keyframes shockwavePulse {
+    0% { transform: scale(0.2) translateX(0); opacity: 1; border-color: #ffd700; box-shadow: 0 0 25px gold; }
+    50% { transform: scale(1.4) translateX(35px); opacity: 0.85; border-color: #00f2fe; box-shadow: 0 0 35px #00f2fe; }
+    100% { transform: scale(2.2) translateX(70px); opacity: 0; }
 }
 
 /* Problem & Answer Bubbles */
