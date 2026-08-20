@@ -21,8 +21,10 @@
 [ext_resource type="Texture2D"path="res://assets/ui/btn_jungle_green_h.png"id="17_bg_h"]
 [ext_resource type="Texture2D"path="res://assets/ui/btn_jungle_wood_n.png"id="18_bb_n"]
 [ext_resource type="Texture2D"path="res://assets/ui/btn_jungle_wood_h.png"id="19_bb_h"]
-[ext_resource type="Texture2D"path="res://assets/ui/btn_purple_normal.png"id="20_bp_n"]
-[ext_resource type="Texture2D"path="res://assets/ui/btn_purple_hover.png"id="21_bp_h"]
+[ext_resource type="Texture2D" path="res://assets/ui/btn_purple_normal.png" id="20_bp_n"]
+[ext_resource type="Texture2D" path="res://assets/ui/btn_purple_hover.png" id="21_bp_h"]
+[ext_resource type="Texture2D" path="res://assets/ui/heart_full.png" id="22_hfull"]
+[ext_resource type="Texture2D" path="res://assets/ui/heart_empty.png" id="23_hempty"]
 
 [sub_resource type="StyleBoxTexture"id="StyleBoxTexture_score"]
 content_margin_left = 18.0
@@ -207,18 +209,63 @@ theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 19
 text = "시간: 05:00"
 
-[node name="LivesBox"type="PanelContainer"parent="TopBar"]
+[node name="LivesBox" type="PanelContainer" parent="TopBar"]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxTexture_lives")
 
-[node name="LivesLabel"type="Label"parent="TopBar/LivesBox"]
+[node name="LivesHBox" type="HBoxContainer" parent="TopBar/LivesBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="LivesLabel" type="Label" parent="TopBar/LivesBox/LivesHBox"]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("7_font")
-theme_override_colors/font_color = Color(1, 0.5, 0.7, 1)
+theme_override_colors/font_color = Color(1, 0.6, 0.75, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 19
-text = "생명: "
+text = "생명:"
+
+[node name="HeartsBox" type="HBoxContainer" parent="TopBar/LivesBox/LivesHBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="Heart1" type="TextureRect" parent="TopBar/LivesBox/LivesHBox/HeartsBox"]
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+texture = ExtResource("22_hfull")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Heart2" type="TextureRect" parent="TopBar/LivesBox/LivesHBox/HeartsBox"]
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+texture = ExtResource("22_hfull")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Heart3" type="TextureRect" parent="TopBar/LivesBox/LivesHBox/HeartsBox"]
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+texture = ExtResource("22_hfull")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Heart4" type="TextureRect" parent="TopBar/LivesBox/LivesHBox/HeartsBox"]
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+texture = ExtResource("22_hfull")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Heart5" type="TextureRect" parent="TopBar/LivesBox/LivesHBox/HeartsBox"]
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+texture = ExtResource("22_hfull")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="StageBox"type="PanelContainer"parent="TopBar"]
 layout_mode = 2

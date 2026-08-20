@@ -5,10 +5,14 @@ signal restart_pressed
 @onready var top_bar: HBoxContainer = $TopBar
 @onready var score_label: Label = $TopBar/ScoreBox/ScoreLabel
 @onready var time_label: Label = $TopBar/TimeBox/TimeLabel
-@onready var lives_label: Label = $TopBar/LivesBox/LivesLabel
+@onready var lives_label: Label = $TopBar/LivesBox/LivesHBox/LivesLabel
+@onready var hearts_box: HBoxContainer = $TopBar/LivesBox/LivesHBox/HeartsBox
 @onready var stage_label: Label = $TopBar/StageBox/StageLabel
 @onready var combo_label: Label = $ComboLabel
 @onready var home_btn: Button = $TopBar/HomeBtn
+
+const HEART_FULL = preload("res://assets/ui/heart_full.png")
+const HEART_EMPTY = preload("res://assets/ui/heart_empty.png")
 
 @onready var game_over_panel: PanelContainer = $GameOverPanel
 @onready var final_score_label: Label = $GameOverPanel/VBox/FinalScoreLabel
@@ -101,6 +105,7 @@ func _start_game_directly() -> void:
 	game_over_panel.visible = false
 	title_menu.hide()
 	review_modal.hide()
+	_on_lives_changed(GameState.lives)
 	restart_pressed.emit()
 
 func _on_home_pressed() -> void:
@@ -117,10 +122,16 @@ func _on_score_changed(score: int) -> void:
 	tween.tween_property(score_label, "scale", Vector2(1.0, 1.0), 0.1)
 
 func _on_lives_changed(lives: int) -> void:
-	var hearts = ""
-	for i in range(lives):
-		hearts += ""
-	lives_label.text = "생명: %s"% (hearts if lives > 0 else "")
+	if hearts_box:
+		var hearts = hearts_box.get_children()
+		for i in range(hearts.size()):
+			if hearts[i] is TextureRect:
+				if i < lives:
+					hearts[i].texture = HEART_FULL
+					hearts[i].modulate = Color(1, 1, 1, 1)
+				else:
+					hearts[i].texture = HEART_EMPTY
+					hearts[i].modulate = Color(0.65, 0.65, 0.65, 0.5)
 
 func _on_time_changed(seconds: int) -> void:
 	var mins = int(seconds / 60.0)
