@@ -30,11 +30,12 @@ const nextConfig: NextConfig = {
       }
     ],
   },
-  async rewrites() {
+  async redirects() {
     return [
       {
         source: '/',
         destination: '/godot/index.html',
+        permanent: false,
       },
     ];
   },
