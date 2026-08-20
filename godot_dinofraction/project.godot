@@ -27,7 +27,11 @@ UserProfile="*res://scripts/UserProfile.gd"
 
 window/size/viewport_width=1280
 window/size/viewport_height=720
-window/stretch/mode="viewport"
+window/size/resizable=true
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
+window/stretch/scale_mode="fractional"
+window/dpi/allow_hidpi=true
 
 [input]
 
@@ -63,6 +67,9 @@ attack={
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 environment/defaults/default_clear_color=Color(0.529412, 0.807843, 0.921569, 1)
+textures/canvas_textures/default_texture_filter=1
+2d/snap/snap_2d_transforms_to_pixel=true
+2d/snap/snap_2d_vertices_to_pixel=true
 
 [gui]
 
