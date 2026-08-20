@@ -63,3 +63,8 @@ attack={
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 environment/defaults/default_clear_color=Color(0.529412, 0.807843, 0.921569, 1)
+
+[gui]
+
+theme/custom_font="res://assets/fonts/GameFontBold.ttf"
+
