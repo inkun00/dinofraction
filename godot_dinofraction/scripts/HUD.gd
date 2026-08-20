@@ -111,7 +111,7 @@ func _on_home_pressed() -> void:
 	title_menu.show_title()
 
 func _on_score_changed(score: int) -> void:
-	score_label.text = "🏆 점수: %d" % score
+	score_label.text = "점수: %d"% score
 	var tween = score_label.create_tween()
 	tween.tween_property(score_label, "scale", Vector2(1.2, 1.2), 0.08)
 	tween.tween_property(score_label, "scale", Vector2(1.0, 1.0), 0.1)
@@ -119,59 +119,59 @@ func _on_score_changed(score: int) -> void:
 func _on_lives_changed(lives: int) -> void:
 	var hearts = ""
 	for i in range(lives):
-		hearts += "❤️"
-	lives_label.text = "생명: %s" % (hearts if lives > 0 else "💀")
+		hearts += ""
+	lives_label.text = "생명: %s"% (hearts if lives > 0 else "")
 
 func _on_time_changed(seconds: int) -> void:
 	var mins = int(seconds / 60.0)
 	var secs = seconds % 60
-	time_label.text = "⏳ 시간: %02d:%02d" % [mins, secs]
+	time_label.text = "시간: %02d:%02d"% [mins, secs]
 
 func _on_evolution_changed(stage_name: String) -> void:
 	var names = {
-		"dino_01": "🥚 신비의 공룡알",
-		"dino_02": "🦖 에메랄드 벨로시",
-		"dino_03": "🦕 사파이어 트리케라",
-		"dino_04": "🦖 루비 티라노",
-		"dino_05": "🌿 에메랄드 이구아노",
-		"dino_06": "🦕 토파즈 스테고",
-		"dino_07": "🔥 볼케이노 딜로포",
-		"dino_08": "❄️ 글래시어 스테고케라",
-		"dino_09": "🧪 포이즌 벨로시",
-		"dino_10": "⚡ 썬더 켄트로",
-		"dino_11": "🌑 옵시디언 카르노",
-		"dino_12": "🌪️ 템페스트 파키케",
-		"dino_13": "💎 크리스탈 브라키오",
-		"dino_14": "🌊 어비스 알로",
-		"dino_15": "🌌 트와일라잇 코리토",
-		"dino_16": "⚔️ 블레이드 테리지노",
-		"dino_17": "🌋 크림슨 케라토",
-		"dino_18": "🪐 스파이크 스티라코",
-		"dino_19": "🌑 나이트 헌터 데이노",
-		"dino_20": "🌊 아쿠아 세일 스피노",
-		"dino_21": "🌿 헬멧 크레스트 람베오",
-		"dino_22": "🌸 마더 가디언 마이아",
-		"dino_23": "🪶 선셋 깃털 오비랍",
-		"dino_24": "⚡ 골든 스프린터 갈리",
-		"dino_25": "🛡️ 쁘띠 프릴 프로토",
-		"dino_26": "⚔️ 스파이크 아머 사우로",
-		"dino_27": "🔨 메이스 해머 에우오",
-		"dino_28": "🦕 자이언트 브레스 아파토",
-		"dino_29": "⏳ 크로노스 시공룡",
-		"dino_30": "👑 솔라 제네시스 신룡",
-		"EGG": "🥚 신비의 공룡알",
-		"BABY": "🦖 에메랄드 벨로시",
-		"MEDIUM": "🦕 사파이어 트리케라",
-		"ADULT": "🦖 루비 티라노",
-		"BOSS": "⏳ 크로노스 시공룡",
-		"GOD": "👑 솔라 제네시스 신룡"
+		"dino_01": "신비의 공룡알",
+		"dino_02": "에메랄드 벨로시",
+		"dino_03": "사파이어 트리케라",
+		"dino_04": "루비 티라노",
+		"dino_05": "에메랄드 이구아노",
+		"dino_06": "토파즈 스테고",
+		"dino_07": "볼케이노 딜로포",
+		"dino_08": "글래시어 스테고케라",
+		"dino_09": "포이즌 벨로시",
+		"dino_10": "썬더 켄트로",
+		"dino_11": "옵시디언 카르노",
+		"dino_12": "템페스트 파키케",
+		"dino_13": "크리스탈 브라키오",
+		"dino_14": "어비스 알로",
+		"dino_15": "트와일라잇 코리토",
+		"dino_16": "블레이드 테리지노",
+		"dino_17": "크림슨 케라토",
+		"dino_18": "스파이크 스티라코",
+		"dino_19": "나이트 헌터 데이노",
+		"dino_20": "아쿠아 세일 스피노",
+		"dino_21": "헬멧 크레스트 람베오",
+		"dino_22": "마더 가디언 마이아",
+		"dino_23": "선셋 깃털 오비랍",
+		"dino_24": "골든 스프린터 갈리",
+		"dino_25": "쁘띠 프릴 프로토",
+		"dino_26": "스파이크 아머 사우로",
+		"dino_27": "메이스 해머 에우오",
+		"dino_28": "자이언트 브레스 아파토",
+		"dino_29": "크로노스 시공룡",
+		"dino_30": "솔라 제네시스 신룡",
+		"EGG": "신비의 공룡알",
+		"BABY": "에메랄드 벨로시",
+		"MEDIUM": "사파이어 트리케라",
+		"ADULT": "루비 티라노",
+		"BOSS": "크로노스 시공룡",
+		"GOD": "솔라 제네시스 신룡"
 	}
 	stage_label.text = names.get(stage_name, stage_name)
 
 func _on_combo_changed(current_combo: int) -> void:
 	if current_combo >= 2:
 		var c_info = GameState.get_combo_bonus_info(current_combo)
-		combo_label.text = "%s\n(+%d 콤보 보너스!)" % [c_info["tier_name"], c_info["bonus"]]
+		combo_label.text = "%s\n(+%d 콤보 보너스!)"% [c_info["tier_name"], c_info["bonus"]]
 		combo_label.add_theme_color_override("font_color", c_info["tier_color"])
 		combo_label.modulate.a = 1.0
 		
@@ -184,28 +184,28 @@ func _on_combo_changed(current_combo: int) -> void:
 		combo_label.modulate.a = 0.0
 
 func _on_game_over() -> void:
-	final_score_label.text = "🏆 최종 점수: %d 점" % GameState.score
+	final_score_label.text = "최종 점수: %d 점"% GameState.score
 	var total = GameState.correct_count + GameState.wrong_count
 	var acc = 0
 	if total > 0:
 		acc = int((float(GameState.correct_count) / total) * 100)
-	stats_label.text = "🎯 정답: %d개  |  ❌ 오답: %d개  |  📊 정답률: %d%%" % [GameState.correct_count, GameState.wrong_count, acc]
+	stats_label.text = "정답: %d개 | 오답: %d개 | 정답률: %d%%"% [GameState.correct_count, GameState.wrong_count, acc]
 	
 	go_review_btn.visible = (GameState.wrong_problems.size() > 0)
 	game_over_panel.visible = true
 
 func _on_dino_unlocked(dino_id: String) -> void:
 	var names_map = {
-		"dino_01": "🥚 신비의 공룡알", "dino_02": "🦖 에메랄드 랩터", "dino_03": "🦕 사파이어 트리케라",
-		"dino_04": "🦖 루비 티라노", "dino_05": "🦖 애머시스트 렉스", "dino_06": "🦕 토파즈 스테고",
-		"dino_07": "🔥 볼케이노 렉스", "dino_08": "❄️ 글래시어 안킬로", "dino_09": "🧪 포이즌 벨로시",
-		"dino_10": "⚡ 썬더 스피노", "dino_11": "🌑 옵시디언 카르노", "dino_12": "🌪️ 템페스트 알로",
-		"dino_13": "💎 크리스탈 브라키오", "dino_14": "🌊 어비스 모사", "dino_15": "🌌 트와일라잇 파라사우",
-		"dino_16": "✨ 플래티넘 드래곤", "dino_17": "🌋 다크 플레임 드래곤", "dino_18": "🪐 네뷸라 코스믹룡",
-		"dino_19": "⏳ 크로노스 시공룡", "dino_20": "👑 솔라 제네시스 신룡"
+		"dino_01": "신비의 공룡알", "dino_02": "에메랄드 랩터", "dino_03": "사파이어 트리케라",
+		"dino_04": "루비 티라노", "dino_05": "애머시스트 렉스", "dino_06": "토파즈 스테고",
+		"dino_07": "볼케이노 렉스", "dino_08": "글래시어 안킬로", "dino_09": "포이즌 벨로시",
+		"dino_10": "썬더 스피노", "dino_11": "옵시디언 카르노", "dino_12": "템페스트 알로",
+		"dino_13": "크리스탈 브라키오", "dino_14": "어비스 모사", "dino_15": "트와일라잇 파라사우",
+		"dino_16": "플래티넘 드래곤", "dino_17": "다크 플레임 드래곤", "dino_18": "네뷸라 코스믹룡",
+		"dino_19": "크로노스 시공룡", "dino_20": "솔라 제네시스 신룡"
 	}
 	var dname = names_map.get(dino_id, dino_id)
-	combo_label.text = "🎉 NEW UNLOCK!\n[%s]" % dname
+	combo_label.text = "NEW UNLOCK!\n[%s]"% dname
 	combo_label.modulate = Color(1.0, 0.9, 0.2, 1.0)
 	var tween = combo_label.create_tween()
 	tween.tween_property(combo_label, "scale", Vector2(1.5, 1.5), 0.15)

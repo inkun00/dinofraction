@@ -25,7 +25,7 @@ func open_quiz() -> void:
 
 func load_current_problem() -> void:
 	if UserProfile.pending_wrong_problems.is_empty():
-		feedback_label.text = "🎉 모든 오답 정복 완료! 신나는 모험을 시작합니다!"
+		feedback_label.text = "모든 오답 정복 완료! 신나는 모험을 시작합니다!"
 		feedback_label.modulate = Color.GREEN
 		var t = create_tween()
 		t.tween_interval(0.8)
@@ -36,7 +36,7 @@ func load_current_problem() -> void:
 		return
 		
 	var total_left = UserProfile.pending_wrong_problems.size()
-	count_label.text = "남은 오답: %d개" % total_left
+	count_label.text = "남은 오답: %d개"% total_left
 	feedback_label.text = "문제를 잘 읽고 올바른 정답 분수를 선택하세요!"
 	feedback_label.modulate = Color.WHITE
 	
@@ -85,7 +85,7 @@ func _on_choice_clicked(chosen: Dictionary, ans: Dictionary) -> void:
 					
 	if is_correct:
 		is_busy = true
-		feedback_label.text = "✨ 정답입니다! 완벽해요!"
+		feedback_label.text = "정답입니다! 완벽해요!"
 		feedback_label.modulate = Color.GREEN
 		UserProfile.remove_pending_wrong_at(0)
 		
@@ -96,7 +96,7 @@ func _on_choice_clicked(chosen: Dictionary, ans: Dictionary) -> void:
 			load_current_problem()
 		)
 	else:
-		feedback_label.text = "❌ 오답입니다! 분모와 분자를 다시 계산해보세요."
+		feedback_label.text = "오답입니다! 분모와 분자를 다시 계산해보세요."
 		feedback_label.modulate = Color(1.0, 0.4, 0.4)
 		var tween = create_tween()
 		tween.tween_property(self, "position:x", position.x + 10.0, 0.05)

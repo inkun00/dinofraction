@@ -9,7 +9,7 @@ extends Control
 @onready var close_btn: Button = $Panel/CloseBtn
 @onready var bottom_close_btn: Button = $Panel/VBox/Footer/BottomCloseBtn
 
-var current_tab: String = "score" # "score", "xp", "school"
+var current_tab: String = "score"# "score", "xp", "school"
 var is_loading_cloud: bool = false
 
 var fallback_score_records = []
@@ -32,9 +32,9 @@ func _switch_tab(tab_name: String) -> void:
 	current_tab = tab_name
 	
 	# Update tab button visuals
-	tab_score_btn.modulate = Color(1.0, 1.0, 0.4, 1.0) if tab_name == "score" else Color(0.7, 0.7, 0.7, 1.0)
-	tab_xp_btn.modulate = Color(0.4, 0.9, 1.0, 1.0) if tab_name == "xp" else Color(0.7, 0.7, 0.7, 1.0)
-	tab_school_btn.modulate = Color(0.5, 1.0, 0.5, 1.0) if tab_name == "school" else Color(0.7, 0.7, 0.7, 1.0)
+	tab_score_btn.modulate = Color(1.0, 1.0, 0.4, 1.0) if tab_name == "score"else Color(0.7, 0.7, 0.7, 1.0)
+	tab_xp_btn.modulate = Color(0.4, 0.9, 1.0, 1.0) if tab_name == "xp"else Color(0.7, 0.7, 0.7, 1.0)
+	tab_school_btn.modulate = Color(0.5, 1.0, 0.5, 1.0) if tab_name == "school"else Color(0.7, 0.7, 0.7, 1.0)
 	
 	_render_local_or_cached_list()
 	_fetch_cloud_leaderboard()
@@ -72,11 +72,11 @@ func _populate_ui(records: Array, _is_cloud: bool = false) -> void:
 	var my_school: String = "공룡초등학교"
 	
 	if UserProfile:
-		if "username" in UserProfile and UserProfile.username != "":
+		if "username"in UserProfile and UserProfile.username != "":
 			my_name = str(UserProfile.username)
-		if "high_score" in UserProfile:
+		if "high_score"in UserProfile:
 			my_score = int(UserProfile.high_score)
-		if "school" in UserProfile and UserProfile.school != "":
+		if "school"in UserProfile and UserProfile.school != "":
 			my_school = str(UserProfile.school)
 			
 	var disp_my_name: String = my_name.substr(0, 6) if my_name.length() > 6 else my_name
@@ -84,12 +84,12 @@ func _populate_ui(records: Array, _is_cloud: bool = false) -> void:
 	var my_xp = my_score * 12 # estimated XP
 	
 	if current_tab == "score":
-		title_label.text = "🏆 개인 최고 점수 랭킹 TOP 10"
+		title_label.text = "개인 최고 점수 랭킹 TOP 10"
 		var display_list = records.duplicate(true)
 		
 		# Insert player into list if qualified
 		if my_score > 0:
-			var player_entry = {"rank": 0, "name": my_name + " (나)", "school": my_school, "val": my_score, "is_me": true}
+			var player_entry = {"rank": 0, "name": my_name + "(나)", "school": my_school, "val": my_score, "is_me": true}
 			display_list.append(player_entry)
 			display_list.sort_custom(func(a, b): return a.get("val", 0) > b.get("val", 0))
 			for i in range(display_list.size()):
@@ -102,26 +102,26 @@ func _populate_ui(records: Array, _is_cloud: bool = false) -> void:
 				my_current_rank = idx + 1
 				break
 		if my_score == 0:
-			my_rank_label.text = "내 기록: 🦖 %s (%s) | 점수: %d Pts | 랭킹 등록 대기중" % [disp_my_name, disp_my_school, my_score]
+			my_rank_label.text = "내 기록: %s (%s) | 점수: %d Pts | 랭킹 등록 대기중"% [disp_my_name, disp_my_school, my_score]
 		else:
-			my_rank_label.text = "내 기록: 🦖 %s (%s) | 점수: %d Pts | 🏆 현재 %d위!" % [disp_my_name, disp_my_school, my_score, my_current_rank]
+			my_rank_label.text = "내 기록: %s (%s) | 점수: %d Pts | 현재 %d위!"% [disp_my_name, disp_my_school, my_score, my_current_rank]
 
 		if top10.is_empty():
-			_create_empty_notice("아직 등록된 랭킹 기록이 없습니다.\n게임을 플레이하여 첫 번째 명예의 전당 주인공이 되어보세요! 🦖✨")
+			_create_empty_notice("아직 등록된 랭킹 기록이 없습니다.\n게임을 플레이하여 첫 번째 명예의 전당 주인공이 되어보세요! ")
 		else:
 			for idx in range(top10.size()):
 				var item = top10[idx]
 				var r_rank = item.get("rank", idx + 1)
 				var r_name = str(item.get("name", item.get("nickname", "용감한 공룡")))
 				var r_school = str(item.get("school", item.get("schoolName", "소속 미설정")))
-				var r_val = str(item.get("val", item.get("score", 0))) + " Pts"
+				var r_val = str(item.get("val", item.get("score", 0))) + "Pts"
 				_create_entry_row(r_rank, r_name, r_school, r_val, item.get("is_me", false))
 
 	elif current_tab == "xp":
-		title_label.text = "⚡ 개인 누적 경험치(XP) 랭킹 TOP 10"
+		title_label.text = "개인 누적 경험치(XP) 랭킹 TOP 10"
 		var display_list = records.duplicate(true)
 		if my_xp > 0:
-			var player_entry = {"rank": 0, "name": my_name + " (나)", "school": my_school, "val": my_xp, "is_me": true}
+			var player_entry = {"rank": 0, "name": my_name + "(나)", "school": my_school, "val": my_xp, "is_me": true}
 			display_list.append(player_entry)
 			display_list.sort_custom(func(a, b): return a.get("val", 0) > b.get("val", 0))
 			for i in range(display_list.size()):
@@ -134,39 +134,39 @@ func _populate_ui(records: Array, _is_cloud: bool = false) -> void:
 				my_current_rank = idx + 1
 				break
 		if my_xp == 0:
-			my_rank_label.text = "내 기록: 🦖 %s (%s) | 누적 XP: %d XP | 랭킹 등록 대기중" % [disp_my_name, disp_my_school, my_xp]
+			my_rank_label.text = "내 기록: %s (%s) | 누적 XP: %d XP | 랭킹 등록 대기중"% [disp_my_name, disp_my_school, my_xp]
 		else:
-			my_rank_label.text = "내 기록: 🦖 %s (%s) | 누적 XP: %d XP | ⚡ 현재 %d위" % [disp_my_name, disp_my_school, my_xp, my_current_rank]
+			my_rank_label.text = "내 기록: %s (%s) | 누적 XP: %d XP | 현재 %d위"% [disp_my_name, disp_my_school, my_xp, my_current_rank]
 
 		if top10.is_empty():
-			_create_empty_notice("아직 등록된 경험치 랭킹이 없습니다.\n문제를 풀고 경험치를 모아보세요! ⚡✨")
+			_create_empty_notice("아직 등록된 경험치 랭킹이 없습니다.\n문제를 풀고 경험치를 모아보세요! ")
 		else:
 			for idx in range(top10.size()):
 				var item = top10[idx]
 				var r_rank = item.get("rank", idx + 1)
 				var r_name = str(item.get("name", item.get("nickname", "용감한 공룡")))
 				var r_school = str(item.get("school", item.get("schoolName", "소속 미설정")))
-				var r_val = str(item.get("val", item.get("totalXp", 0))) + " XP"
+				var r_val = str(item.get("val", item.get("totalXp", 0))) + "XP"
 				_create_entry_row(r_rank, r_name, r_school, r_val, item.get("is_me", false))
 
 	else: # school
-		title_label.text = "🏫 학교 대항전 총경험치 랭킹 TOP 10"
-		my_rank_label.text = "우리 학교: 🏫 %s | 학교 대항전에 참여하여 점수를 올려보세요!" % disp_my_school
+		title_label.text = "학교 대항전 총경험치 랭킹 TOP 10"
+		my_rank_label.text = "우리 학교: %s | 학교 대항전에 참여하여 점수를 올려보세요!"% disp_my_school
 		if records.is_empty():
-			_create_empty_notice("아직 등록된 학교 대항전 기록이 없습니다.\n학교 이름을 등록하고 1위 학교로 만들어보세요! 🏫✨")
+			_create_empty_notice("아직 등록된 학교 대항전 기록이 없습니다.\n학교 이름을 등록하고 1위 학교로 만들어보세요! ")
 		else:
 			for idx in range(records.size()):
 				var item = records[idx]
 				var r_rank = item.get("rank", idx + 1)
 				var r_school = str(item.get("school", item.get("name", "공룡초등학교")))
 				var r_members = str(item.get("members", ""))
-				var r_val = str(item.get("val", item.get("totalXp", 0))) + " XP"
-				var is_my_sch = (my_school != "소속 미설정" and r_school.contains(my_school))
+				var r_val = str(item.get("val", item.get("totalXp", 0))) + "XP"
+				var is_my_sch = (my_school != "소속 미설정"and r_school.contains(my_school))
 				_create_school_row(r_rank, r_school, r_members, r_val, is_my_sch)
 
 func _create_empty_notice(msg: String) -> void:
 	var lbl = Label.new()
-	lbl.text = "\n\n" + msg + "\n\n"
+	lbl.text = "\n\n"+ msg + "\n\n"
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	lbl.add_theme_font_size_override("font_size", 16)
@@ -205,19 +205,19 @@ func _create_entry_row(rank: int, player_name: String, school_name: String, val_
 	hbox.add_theme_constant_override("separation", 12)
 	panel.add_child(hbox)
 	
-	var rank_icon = "🥇" if rank == 1 else ("🥈" if rank == 2 else ("🥉" if rank == 3 else "%d위" % rank))
+	var rank_icon = "1위"if rank == 1 else ("2위"if rank == 2 else ("3위"if rank == 3 else "%d위"% rank))
 	var rank_lbl = Label.new()
 	rank_lbl.custom_minimum_size = Vector2(60, 0)
-	rank_lbl.text = "  " + rank_icon
+	rank_lbl.text = ""+ rank_icon
 	rank_lbl.add_theme_font_size_override("font_size", 16)
 	rank_lbl.add_theme_color_override("font_color", Color(1, 0.9, 0.3) if rank <= 3 else Color(0.9, 0.9, 0.9))
 	hbox.add_child(rank_lbl)
 	
 	var display_name = player_name
 	if is_me:
-		var raw_name = player_name.replace(" (나)", "")
+		var raw_name = player_name.replace("(나)", "")
 		if raw_name.length() > 6:
-			display_name = raw_name.substr(0, 6) + " (나)"
+			display_name = raw_name.substr(0, 6) + "(나)"
 	else:
 		if display_name.length() > 6:
 			display_name = display_name.substr(0, 6)
@@ -239,7 +239,7 @@ func _create_entry_row(rank: int, player_name: String, school_name: String, val_
 	
 	var val_lbl = Label.new()
 	val_lbl.custom_minimum_size = Vector2(140, 0)
-	val_lbl.text = val_str + "  "
+	val_lbl.text = val_str + ""
 	val_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	val_lbl.add_theme_font_size_override("font_size", 16)
 	val_lbl.add_theme_color_override("font_color", Color(1, 0.85, 0.2))
@@ -279,10 +279,10 @@ func _create_school_row(rank: int, school_name: String, members: String, val_str
 	hbox.add_theme_constant_override("separation", 12)
 	panel.add_child(hbox)
 	
-	var rank_icon = "🥇" if rank == 1 else ("🥈" if rank == 2 else ("🥉" if rank == 3 else "%d위" % rank))
+	var rank_icon = "1위"if rank == 1 else ("2위"if rank == 2 else ("3위"if rank == 3 else "%d위"% rank))
 	var rank_lbl = Label.new()
 	rank_lbl.custom_minimum_size = Vector2(60, 0)
-	rank_lbl.text = "  " + rank_icon
+	rank_lbl.text = ""+ rank_icon
 	rank_lbl.add_theme_font_size_override("font_size", 16)
 	rank_lbl.add_theme_color_override("font_color", Color(1, 0.9, 0.3) if rank <= 3 else Color(0.9, 0.9, 0.9))
 	hbox.add_child(rank_lbl)
@@ -290,7 +290,7 @@ func _create_school_row(rank: int, school_name: String, members: String, val_str
 	var disp_school = school_name.substr(0, 8) if school_name.length() > 8 else school_name
 	var sch_lbl = Label.new()
 	sch_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	sch_lbl.text = disp_school + (" (우리 학교)" if is_my_sch else "")
+	sch_lbl.text = disp_school + ("(우리 학교)"if is_my_sch else "")
 	sch_lbl.add_theme_font_size_override("font_size", 16)
 	sch_lbl.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6) if is_my_sch else Color(1, 1, 1))
 	hbox.add_child(sch_lbl)
@@ -304,7 +304,7 @@ func _create_school_row(rank: int, school_name: String, members: String, val_str
 	
 	var val_lbl = Label.new()
 	val_lbl.custom_minimum_size = Vector2(140, 0)
-	val_lbl.text = val_str + "  "
+	val_lbl.text = val_str + ""
 	val_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	val_lbl.add_theme_font_size_override("font_size", 16)
 	val_lbl.add_theme_color_override("font_color", Color(1, 0.85, 0.2))

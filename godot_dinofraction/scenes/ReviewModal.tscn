@@ -1,12 +1,12 @@
 [gd_scene load_steps=9 format=3 uid="uid://review_modal_scene"]
 
-[ext_resource type="Script" path="res://scripts/ReviewModal.gd" id="1_rev_script"]
-[ext_resource type="FontFile" path="res://assets/fonts/GameFontBold.ttf" id="2_font"]
-[ext_resource type="Texture2D" path="res://assets/ui/panel_jurassic_stone.png" id="2_panel"]
-[ext_resource type="Texture2D" path="res://assets/ui/btn_jungle_green_n.png" id="3_bg_n"]
-[ext_resource type="Texture2D" path="res://assets/ui/btn_jungle_green_h.png" id="4_bg_h"]
+[ext_resource type="Script"path="res://scripts/ReviewModal.gd"id="1_rev_script"]
+[ext_resource type="FontFile"path="res://assets/fonts/GameFontBold.ttf"id="2_font"]
+[ext_resource type="Texture2D"path="res://assets/ui/panel_jurassic_stone.png"id="2_panel"]
+[ext_resource type="Texture2D"path="res://assets/ui/btn_jungle_green_n.png"id="3_bg_n"]
+[ext_resource type="Texture2D"path="res://assets/ui/btn_jungle_green_h.png"id="4_bg_h"]
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_review_panel"]
+[sub_resource type="StyleBoxTexture"id="StyleBoxTexture_review_panel"]
 content_margin_left = 32.0
 content_margin_top = 28.0
 content_margin_right = 32.0
@@ -17,21 +17,21 @@ texture_margin_top = 28.0
 texture_margin_right = 28.0
 texture_margin_bottom = 28.0
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_submit_n"]
+[sub_resource type="StyleBoxTexture"id="StyleBoxTexture_submit_n"]
 texture = ExtResource("3_bg_n")
 texture_margin_left = 18.0
 texture_margin_top = 16.0
 texture_margin_right = 18.0
 texture_margin_bottom = 16.0
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_submit_h"]
+[sub_resource type="StyleBoxTexture"id="StyleBoxTexture_submit_h"]
 texture = ExtResource("4_bg_h")
 texture_margin_left = 18.0
 texture_margin_top = 16.0
 texture_margin_right = 18.0
 texture_margin_bottom = 16.0
 
-[node name="ReviewModal" type="Control"]
+[node name="ReviewModal"type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -40,7 +40,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_rev_script")
 
-[node name="Backdrop" type="ColorRect" parent="."]
+[node name="Backdrop"type="ColorRect"parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -49,7 +49,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.01, 0.02, 0.05, 0.88)
 
-[node name="Panel" type="Panel" parent="."]
+[node name="Panel"type="Panel"parent="."]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -64,7 +64,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxTexture_review_panel")
 
-[node name="VBox" type="VBoxContainer" parent="Panel"]
+[node name="VBox"type="VBoxContainer"parent="Panel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -77,10 +77,10 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 12
 
-[node name="Header" type="HBoxContainer" parent="Panel/VBox"]
+[node name="Header"type="HBoxContainer"parent="Panel/VBox"]
 layout_mode = 2
 
-[node name="Title" type="Label" parent="Panel/VBox/Header"]
+[node name="Title"type="Label"parent="Panel/VBox/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_fonts/font = ExtResource("2_font")
@@ -88,9 +88,9 @@ theme_override_colors/font_color = Color(1, 0.88, 0.25, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 23
-text = "📖 분수 오답 직접 풀기 & 정복"
+text = "분수 오답 직접 풀기 & 정복"
 
-[node name="Notice" type="Label" parent="Panel/VBox"]
+[node name="Notice"type="Label"parent="Panel/VBox"]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_colors/font_color = Color(0.9, 0.95, 1, 0.9)
@@ -100,28 +100,28 @@ theme_override_font_sizes/font_size = 14
 text = "틀린 문제를 직접 숫자로 입력하여 맞춰야 다음 게임을 시작할 수 있습니다!"
 horizontal_alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="Panel/VBox"]
+[node name="HSeparator"type="HSeparator"parent="Panel/VBox"]
 layout_mode = 2
 
-[node name="FormulaContainer" type="HBoxContainer" parent="Panel/VBox"]
+[node name="FormulaContainer"type="HBoxContainer"parent="Panel/VBox"]
 custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 alignment = 1
 
-[node name="InputContainer" type="HBoxContainer" parent="Panel/VBox"]
+[node name="InputContainer"type="HBoxContainer"parent="Panel/VBox"]
 custom_minimum_size = Vector2(0, 95)
 layout_mode = 2
 theme_override_constants/separation = 12
 alignment = 1
 
-[node name="WholeLabel" type="Label" parent="Panel/VBox/InputContainer"]
+[node name="WholeLabel"type="Label"parent="Panel/VBox/InputContainer"]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
 theme_override_font_sizes/font_size = 15
 text = "대분수:"
 
-[node name="InputWhole" type="LineEdit" parent="Panel/VBox/InputContainer"]
+[node name="InputWhole"type="LineEdit"parent="Panel/VBox/InputContainer"]
 custom_minimum_size = Vector2(65, 46)
 layout_mode = 2
 size_flags_vertical = 4
@@ -131,13 +131,13 @@ placeholder_text = "자연수"
 alignment = 1
 max_length = 3
 
-[node name="FractionStack" type="VBoxContainer" parent="Panel/VBox/InputContainer"]
+[node name="FractionStack"type="VBoxContainer"parent="Panel/VBox/InputContainer"]
 custom_minimum_size = Vector2(85, 0)
 layout_mode = 2
 theme_override_constants/separation = 3
 alignment = 1
 
-[node name="InputNum" type="LineEdit" parent="Panel/VBox/InputContainer/FractionStack"]
+[node name="InputNum"type="LineEdit"parent="Panel/VBox/InputContainer/FractionStack"]
 custom_minimum_size = Vector2(80, 36)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
@@ -146,12 +146,12 @@ placeholder_text = "분자"
 alignment = 1
 max_length = 3
 
-[node name="FractionLine" type="ColorRect" parent="Panel/VBox/InputContainer/FractionStack"]
+[node name="FractionLine"type="ColorRect"parent="Panel/VBox/InputContainer/FractionStack"]
 custom_minimum_size = Vector2(80, 3)
 layout_mode = 2
 color = Color(0.3, 0.85, 1, 1)
 
-[node name="InputDen" type="LineEdit" parent="Panel/VBox/InputContainer/FractionStack"]
+[node name="InputDen"type="LineEdit"parent="Panel/VBox/InputContainer/FractionStack"]
 custom_minimum_size = Vector2(80, 36)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
@@ -160,7 +160,7 @@ placeholder_text = "분모"
 alignment = 1
 max_length = 3
 
-[node name="SubmitBtn" type="Button" parent="Panel/VBox/InputContainer"]
+[node name="SubmitBtn"type="Button"parent="Panel/VBox/InputContainer"]
 custom_minimum_size = Vector2(145, 54)
 layout_mode = 2
 size_flags_vertical = 4
@@ -171,9 +171,9 @@ theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxTexture_submit_n")
 theme_override_styles/hover = SubResource("StyleBoxTexture_submit_h")
-text = "✅ 정답 제출"
+text = "정답 제출"
 
-[node name="FeedbackLabel" type="Label" parent="Panel/VBox"]
+[node name="FeedbackLabel"type="Label"parent="Panel/VBox"]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_colors/font_color = Color(0.4, 1, 0.6, 1)
@@ -183,18 +183,18 @@ theme_override_font_sizes/font_size = 16
 text = "자연수, 분자, 분모를 직접 입력하고 [정답 제출]을 누르세요!"
 horizontal_alignment = 1
 
-[node name="HintBox" type="PanelContainer" parent="Panel/VBox"]
+[node name="HintBox"type="PanelContainer"parent="Panel/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="HintLabel" type="RichTextLabel" parent="Panel/VBox/HintBox"]
+[node name="HintLabel"type="RichTextLabel"parent="Panel/VBox/HintBox"]
 layout_mode = 2
 theme_override_fonts/normal_font = ExtResource("2_font")
 theme_override_font_sizes/normal_font_size = 13
 bbcode_enabled = true
 text = "풀이 팁이 여기에 표시됩니다."
 
-[node name="PageLabel" type="Label" parent="Panel/VBox"]
+[node name="PageLabel"type="Label"parent="Panel/VBox"]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_colors/font_color = Color(0.35, 0.9, 1, 1)
@@ -204,7 +204,7 @@ theme_override_font_sizes/font_size = 17
 text = "남은 오답: 0개"
 horizontal_alignment = 1
 
-[node name="HomeBtn" type="Button" parent="Panel"]
+[node name="HomeBtn"type="Button"parent="Panel"]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -216,4 +216,4 @@ offset_bottom = 48.0
 grow_horizontal = 0
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 15
-text = "🏠 처음으로"
+text = "처음으로"

@@ -30,8 +30,8 @@ func _on_save_pressed() -> void:
 			if new_school.length() > 0:
 				UserProfile.school = new_school
 			UserProfile.save_data()
-		msg_label.text = "✔ 프로필 정보가 성공적으로 저장되었습니다!"
+		msg_label.text = "프로필 정보가 성공적으로 저장되었습니다!"
 		msg_label.modulate = Color.GREEN
 	else:
-		msg_label.text = "⚠ 올바른 닉네임을 입력해주세요 (최대 6글자)."
+		msg_label.text = "[주의] 올바른 닉네임을 입력해주세요 (최대 6글자)."
 		msg_label.modulate = Color.RED

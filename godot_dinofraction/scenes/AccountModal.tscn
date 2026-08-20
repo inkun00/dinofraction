@@ -1,8 +1,8 @@
 [gd_scene load_steps=2 format=3 uid="uid://account_modal_scene"]
 
-[ext_resource type="Script" path="res://scripts/AccountModal.gd" id="1_acc_script"]
+[ext_resource type="Script"path="res://scripts/AccountModal.gd"id="1_acc_script"]
 
-[node name="AccountModal" type="Control"]
+[node name="AccountModal"type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,7 +11,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_acc_script")
 
-[node name="Backdrop" type="ColorRect" parent="."]
+[node name="Backdrop"type="ColorRect"parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -20,7 +20,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.75)
 
-[node name="Panel" type="Panel" parent="."]
+[node name="Panel"type="Panel"parent="."]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -34,7 +34,7 @@ offset_bottom = 210.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBox" type="VBoxContainer" parent="Panel"]
+[node name="VBox"type="VBoxContainer"parent="Panel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -47,29 +47,29 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 12
 
-[node name="Header" type="HBoxContainer" parent="Panel/VBox"]
+[node name="Header"type="HBoxContainer"parent="Panel/VBox"]
 layout_mode = 2
 
-[node name="Title" type="Label" parent="Panel/VBox/Header"]
+[node name="Title"type="Label"parent="Panel/VBox/Header"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.3, 0.8, 1, 1)
 theme_override_font_sizes/font_size = 22
-text = "👤 탐험가 프로필 및 학교 설정"
+text = "탐험가 프로필 및 학교 설정"
 
-[node name="HSeparator" type="HSeparator" parent="Panel/VBox"]
+[node name="HSeparator"type="HSeparator"parent="Panel/VBox"]
 layout_mode = 2
 
-[node name="NameBox" type="HBoxContainer" parent="Panel/VBox"]
+[node name="NameBox"type="HBoxContainer"parent="Panel/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="NameLabel" type="Label" parent="Panel/VBox/NameBox"]
+[node name="NameLabel"type="Label"parent="Panel/VBox/NameBox"]
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "닉네임:"
 
-[node name="UsernameInput" type="LineEdit" parent="Panel/VBox/NameBox"]
+[node name="UsernameInput"type="LineEdit"parent="Panel/VBox/NameBox"]
 custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 size_flags_horizontal = 3
@@ -77,17 +77,17 @@ theme_override_font_sizes/font_size = 16
 placeholder_text = "닉네임 (최대 6글자)"
 max_length = 6
 
-[node name="SchoolBox" type="HBoxContainer" parent="Panel/VBox"]
+[node name="SchoolBox"type="HBoxContainer"parent="Panel/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="SchoolLabel" type="Label" parent="Panel/VBox/SchoolBox"]
+[node name="SchoolLabel"type="Label"parent="Panel/VBox/SchoolBox"]
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "학교 이름:"
 
-[node name="SchoolInput" type="LineEdit" parent="Panel/VBox/SchoolBox"]
+[node name="SchoolInput"type="LineEdit"parent="Panel/VBox/SchoolBox"]
 custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 size_flags_horizontal = 3
@@ -95,23 +95,23 @@ theme_override_font_sizes/font_size = 16
 placeholder_text = "학교 이름 (최대 8글자)"
 max_length = 8
 
-[node name="MsgLabel" type="Label" parent="Panel/VBox"]
+[node name="MsgLabel"type="Label"parent="Panel/VBox"]
 custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 horizontal_alignment = 1
 
-[node name="BtnBox" type="HBoxContainer" parent="Panel/VBox"]
+[node name="BtnBox"type="HBoxContainer"parent="Panel/VBox"]
 layout_mode = 2
 alignment = 1
 
-[node name="SaveBtn" type="Button" parent="Panel/VBox/BtnBox"]
+[node name="SaveBtn"type="Button"parent="Panel/VBox/BtnBox"]
 custom_minimum_size = Vector2(160, 42)
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
-text = "💾  설정 저장하기"
+text = "설정 저장하기"
 
-[node name="CloseBtn" type="Button" parent="Panel"]
+[node name="CloseBtn"type="Button"parent="Panel"]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -122,4 +122,4 @@ offset_right = -14.0
 offset_bottom = 38.0
 grow_horizontal = 0
 theme_override_font_sizes/font_size = 16
-text = "✕"
+text = "X"

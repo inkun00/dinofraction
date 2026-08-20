@@ -136,7 +136,7 @@ func destroy_obstacle() -> void:
 	# Smash Bonus Points
 	var smash_pts = 50
 	GameState.add_score(smash_pts)
-	spawn_floating_smash_text("💥 SMASH! +%d" % smash_pts, global_position, cfg["color"])
+	spawn_floating_smash_text("SMASH! +%d"% smash_pts, global_position, cfg["color"])
 	obstacle_destroyed.emit(cfg["name"])
 
 func spawn_floating_smash_text(text: String, pos: Vector2, color: Color) -> void:

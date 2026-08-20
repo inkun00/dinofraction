@@ -1,27 +1,27 @@
 [gd_scene load_steps=5 format=3 uid="uid://obstacle_scene_dinofraction"]
 
-[ext_resource type="Script" path="res://scripts/Obstacle.gd" id="1_obs_script"]
-[ext_resource type="Texture2D" path="res://assets/sprites/obstacles/obstacle_rock.png" id="2_rock"]
-[ext_resource type="Texture2D" path="res://assets/sprites/dust_cloud.png" id="3_dust"]
+[ext_resource type="Script"path="res://scripts/Obstacle.gd"id="1_obs_script"]
+[ext_resource type="Texture2D"path="res://assets/sprites/obstacles/obstacle_rock.png"id="2_rock"]
+[ext_resource type="Texture2D"path="res://assets/sprites/dust_cloud.png"id="3_dust"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_obs"]
+[sub_resource type="RectangleShape2D"id="RectangleShape2D_obs"]
 size = Vector2(70, 60)
 
-[node name="Obstacle" type="Area2D"]
+[node name="Obstacle"type="Area2D"]
 collision_layer = 2
 collision_mask = 1
 script = ExtResource("1_obs_script")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D"type="Sprite2D"parent="."]
 texture_filter = 1
 position = Vector2(0, -10)
 texture = ExtResource("2_rock")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D"type="CollisionShape2D"parent="."]
 position = Vector2(0, 0)
 shape = SubResource("RectangleShape2D_obs")
 
-[node name="DebrisParticles" type="CPUParticles2D" parent="."]
+[node name="DebrisParticles"type="CPUParticles2D"parent="."]
 emitting = false
 amount = 16
 lifetime = 0.5

@@ -16,7 +16,7 @@ var is_transitioning: bool = false
 const BIOMES = [
 	{
 		"id": "jungle",
-		"name": "🌿 쥐라기 에메랄드 원시 밀림",
+		"name": "쥐라기 에메랄드 원시 밀림",
 		"sky": preload("res://assets/sprites/biomes/biome_jungle/sky.png"),
 		"far_rocks": preload("res://assets/sprites/biomes/biome_jungle/far_rocks.png"),
 		"clouds": preload("res://assets/sprites/biomes/biome_jungle/clouds.png"),
@@ -26,7 +26,7 @@ const BIOMES = [
 	},
 	{
 		"id": "volcano",
-		"name": "🌋 화산 암석 & 붉은 마그마 협곡",
+		"name": "화산 암석 & 붉은 마그마 협곡",
 		"sky": preload("res://assets/sprites/biomes/biome_volcano/sky.png"),
 		"far_rocks": preload("res://assets/sprites/biomes/biome_volcano/far_rocks.png"),
 		"clouds": preload("res://assets/sprites/biomes/biome_volcano/clouds.png"),
@@ -36,7 +36,7 @@ const BIOMES = [
 	},
 	{
 		"id": "starlight",
-		"name": "🌌 신비의 별빛 밤하늘 & 코스믹 유적",
+		"name": "신비의 별빛 밤하늘 & 코스믹 유적",
 		"sky": preload("res://assets/sprites/biomes/biome_starlight/sky.png"),
 		"far_rocks": preload("res://assets/sprites/biomes/biome_starlight/far_rocks.png"),
 		"clouds": preload("res://assets/sprites/biomes/biome_starlight/clouds.png"),
@@ -46,7 +46,7 @@ const BIOMES = [
 	},
 	{
 		"id": "glacier",
-		"name": "❄️ 신비의 황혼 성채 & 크리스탈 빙하 설원",
+		"name": "신비의 황혼 성채 & 크리스탈 빙하 설원",
 		"sky": preload("res://assets/sprites/biomes/biome_glacier/sky.png"),
 		"far_rocks": preload("res://assets/sprites/biomes/biome_glacier/far_rocks.png"),
 		"clouds": preload("res://assets/sprites/biomes/biome_glacier/clouds.png"),
@@ -94,7 +94,7 @@ func change_biome(new_idx: int, immediate: bool = false) -> void:
 		
 	is_transitioning = true
 	# 지형 전환 HUD 알림 배너
-	GameState.buff_activated.emit("🗺️ 새로운 지형 진입!\n[%s]" % biome["name"], 3.5)
+	GameState.buff_activated.emit("새로운 지형 진입!\n[%s]"% biome["name"], 3.5)
 	
 	# 부드러운 크로스페이드 페이드아웃 -> 텍스처 교체 -> 페이드인 애니메이션
 	var tween = create_tween()

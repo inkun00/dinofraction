@@ -42,10 +42,10 @@ func _init() -> void:
 	
 	# 2. Dinos 02 to 30
 	for i in range(2, 31):
-		var id_str = "dino_%02d" % i
-		var run_path = "res://assets/sprites/dinos/%s_run.png" % id_str
-		var jump_path = "res://assets/sprites/dinos/%s_jump.png" % id_str
-		var attack_path = "res://assets/sprites/dinos/%s_attack.png" % id_str
+		var id_str = "dino_%02d"% i
+		var run_path = "res://assets/sprites/dinos/%s_run.png"% id_str
+		var jump_path = "res://assets/sprites/dinos/%s_jump.png"% id_str
+		var attack_path = "res://assets/sprites/dinos/%s_attack.png"% id_str
 		
 		var scale_factor = 0.95 + (float(i - 2) * 0.018)
 		var mass_val = 1.0 + (float(i - 2) * 0.45)
@@ -197,7 +197,7 @@ func _spawn_attack_shockwave(dash_dir: float) -> void:
 	var wave = Sprite2D.new()
 	wave.z_index = z_index + 1
 	
-	var is_egg = (current_stage == "dino_01" or current_stage == "EGG")
+	var is_egg = (current_stage == "dino_01"or current_stage == "EGG")
 	if is_egg:
 		var egg_tex = load("res://assets/sprites/effects/egg_pulse.png")
 		if egg_tex:

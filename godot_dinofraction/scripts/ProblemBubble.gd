@@ -45,7 +45,7 @@ func render_problem_formula() -> void:
 			var frac_node = FractionView.create_fraction(f.get("whole", 0), f.get("num", 0), f.get("den", 1), 22, brown_color)
 			formula_container.add_child(frac_node)
 			
-	# Add "= ?" at the end
+	# Add "= ?"at the end
 	var eq_node = FractionView.create_operator("= ?", 24, brown_color)
 	formula_container.add_child(eq_node)
 
@@ -127,9 +127,9 @@ func _on_choice_body_entered(body: Node2D, choice_area: Area2D) -> void:
 			
 			GameState.add_correct(problem_data)
 			
-			var disp_text = "+%d Pts! 🎯" % total_pts
+			var disp_text = "+%d Pts! "% total_pts
 			if c_info.bonus > 0:
-				disp_text = "+%d Pts! (콤보 +%d) 🔥" % [total_pts, c_info.bonus]
+				disp_text = "+%d Pts! (콤보 +%d) "% [total_pts, c_info.bonus]
 			spawn_floating_text(disp_text, choice_area.global_position, c_info.tier_color if c_info.bonus > 0 else Color.GREEN)
 			queue_free()
 		)
@@ -140,7 +140,7 @@ func _on_choice_body_entered(body: Node2D, choice_area: Area2D) -> void:
 		tween.tween_property(choice_area, "modulate", Color(2.0, 0.2, 0.2, 1.0), 0.12)
 		tween.tween_callback(func():
 			GameState.add_wrong(problem_data)
-			spawn_floating_text("Miss! 💥", choice_area.global_position, Color(1, 0.3, 0.3))
+			spawn_floating_text("Miss! ", choice_area.global_position, Color(1, 0.3, 0.3))
 			queue_free()
 		)
 

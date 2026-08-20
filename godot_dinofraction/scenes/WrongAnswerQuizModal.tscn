@@ -1,8 +1,8 @@
 [gd_scene load_steps=2 format=3 uid="uid://wrong_quiz_modal_scene"]
 
-[ext_resource type="Script" path="res://scripts/WrongAnswerQuizModal.gd" id="1_quiz_script"]
+[ext_resource type="Script"path="res://scripts/WrongAnswerQuizModal.gd"id="1_quiz_script"]
 
-[node name="WrongAnswerQuizModal" type="Control"]
+[node name="WrongAnswerQuizModal"type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,7 +11,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_quiz_script")
 
-[node name="Backdrop" type="ColorRect" parent="."]
+[node name="Backdrop"type="ColorRect"parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -20,7 +20,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.05, 0.02, 0.08, 0.85)
 
-[node name="Panel" type="Panel" parent="."]
+[node name="Panel"type="Panel"parent="."]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -34,7 +34,7 @@ offset_bottom = 220.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBox" type="VBoxContainer" parent="Panel"]
+[node name="VBox"type="VBoxContainer"parent="Panel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -48,44 +48,44 @@ grow_vertical = 2
 theme_override_constants/separation = 16
 alignment = 1
 
-[node name="Header" type="HBoxContainer" parent="Panel/VBox"]
+[node name="Header"type="HBoxContainer"parent="Panel/VBox"]
 layout_mode = 2
 
-[node name="Title" type="Label" parent="Panel/VBox/Header"]
+[node name="Title"type="Label"parent="Panel/VBox/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
 theme_override_font_sizes/font_size = 22
-text = "📝 오답 정복 챌린지!"
+text = "오답 정복 챌린지!"
 
-[node name="CountLabel" type="Label" parent="Panel/VBox/Header"]
+[node name="CountLabel"type="Label"parent="Panel/VBox/Header"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
 theme_override_font_sizes/font_size = 18
 text = "남은 오답: 1개"
 
-[node name="Notice" type="Label" parent="Panel/VBox"]
+[node name="Notice"type="Label"parent="Panel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.85, 0.9, 0.9)
 theme_override_font_sizes/font_size = 15
 text = "이전 게임에서 틀린 문제를 모두 맞춰야 다음 모험을 시작할 수 있습니다!"
 horizontal_alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="Panel/VBox"]
+[node name="HSeparator"type="HSeparator"parent="Panel/VBox"]
 layout_mode = 2
 
-[node name="FormulaBox" type="HBoxContainer" parent="Panel/VBox"]
+[node name="FormulaBox"type="HBoxContainer"parent="Panel/VBox"]
 custom_minimum_size = Vector2(0, 55)
 layout_mode = 2
 alignment = 1
 
-[node name="ChoicesBox" type="HBoxContainer" parent="Panel/VBox"]
+[node name="ChoicesBox"type="HBoxContainer"parent="Panel/VBox"]
 custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
 theme_override_constants/separation = 16
 alignment = 1
 
-[node name="FeedbackLabel" type="Label" parent="Panel/VBox"]
+[node name="FeedbackLabel"type="Label"parent="Panel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 1, 0.6, 1)
 theme_override_font_sizes/font_size = 16

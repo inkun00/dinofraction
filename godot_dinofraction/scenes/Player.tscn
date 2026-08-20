@@ -1,27 +1,27 @@
 [gd_scene load_steps=4 format=3 uid="uid://player_scene_dino"]
 
-[ext_resource type="Script" path="res://scripts/Player.gd" id="1_player_script"]
-[ext_resource type="Texture2D" path="res://assets/sprites/dust_cloud.png" id="2_dust"]
+[ext_resource type="Script"path="res://scripts/Player.gd"id="1_player_script"]
+[ext_resource type="Texture2D"path="res://assets/sprites/dust_cloud.png"id="2_dust"]
 
-[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_1"]
+[sub_resource type="CapsuleShape2D"id="CapsuleShape2D_1"]
 radius = 32.0
 height = 80.0
 
-[node name="Player" type="CharacterBody2D"]
+[node name="Player"type="CharacterBody2D"]
 position = Vector2(300, 540)
 collision_layer = 1
 collision_mask = 2
 script = ExtResource("1_player_script")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D"type="Sprite2D"parent="."]
 texture_filter = 1
 position = Vector2(0, -35)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D"type="CollisionShape2D"parent="."]
 position = Vector2(0, -35)
 shape = SubResource("CapsuleShape2D_1")
 
-[node name="DustParticles" type="CPUParticles2D" parent="."]
+[node name="DustParticles"type="CPUParticles2D"parent="."]
 position = Vector2(-20, 0)
 amount = 10
 lifetime = 0.4

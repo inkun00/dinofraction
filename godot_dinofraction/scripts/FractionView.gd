@@ -77,7 +77,7 @@ static func create_fraction(whole: int, num: int, den: int, font_size: int = 24,
 
 static func create_operator(op: String, font_size: int = 24, font_color: Color = Color.WHITE) -> Control:
 	var lbl = Label.new()
-	lbl.text = " " + op + " "
+	lbl.text = ""+ op + ""
 	lbl.add_theme_font_size_override("font_size", font_size + 4)
 	lbl.add_theme_color_override("font_color", font_color)
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER

@@ -1,11 +1,11 @@
 [gd_scene load_steps=6 format=3 uid="uid://dino_collection_modal_scene"]
 
-[ext_resource type="Script" path="res://scripts/DinoCollectionModal.gd" id="1_col_script"]
-[ext_resource type="FontFile" path="res://assets/fonts/GameFontBold.ttf" id="2_font"]
-[ext_resource type="Texture2D" path="res://assets/ui/panel_arcade_window.png" id="3_panel"]
-[ext_resource type="Texture2D" path="res://assets/ui/btn_red_normal.png" id="4_br_n"]
+[ext_resource type="Script"path="res://scripts/DinoCollectionModal.gd"id="1_col_script"]
+[ext_resource type="FontFile"path="res://assets/fonts/GameFontBold.ttf"id="2_font"]
+[ext_resource type="Texture2D"path="res://assets/ui/panel_arcade_window.png"id="3_panel"]
+[ext_resource type="Texture2D"path="res://assets/ui/btn_red_normal.png"id="4_br_n"]
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_col_panel"]
+[sub_resource type="StyleBoxTexture"id="StyleBoxTexture_col_panel"]
 content_margin_left = 32.0
 content_margin_top = 28.0
 content_margin_right = 32.0
@@ -16,7 +16,7 @@ texture_margin_top = 32.0
 texture_margin_right = 32.0
 texture_margin_bottom = 32.0
 
-[node name="DinoCollectionModal" type="Control"]
+[node name="DinoCollectionModal"type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -25,7 +25,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_col_script")
 
-[node name="Backdrop" type="ColorRect" parent="."]
+[node name="Backdrop"type="ColorRect"parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -34,7 +34,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.01, 0.02, 0.05, 0.85)
 
-[node name="Panel" type="Panel" parent="."]
+[node name="Panel"type="Panel"parent="."]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -49,7 +49,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxTexture_col_panel")
 
-[node name="VBox" type="VBoxContainer" parent="Panel"]
+[node name="VBox"type="VBoxContainer"parent="Panel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -62,10 +62,10 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 10
 
-[node name="Header" type="HBoxContainer" parent="Panel/VBox"]
+[node name="Header"type="HBoxContainer"parent="Panel/VBox"]
 layout_mode = 2
 
-[node name="Title" type="Label" parent="Panel/VBox/Header"]
+[node name="Title"type="Label"parent="Panel/VBox/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_fonts/font = ExtResource("2_font")
@@ -73,9 +73,9 @@ theme_override_colors/font_color = Color(1, 0.88, 0.25, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 24
-text = "🦖 30종 고대 공룡 수집 도감 & 스킨 보관함"
+text = "30종 고대 공룡 수집 도감 & 스킨 보관함"
 
-[node name="ProgressLabel" type="Label" parent="Panel/VBox/Header"]
+[node name="ProgressLabel"type="Label"parent="Panel/VBox/Header"]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_colors/font_color = Color(0.4, 0.95, 1, 1)
@@ -84,22 +84,22 @@ theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 18
 text = "수집 현황: 2 / 30"
 
-[node name="HSeparator" type="HSeparator" parent="Panel/VBox"]
+[node name="HSeparator"type="HSeparator"parent="Panel/VBox"]
 layout_mode = 2
 
-[node name="Scroll" type="ScrollContainer" parent="Panel/VBox"]
+[node name="Scroll"type="ScrollContainer"parent="Panel/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="Grid" type="GridContainer" parent="Panel/VBox/Scroll"]
+[node name="Grid"type="GridContainer"parent="Panel/VBox/Scroll"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/h_separation = 16
 theme_override_constants/v_separation = 16
 columns = 4
 
-[node name="CloseBtn" type="Button" parent="Panel"]
+[node name="CloseBtn"type="Button"parent="Panel"]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -114,4 +114,4 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 18
-text = "✕"
+text = "X"

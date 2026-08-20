@@ -62,4 +62,4 @@ func update_view() -> void:
 	var hscore = UserProfile.high_score if UserProfile else 0
 	var un_count = UserProfile.unlocked_dinos.size() if UserProfile else 2
 	
-	greeting_label.text = "[center]🦖 [b]%s[/b] 탐험가님 | 🏆 최고기록: [color=#FFD700][b]%d Pts[/b][/color] | 🦕 수집 공룡: [color=#00E5FF][b]%d/30[/b][/color][/center]" % [uname, hscore, un_count]
+	greeting_label.text = "[center] [b]%s[/b] 탐험가님 | 최고기록: [color=#FFD700][b]%d Pts[/b][/color] | 수집 공룡: [color=#00E5FF][b]%d/30[/b][/color][/center]"% [uname, hscore, un_count]

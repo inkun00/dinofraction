@@ -5,10 +5,10 @@ const API_KEY: String = "AIzaSyBtSox7Fg_pMG7b24BhxFaa9gt0qZ2iNcQ"
 const PROJECT_ID: String = "dinorun-math-c599c"
 const AUTH_SAVE_PATH: String = "user://firebase_auth.json"
 
-const AUTH_SIGNUP_URL: String = "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" + API_KEY
-const AUTH_REFRESH_URL: String = "https://securetoken.googleapis.com/v1/token?key=" + API_KEY
-const FIRESTORE_BASE_URL: String = "https://firestore.googleapis.com/v1/projects/" + PROJECT_ID + "/databases/(default)/documents"
-const FIRESTORE_QUERY_URL: String = "https://firestore.googleapis.com/v1/projects/" + PROJECT_ID + "/databases/(default)/documents:runQuery"
+const AUTH_SIGNUP_URL: String = "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key="+ API_KEY
+const AUTH_REFRESH_URL: String = "https://securetoken.googleapis.com/v1/token?key="+ API_KEY
+const FIRESTORE_BASE_URL: String = "https://firestore.googleapis.com/v1/projects/"+ PROJECT_ID + "/databases/(default)/documents"
+const FIRESTORE_QUERY_URL: String = "https://firestore.googleapis.com/v1/projects/"+ PROJECT_ID + "/databases/(default)/documents:runQuery"
 
 # Auth State
 var user_id: String = ""
@@ -21,7 +21,7 @@ signal auth_completed(success: bool)
 
 func _ready() -> void:
 	load_cached_auth()
-	if id_token == "" or user_id == "":
+	if id_token == ""or user_id == "":
 		authenticate_anonymously()
 	else:
 		is_authenticated = true
@@ -103,8 +103,8 @@ func fetch_leaderboard(tab_type: String, callback: Callable) -> void:
 	var http = HTTPRequest.new()
 	add_child(http)
 	
-	var order_field = "score" if tab_type == "score" else "totalXp"
-	var query_limit = 10 if (tab_type == "score" or tab_type == "xp") else 50
+	var order_field = "score"if tab_type == "score"else "totalXp"
+	var query_limit = 10 if (tab_type == "score"or tab_type == "xp") else 50
 	
 	var query_body = {
 		"structuredQuery": {
@@ -116,7 +116,7 @@ func fetch_leaderboard(tab_type: String, callback: Callable) -> void:
 	
 	var headers = [
 		"Content-Type: application/json",
-		"Authorization: Bearer " + id_token
+		"Authorization: Bearer "+ id_token
 	]
 	
 	http.request_completed.connect(func(_result: int, response_code: int, _headers: PackedStringArray, response_body: PackedByteArray):
@@ -159,7 +159,7 @@ func _parse_firestore_results(raw_array: Array, tab_type: String) -> Array:
 			var sch = _get_field_string(fields, "school", "미입력")
 			var xp = _get_field_int(fields, "totalXp", 0)
 			
-			if sch != "미입력" and sch != "소속 미설정" and sch.strip_edges() != "":
+			if sch != "미입력"and sch != "소속 미설정"and sch.strip_edges() != "":
 				sch = sch.strip_edges()
 				school_map[sch] = school_map.get(sch, 0) + xp
 				school_members[sch] = school_members.get(sch, 0) + 1
@@ -169,7 +169,7 @@ func _parse_firestore_results(raw_array: Array, tab_type: String) -> Array:
 			sorted_schools.append({
 				"school": sch_name,
 				"val": school_map[sch_name],
-				"members": "%d명 참여" % school_members[sch_name]
+				"members": "%d명 참여"% school_members[sch_name]
 			})
 			
 		sorted_schools.sort_custom(func(a, b): return a["val"] > b["val"])
@@ -178,7 +178,7 @@ func _parse_firestore_results(raw_array: Array, tab_type: String) -> Array:
 			results.append(sorted_schools[i])
 		return results
 
-	# For "score" and "xp"
+	# For "score"and "xp"
 	var rank_idx = 1
 	for item in raw_array:
 		if not item is Dictionary or not item.has("document"):
@@ -194,8 +194,8 @@ func _parse_firestore_results(raw_array: Array, tab_type: String) -> Array:
 			"rank": rank_idx,
 			"name": nick,
 			"school": sch,
-			"val": score if tab_type == "score" else total_xp,
-			"dino": "🦖 공룡 러너"
+			"val": score if tab_type == "score"else total_xp,
+			"dino": "공룡 러너"
 		}
 		results.append(entry)
 		rank_idx += 1
@@ -221,7 +221,7 @@ func _get_field_int(fields: Dictionary, key: String, default_val: int) -> int:
 # 3. Sync User Profile & High Score to Firestore (PATCH)
 # ---------------------------------------------------------
 func sync_user_profile(nickname: String, school: String, score: int, total_xp: int) -> void:
-	if not is_authenticated or user_id == "" or id_token == "":
+	if not is_authenticated or user_id == ""or id_token == "":
 		authenticate_anonymously()
 		await auth_completed
 		if not is_authenticated or user_id == "":
@@ -230,7 +230,7 @@ func sync_user_profile(nickname: String, school: String, score: int, total_xp: i
 	var http = HTTPRequest.new()
 	add_child(http)
 	
-	var doc_url = FIRESTORE_BASE_URL + "/users/" + user_id + "?updateMask.fieldPaths=nickname&updateMask.fieldPaths=school&updateMask.fieldPaths=score&updateMask.fieldPaths=totalXp"
+	var doc_url = FIRESTORE_BASE_URL + "/users/"+ user_id + "?updateMask.fieldPaths=nickname&updateMask.fieldPaths=school&updateMask.fieldPaths=score&updateMask.fieldPaths=totalXp"
 	var doc_body = {
 		"fields": {
 			"nickname": {"stringValue": nickname},
@@ -242,13 +242,13 @@ func sync_user_profile(nickname: String, school: String, score: int, total_xp: i
 	
 	var headers = [
 		"Content-Type: application/json",
-		"Authorization: Bearer " + id_token
+		"Authorization: Bearer "+ id_token
 	]
 	
 	http.request_completed.connect(func(_result: int, response_code: int, _headers: PackedStringArray, _response_body: PackedByteArray):
 		http.queue_free()
 		if response_code == 200:
-			print("[FirebaseService] Successfully synced score to Firestore! Score: ", score, " | XP: ", total_xp)
+			print("[FirebaseService] Successfully synced score to Firestore! Score: ", score, "| XP: ", total_xp)
 		else:
 			print("[FirebaseService] Sync failed with response: ", response_code)
 	)

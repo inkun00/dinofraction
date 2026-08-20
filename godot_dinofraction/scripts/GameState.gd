@@ -68,8 +68,8 @@ func get_difficulty_bubble_height_offset() -> float:
 	if not is_game_running:
 		return 0.0
 	var time_elapsed = 300.0 - time_left
-	var time_h = time_elapsed * 0.22    # Gradually ascends higher
-	var score_h = score * 0.18         # Also ascends with higher score
+	var time_h = time_elapsed * 0.22 # Gradually ascends higher
+	var score_h = score * 0.18 # Also ascends with higher score
 	return clamp(time_h + score_h, 0.0, 68.0)
 
 func apply_random_mystery_buff() -> Dictionary:
@@ -81,24 +81,24 @@ func apply_random_mystery_buff() -> Dictionary:
 		"HEART":
 			lives = min(5, lives + 1)
 			lives_changed.emit(lives)
-			res["text"] = "+1 Heart! ❤️"
+			res["text"] = "+1 Heart! "
 			res["color"] = Color(1.0, 0.3, 0.5)
 			buff_activated.emit("HEART", 0.0)
 		"JUMP":
 			jump_boost_count += 1
-			var mult_str = "%.1f" % get_jump_multiplier()
-			res["text"] = "Jump Boost! 🦘 (x" + mult_str + ")"
+			var mult_str = "%.1f"% get_jump_multiplier()
+			res["text"] = "Jump Boost! (x"+ mult_str + ")"
 			res["color"] = Color(0.3, 1.0, 0.4)
 			buff_activated.emit("JUMP", -1.0)
 		"SPEED":
 			speed_boost_timer = 12.0
-			res["text"] = "Speed Boost! ⚡"
+			res["text"] = "Speed Boost! "
 			res["color"] = Color(1.0, 0.9, 0.2)
 			buff_activated.emit("SPEED", 12.0)
 		"SCORE":
 			var bonus_pts = 100
 			add_score(bonus_pts)
-			res["text"] = "Bonus Gold! 💎 (+%d Pts)" % bonus_pts
+			res["text"] = "Bonus Gold! (+%d Pts)"% bonus_pts
 			res["color"] = Color(1.0, 0.85, 0.2)
 			buff_activated.emit("SCORE", 0.0)
 			
@@ -167,27 +167,27 @@ func get_combo_bonus_info(current_combo: int) -> Dictionary:
 	
 	if current_combo < 5: # 2 ~ 4 Combo: 기초 콤보 (50% 축소: x2.5)
 		bonus_pts = int(current_combo * 2.5)
-		tier_name = "✨ COMBO x%d" % current_combo
+		tier_name = "COMBO x%d"% current_combo
 		tier_color = Color(1.0, 0.95, 0.4) # Bright Yellow
 		tier_lvl = 1
 	elif current_combo < 8: # 5 ~ 7 Combo: 그레이트 콤보 (50% 축소: +12 기본 + x6)
 		bonus_pts = 12 + (current_combo * 6)
-		tier_name = "🔥 GREAT COMBO x%d!" % current_combo
+		tier_name = "GREAT COMBO x%d!"% current_combo
 		tier_color = Color(1.0, 0.6, 0.15) # Fiery Orange
 		tier_lvl = 2
 	elif current_combo < 11: # 8 ~ 10 Combo: 메가 콤보 (50% 축소: +40 기본 + x11)
 		bonus_pts = 40 + (current_combo * 11)
-		tier_name = "⚡ MEGA COMBO x%d!!" % current_combo
+		tier_name = "MEGA COMBO x%d!!"% current_combo
 		tier_color = Color(0.3, 0.88, 1.0) # Electric Cyan
 		tier_lvl = 3
 	elif current_combo < 15: # 11 ~ 14 Combo: 울트라 콤보 (50% 축소: +90 기본 + x19)
 		bonus_pts = 90 + (current_combo * 19)
-		tier_name = "🌟 ULTRA COMBO x%d!!!" % current_combo
+		tier_name = "ULTRA COMBO x%d!!!"% current_combo
 		tier_color = Color(0.9, 0.4, 1.0) # Violet Radiance
 		tier_lvl = 4
 	else: # 15+ Combo: 신화급 갓라이크 콤보 (50% 축소: +175 기본 + x32)
 		bonus_pts = 175 + (current_combo * 32)
-		tier_name = "👑 GODLIKE COMBO x%d!!!!" % current_combo
+		tier_name = "GODLIKE COMBO x%d!!!!"% current_combo
 		tier_color = Color(1.0, 0.25, 0.5) # Radiant Crimson/Gold
 		tier_lvl = 5
 		
@@ -238,7 +238,7 @@ func add_wrong(problem_data: Dictionary) -> void:
 
 func check_evolution() -> void:
 	# If player specifically equipped a dinosaur from collection, keep their choice!
-	if UserProfile and UserProfile.selected_dino != "" and UserProfile.selected_dino != "AUTO":
+	if UserProfile and UserProfile.selected_dino != ""and UserProfile.selected_dino != "AUTO":
 		return
 		
 	var prev = current_evolution

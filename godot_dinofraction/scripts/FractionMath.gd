@@ -20,8 +20,8 @@ static func fraction_to_string(f: Dictionary) -> String:
 	if n == 0:
 		return str(w)
 	if w == 0:
-		return "%d/%d" % [n, d]
-	return "%d %d/%d" % [w, n, d]
+		return "%d/%d"% [n, d]
+	return "%d %d/%d"% [w, n, d]
 
 static func get_difficulty(score: int) -> int:
 	if score < 50:
@@ -91,7 +91,7 @@ static func generate_problem(score: int) -> Dictionary:
 	var problem_str = ""
 	for p in parts:
 		if p["type"] == "op":
-			problem_str += " " + p["val"] + " "
+			problem_str += ""+ p["val"] + ""
 		else:
 			problem_str += fraction_to_string(p["val"])
 

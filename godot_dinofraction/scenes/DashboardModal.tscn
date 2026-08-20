@@ -1,8 +1,8 @@
 [gd_scene load_steps=2 format=3 uid="uid://dashboard_modal_scene"]
 
-[ext_resource type="Script" path="res://scripts/DashboardModal.gd" id="1_dash_script"]
+[ext_resource type="Script"path="res://scripts/DashboardModal.gd"id="1_dash_script"]
 
-[node name="DashboardModal" type="Control"]
+[node name="DashboardModal"type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,7 +11,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_dash_script")
 
-[node name="Backdrop" type="ColorRect" parent="."]
+[node name="Backdrop"type="ColorRect"parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -20,7 +20,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.8)
 
-[node name="Panel" type="Panel" parent="."]
+[node name="Panel"type="Panel"parent="."]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -34,7 +34,7 @@ offset_bottom = 290.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBox" type="VBoxContainer" parent="Panel"]
+[node name="VBox"type="VBoxContainer"parent="Panel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -47,146 +47,146 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 12
 
-[node name="Header" type="HBoxContainer" parent="Panel/VBox"]
+[node name="Header"type="HBoxContainer"parent="Panel/VBox"]
 layout_mode = 2
 
-[node name="NameLabel" type="Label" parent="Panel/VBox/Header"]
+[node name="NameLabel"type="Label"parent="Panel/VBox/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0, 0.9, 1, 1)
 theme_override_font_sizes/font_size = 22
-text = "🦖 탐험가님의 분수 학습 분석 및 역량 진단"
+text = "탐험가님의 분수 학습 분석 및 역량 진단"
 
-[node name="HSeparator" type="HSeparator" parent="Panel/VBox"]
+[node name="HSeparator"type="HSeparator"parent="Panel/VBox"]
 layout_mode = 2
 
-[node name="SummaryRow" type="HBoxContainer" parent="Panel/VBox"]
+[node name="SummaryRow"type="HBoxContainer"parent="Panel/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="Card1" type="PanelContainer" parent="Panel/VBox/SummaryRow"]
+[node name="Card1"type="PanelContainer"parent="Panel/VBox/SummaryRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="V" type="VBoxContainer" parent="Panel/VBox/SummaryRow/Card1"]
+[node name="V"type="VBoxContainer"parent="Panel/VBox/SummaryRow/Card1"]
 layout_mode = 2
 alignment = 1
 
-[node name="L" type="Label" parent="Panel/VBox/SummaryRow/Card1/V"]
+[node name="L"type="Label"parent="Panel/VBox/SummaryRow/Card1/V"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
-text = "🏆 최고 점수"
+text = "최고 점수"
 horizontal_alignment = 1
 
-[node name="HighScoreVal" type="Label" parent="Panel/VBox/SummaryRow/Card1/V"]
+[node name="HighScoreVal"type="Label"parent="Panel/VBox/SummaryRow/Card1/V"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
 theme_override_font_sizes/font_size = 17
 text = "0 Pts"
 horizontal_alignment = 1
 
-[node name="Card2" type="PanelContainer" parent="Panel/VBox/SummaryRow"]
+[node name="Card2"type="PanelContainer"parent="Panel/VBox/SummaryRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="V" type="VBoxContainer" parent="Panel/VBox/SummaryRow/Card2"]
+[node name="V"type="VBoxContainer"parent="Panel/VBox/SummaryRow/Card2"]
 layout_mode = 2
 alignment = 1
 
-[node name="L" type="Label" parent="Panel/VBox/SummaryRow/Card2/V"]
+[node name="L"type="Label"parent="Panel/VBox/SummaryRow/Card2/V"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
-text = "🎮 총 게임"
+text = "총 게임 횟수"
 horizontal_alignment = 1
 
-[node name="TotalGamesVal" type="Label" parent="Panel/VBox/SummaryRow/Card2/V"]
+[node name="TotalGamesVal"type="Label"parent="Panel/VBox/SummaryRow/Card2/V"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 0.8, 1, 1)
 theme_override_font_sizes/font_size = 17
 text = "0 회"
 horizontal_alignment = 1
 
-[node name="Card3" type="PanelContainer" parent="Panel/VBox/SummaryRow"]
+[node name="Card3"type="PanelContainer"parent="Panel/VBox/SummaryRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="V" type="VBoxContainer" parent="Panel/VBox/SummaryRow/Card3"]
+[node name="V"type="VBoxContainer"parent="Panel/VBox/SummaryRow/Card3"]
 layout_mode = 2
 alignment = 1
 
-[node name="L" type="Label" parent="Panel/VBox/SummaryRow/Card3/V"]
+[node name="L"type="Label"parent="Panel/VBox/SummaryRow/Card3/V"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
-text = "🎯 전체 정답률"
+text = "전체 정답률"
 horizontal_alignment = 1
 
-[node name="AccuracyVal" type="Label" parent="Panel/VBox/SummaryRow/Card3/V"]
+[node name="AccuracyVal"type="Label"parent="Panel/VBox/SummaryRow/Card3/V"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.3, 1, 0.4, 1)
 theme_override_font_sizes/font_size = 17
 text = "0.0 %"
 horizontal_alignment = 1
 
-[node name="Card4" type="PanelContainer" parent="Panel/VBox/SummaryRow"]
+[node name="Card4"type="PanelContainer"parent="Panel/VBox/SummaryRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="V" type="VBoxContainer" parent="Panel/VBox/SummaryRow/Card4"]
+[node name="V"type="VBoxContainer"parent="Panel/VBox/SummaryRow/Card4"]
 layout_mode = 2
 alignment = 1
 
-[node name="L" type="Label" parent="Panel/VBox/SummaryRow/Card4/V"]
+[node name="L"type="Label"parent="Panel/VBox/SummaryRow/Card4/V"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
-text = "📝 오답 노트"
+text = "오답 노트"
 horizontal_alignment = 1
 
-[node name="WrongCountVal" type="Label" parent="Panel/VBox/SummaryRow/Card4/V"]
+[node name="WrongCountVal"type="Label"parent="Panel/VBox/SummaryRow/Card4/V"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.45, 0.45, 1)
 theme_override_font_sizes/font_size = 17
 text = "0 개"
 horizontal_alignment = 1
 
-[node name="DomainHeader" type="Label" parent="Panel/VBox"]
+[node name="DomainHeader"type="Label"parent="Panel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
 theme_override_font_sizes/font_size = 16
-text = "📊 영역별 학습 정답률 및 강점/취약점 분석"
+text = "영역별 학습 정답률 및 분석"
 
-[node name="Scroll" type="ScrollContainer" parent="Panel/VBox"]
+[node name="Scroll"type="ScrollContainer"parent="Panel/VBox"]
 custom_minimum_size = Vector2(0, 210)
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="DomainContainer" type="VBoxContainer" parent="Panel/VBox/Scroll"]
+[node name="DomainContainer"type="VBoxContainer"parent="Panel/VBox/Scroll"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
 
-[node name="AIBanner" type="PanelContainer" parent="Panel/VBox"]
+[node name="AIBanner"type="PanelContainer"parent="Panel/VBox"]
 layout_mode = 2
 
-[node name="AILabel" type="Label" parent="Panel/VBox/AIBanner"]
+[node name="AILabel"type="Label"parent="Panel/VBox/AIBanner"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.95, 0.75, 1)
 theme_override_font_sizes/font_size = 14
-text = "💡 공룡 AI 코치 진단: 학습 데이터를 분석 중입니다..."
+text = "[AI 코치 진단] 학습 데이터를 분석 중입니다..."
 autowrap_mode = 2
 
-[node name="BtnBox" type="HBoxContainer" parent="Panel/VBox"]
+[node name="BtnBox"type="HBoxContainer"parent="Panel/VBox"]
 layout_mode = 2
 alignment = 1
 theme_override_constants/separation = 16
 
-[node name="ReviewBtn" type="Button" parent="Panel/VBox/BtnBox"]
+[node name="ReviewBtn"type="Button"parent="Panel/VBox/BtnBox"]
 custom_minimum_size = Vector2(240, 38)
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
-text = "📖 취약 영역 오답노트 복습하기"
+text = "취약 영역 오답노트 복습하기"
 
-[node name="CloseBtn" type="Button" parent="Panel"]
+[node name="CloseBtn"type="Button"parent="Panel"]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -197,4 +197,4 @@ offset_right = -10.0
 offset_bottom = 36.0
 grow_horizontal = 0
 theme_override_font_sizes/font_size = 16
-text = "✕"
+text = "X"

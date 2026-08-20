@@ -18,11 +18,11 @@ func _ready() -> void:
 	hide()
 
 func open_dashboard() -> void:
-	name_label.text = "🦖 " + UserProfile.username + "님의 분수 학습 분석 및 역량 진단"
-	high_score_label.text = str(UserProfile.high_score) + " Pts"
-	total_games_label.text = str(UserProfile.total_games) + " 회"
-	accuracy_label.text = "%.1f %%" % UserProfile.get_accuracy()
-	wrong_count_label.text = str(UserProfile.wrong_history.size()) + " 개"
+	name_label.text = ""+ UserProfile.username + "님의 분수 학습 분석 및 역량 진단"
+	high_score_label.text = str(UserProfile.high_score) + "Pts"
+	total_games_label.text = str(UserProfile.total_games) + "회"
+	accuracy_label.text = "%.1f %%"% UserProfile.get_accuracy()
+	wrong_count_label.text = str(UserProfile.wrong_history.size()) + "개"
 	
 	_render_domain_stats()
 	_render_ai_feedback()
@@ -49,19 +49,19 @@ func _render_domain_stats() -> void:
 		var status_color = Color.WHITE
 		if total == 0:
 			sb.border_color = Color(0.4, 0.4, 0.5)
-			status_text = "⚪ 미풀이"
+			status_text = "미풀이"
 			status_color = Color(0.6, 0.6, 0.7)
 		elif acc >= 85.0:
 			sb.border_color = Color(0.2, 0.85, 0.4)
-			status_text = "🌟 [강점] 우수"
+			status_text = "[강점] 우수"
 			status_color = Color(0.3, 1.0, 0.5)
 		elif acc >= 70.0:
 			sb.border_color = Color(0.3, 0.7, 1.0)
-			status_text = "👍 [보통] 양호"
+			status_text = "[보통] 양호"
 			status_color = Color(0.4, 0.8, 1.0)
 		else:
 			sb.border_color = Color(1.0, 0.4, 0.3)
-			status_text = "⚠️ [취약] 보충필요"
+			status_text = "[주의] [취약] 보충필요"
 			status_color = Color(1.0, 0.4, 0.3)
 			
 		row.add_theme_stylebox_override("panel", sb)
@@ -73,7 +73,7 @@ func _render_domain_stats() -> void:
 		# 1. Icon & Name
 		var name_lbl = Label.new()
 		name_lbl.custom_minimum_size = Vector2(230, 0)
-		name_lbl.text = "  %s %s" % [d["icon"], d["name"]]
+		name_lbl.text = "%s %s"% [d["icon"], d["name"]]
 		name_lbl.add_theme_font_size_override("font_size", 14)
 		name_lbl.add_theme_color_override("font_color", Color(0.95, 0.95, 0.95))
 		hbox.add_child(name_lbl)
@@ -111,7 +111,7 @@ func _render_domain_stats() -> void:
 		if total == 0:
 			stat_lbl.text = "0 / 0 문제 (0%)"
 		else:
-			stat_lbl.text = "%d / %d (%4.1f%%)" % [d["correct"], total, acc]
+			stat_lbl.text = "%d / %d (%4.1f%%)"% [d["correct"], total, acc]
 		stat_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		stat_lbl.add_theme_font_size_override("font_size", 13)
 		stat_lbl.add_theme_color_override("font_color", Color(0.8, 0.9, 1.0))
@@ -120,7 +120,7 @@ func _render_domain_stats() -> void:
 		# 4. Status Tag
 		var tag_lbl = Label.new()
 		tag_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		tag_lbl.text = status_text + " "
+		tag_lbl.text = status_text + ""
 		tag_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		tag_lbl.add_theme_font_size_override("font_size", 13)
 		tag_lbl.add_theme_color_override("font_color", status_color)
@@ -131,12 +131,12 @@ func _render_domain_stats() -> void:
 func _render_ai_feedback() -> void:
 	var total_solved = UserProfile.total_correct + UserProfile.total_wrong
 	if total_solved == 0:
-		ai_label.text = "💡 공룡 AI 코치: 아직 푼 문제가 없습니다. 게임을 플레이하여 분수 계산 실력을 쌓아보세요!"
+		ai_label.text = "[팁] 공룡 AI 코치: 아직 푼 문제가 없습니다. 게임을 플레이하여 분수 계산 실력을 쌓아보세요!"
 		return
 		
 	var weakest = UserProfile.get_weakest_domain()
 	if weakest.is_empty() or weakest.get("total", 0) == 0:
-		ai_label.text = "💡 공룡 AI 코치: 차근차근 문제를 풀며 분수의 감각을 키워나가고 있어요. 다음 게임에서도 멋진 점수를 기록해보세요!"
+		ai_label.text = "[팁] 공룡 AI 코치: 차근차근 문제를 풀며 분수의 감각을 키워나가고 있어요. 다음 게임에서도 멋진 점수를 기록해보세요!"
 		return
 		
 	var w_name = weakest.get("name", "")
@@ -152,11 +152,11 @@ func _render_ai_feedback() -> void:
 			advice = "합이 1보다 커질 때 대분수로 알맞게 변환되었는지 차근차근 확인해보세요!"
 		else:
 			advice = "오답노트에 저장된 틀린 문제들을 다시 풀어보며 계산 실수를 줄여보세요!"
-		ai_label.text = "💡 공룡 AI 코치 진단: 현재 '%s' 영역의 정답률(%.1f%%)이 취약합니다. %s 💪" % [w_name, w_acc, advice]
+		ai_label.text = "[팁] 공룡 AI 코치 진단: 현재 '%s' 영역의 정답률(%.1f%%)이 취약합니다. %s "% [w_name, w_acc, advice]
 	elif w_acc < 85.0:
-		ai_label.text = "💡 공룡 AI 코치 진단: '%s' 영역(%.1f%%)을 조금만 더 보완하면 전 영역 90%% 이상의 분수 마스터가 될 수 있어요! ⭐" % [w_name, w_acc]
+		ai_label.text = "[팁] 공룡 AI 코치 진단: '%s' 영역(%.1f%%)을 조금만 더 보완하면 전 영역 90%% 이상의 분수 마스터가 될 수 있어요! "% [w_name, w_acc]
 	else:
-		ai_label.text = "🎉 공룡 AI 코치 진단: 모든 분수 연산 영역에서 85% 이상의 최우수 정답률을 유지하고 있습니다! 진정한 분수 수호신! 👑"
+		ai_label.text = "공룡 AI 코치 진단: 모든 분수 연산 영역에서 85% 이상의 최우수 정답률을 유지하고 있습니다! 진정한 분수 수호신! "
 
 func _on_review_pressed() -> void:
 	hide()

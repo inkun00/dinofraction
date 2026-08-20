@@ -1,104 +1,104 @@
 [gd_scene load_steps=32 format=3 uid="uid://title_menu_scene"]
 
-[ext_resource type="Script" path="res://scripts/TitleMenu.gd" id="1_title_script"]
-[ext_resource type="Texture2D" path="res://assets/sprites/title_poster.png" id="2_poster"]
-[ext_resource type="Texture2D" path="res://assets/sprites/title_logo_emblem.png" id="3_emblem"]
-[ext_resource type="Texture2D" path="res://assets/sprites/particle_star.png" id="4_star"]
-[ext_resource type="Texture2D" path="res://assets/ui/btn_jungle_green_n.png" id="5_bg_n"]
-[ext_resource type="Texture2D" path="res://assets/ui/btn_jungle_green_h.png" id="6_bg_h"]
-[ext_resource type="Texture2D" path="res://assets/ui/btn_jungle_green_p.png" id="7_bg_p"]
-[ext_resource type="Texture2D" path="res://assets/ui/btn_jungle_wood_n.png" id="8_bb_n"]
-[ext_resource type="Texture2D" path="res://assets/ui/btn_jungle_wood_h.png" id="9_bb_h"]
-[ext_resource type="Texture2D" path="res://assets/ui/btn_jungle_wood_p.png" id="10_bb_p"]
-[ext_resource type="Texture2D" path="res://assets/ui/btn_jungle_gold_n.png" id="11_by_n"]
-[ext_resource type="Texture2D" path="res://assets/ui/btn_jungle_gold_h.png" id="12_by_h"]
-[ext_resource type="Texture2D" path="res://assets/ui/btn_jungle_gold_p.png" id="13_by_p"]
-[ext_resource type="Texture2D" path="res://assets/ui/btn_purple_normal.png" id="14_bp_n"]
-[ext_resource type="Texture2D" path="res://assets/ui/btn_purple_hover.png" id="15_bp_h"]
-[ext_resource type="Texture2D" path="res://assets/ui/btn_purple_pressed.png" id="16_bp_p"]
-[ext_resource type="Texture2D" path="res://assets/ui/btn_red_normal.png" id="17_br_n"]
-[ext_resource type="Texture2D" path="res://assets/ui/btn_red_hover.png" id="18_br_h"]
-[ext_resource type="Texture2D" path="res://assets/ui/btn_red_pressed.png" id="19_br_p"]
-[ext_resource type="FontFile" path="res://assets/fonts/GameFontBold.ttf" id="20_font"]
+[ext_resource type="Script"path="res://scripts/TitleMenu.gd"id="1_title_script"]
+[ext_resource type="Texture2D"path="res://assets/sprites/title_poster.png"id="2_poster"]
+[ext_resource type="Texture2D"path="res://assets/sprites/title_logo_emblem.png"id="3_emblem"]
+[ext_resource type="Texture2D"path="res://assets/sprites/particle_star.png"id="4_star"]
+[ext_resource type="Texture2D"path="res://assets/ui/btn_jungle_green_n.png"id="5_bg_n"]
+[ext_resource type="Texture2D"path="res://assets/ui/btn_jungle_green_h.png"id="6_bg_h"]
+[ext_resource type="Texture2D"path="res://assets/ui/btn_jungle_green_p.png"id="7_bg_p"]
+[ext_resource type="Texture2D"path="res://assets/ui/btn_jungle_wood_n.png"id="8_bb_n"]
+[ext_resource type="Texture2D"path="res://assets/ui/btn_jungle_wood_h.png"id="9_bb_h"]
+[ext_resource type="Texture2D"path="res://assets/ui/btn_jungle_wood_p.png"id="10_bb_p"]
+[ext_resource type="Texture2D"path="res://assets/ui/btn_jungle_gold_n.png"id="11_by_n"]
+[ext_resource type="Texture2D"path="res://assets/ui/btn_jungle_gold_h.png"id="12_by_h"]
+[ext_resource type="Texture2D"path="res://assets/ui/btn_jungle_gold_p.png"id="13_by_p"]
+[ext_resource type="Texture2D"path="res://assets/ui/btn_purple_normal.png"id="14_bp_n"]
+[ext_resource type="Texture2D"path="res://assets/ui/btn_purple_hover.png"id="15_bp_h"]
+[ext_resource type="Texture2D"path="res://assets/ui/btn_purple_pressed.png"id="16_bp_p"]
+[ext_resource type="Texture2D"path="res://assets/ui/btn_red_normal.png"id="17_br_n"]
+[ext_resource type="Texture2D"path="res://assets/ui/btn_red_hover.png"id="18_br_h"]
+[ext_resource type="Texture2D"path="res://assets/ui/btn_red_pressed.png"id="19_br_p"]
+[ext_resource type="FontFile"path="res://assets/fonts/GameFontBold.ttf"id="20_font"]
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_start_n"]
+[sub_resource type="StyleBoxTexture"id="StyleBoxTexture_start_n"]
 texture = ExtResource("5_bg_n")
 texture_margin_left = 20.0
 texture_margin_top = 18.0
 texture_margin_right = 20.0
 texture_margin_bottom = 18.0
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_start_h"]
+[sub_resource type="StyleBoxTexture"id="StyleBoxTexture_start_h"]
 texture = ExtResource("6_bg_h")
 texture_margin_left = 20.0
 texture_margin_top = 18.0
 texture_margin_right = 20.0
 texture_margin_bottom = 18.0
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_start_p"]
+[sub_resource type="StyleBoxTexture"id="StyleBoxTexture_start_p"]
 texture = ExtResource("7_bg_p")
 texture_margin_left = 20.0
 texture_margin_top = 18.0
 texture_margin_right = 20.0
 texture_margin_bottom = 18.0
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dash_n"]
+[sub_resource type="StyleBoxTexture"id="StyleBoxTexture_dash_n"]
 texture = ExtResource("8_bb_n")
 texture_margin_left = 18.0
 texture_margin_top = 16.0
 texture_margin_right = 18.0
 texture_margin_bottom = 16.0
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dash_h"]
+[sub_resource type="StyleBoxTexture"id="StyleBoxTexture_dash_h"]
 texture = ExtResource("9_bb_h")
 texture_margin_left = 18.0
 texture_margin_top = 16.0
 texture_margin_right = 18.0
 texture_margin_bottom = 16.0
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_review_n"]
+[sub_resource type="StyleBoxTexture"id="StyleBoxTexture_review_n"]
 texture = ExtResource("11_by_n")
 texture_margin_left = 18.0
 texture_margin_top = 16.0
 texture_margin_right = 18.0
 texture_margin_bottom = 16.0
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_review_h"]
+[sub_resource type="StyleBoxTexture"id="StyleBoxTexture_review_h"]
 texture = ExtResource("12_by_h")
 texture_margin_left = 18.0
 texture_margin_top = 16.0
 texture_margin_right = 18.0
 texture_margin_bottom = 16.0
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_col_n"]
+[sub_resource type="StyleBoxTexture"id="StyleBoxTexture_col_n"]
 texture = ExtResource("11_by_n")
 texture_margin_left = 18.0
 texture_margin_top = 16.0
 texture_margin_right = 18.0
 texture_margin_bottom = 16.0
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_col_h"]
+[sub_resource type="StyleBoxTexture"id="StyleBoxTexture_col_h"]
 texture = ExtResource("12_by_h")
 texture_margin_left = 18.0
 texture_margin_top = 16.0
 texture_margin_right = 18.0
 texture_margin_bottom = 16.0
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_acc_n"]
+[sub_resource type="StyleBoxTexture"id="StyleBoxTexture_acc_n"]
 texture = ExtResource("8_bb_n")
 texture_margin_left = 18.0
 texture_margin_top = 16.0
 texture_margin_right = 18.0
 texture_margin_bottom = 16.0
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_acc_h"]
+[sub_resource type="StyleBoxTexture"id="StyleBoxTexture_acc_h"]
 texture = ExtResource("9_bb_h")
 texture_margin_left = 18.0
 texture_margin_top = 16.0
 texture_margin_right = 18.0
 texture_margin_bottom = 16.0
 
-[node name="TitleMenu" type="Control"]
+[node name="TitleMenu"type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -107,7 +107,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_title_script")
 
-[node name="PosterBackground" type="TextureRect" parent="."]
+[node name="PosterBackground"type="TextureRect"parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -118,7 +118,7 @@ texture = ExtResource("2_poster")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="SoftVignette" type="ColorRect" parent="."]
+[node name="SoftVignette"type="ColorRect"parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -127,7 +127,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.01, 0.02, 0.05, 0.2)
 
-[node name="TitleSparkles" type="CPUParticles2D" parent="."]
+[node name="TitleSparkles"type="CPUParticles2D"parent="."]
 position = Vector2(640, 240)
 amount = 24
 lifetime = 3.5
@@ -141,7 +141,7 @@ scale_amount_min = 0.4
 scale_amount_max = 0.9
 color = Color(1, 0.95, 0.5, 0.75)
 
-[node name="CenterContainer" type="CenterContainer" parent="."]
+[node name="CenterContainer"type="CenterContainer"parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -149,21 +149,21 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBox" type="VBoxContainer" parent="CenterContainer"]
+[node name="VBox"type="VBoxContainer"parent="CenterContainer"]
 layout_mode = 2
 theme_override_constants/separation = 10
 alignment = 1
 
-[node name="LogoBox" type="Control" parent="CenterContainer/VBox"]
+[node name="LogoBox"type="Control"parent="CenterContainer/VBox"]
 custom_minimum_size = Vector2(760, 150)
 layout_mode = 2
 
-[node name="EmblemSprite" type="Sprite2D" parent="CenterContainer/VBox/LogoBox"]
+[node name="EmblemSprite"type="Sprite2D"parent="CenterContainer/VBox/LogoBox"]
 position = Vector2(380, 80)
 scale = Vector2(0.85, 0.85)
 texture = ExtResource("3_emblem")
 
-[node name="GreetingLabel" type="RichTextLabel" parent="CenterContainer/VBox"]
+[node name="GreetingLabel"type="RichTextLabel"parent="CenterContainer/VBox"]
 custom_minimum_size = Vector2(740, 32)
 layout_mode = 2
 theme_override_fonts/normal_font = ExtResource("20_font")
@@ -172,14 +172,14 @@ theme_override_constants/shadow_offset_y = 2
 theme_override_font_sizes/normal_font_size = 17
 theme_override_font_sizes/bold_font_size = 18
 bbcode_enabled = true
-text = "[center]🦖 용감한 공룡 탐험가님 | 🏆 최고기록: 0 Pts | 🦕 수집 공룡: 2/30[/center]"
+text = "[center] 용감한 공룡 탐험가님 | 최고기록: 0 Pts | 수집 공룡: 2/30[/center]"
 
-[node name="MenuButtons" type="VBoxContainer" parent="CenterContainer/VBox"]
+[node name="MenuButtons"type="VBoxContainer"parent="CenterContainer/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 12
 alignment = 1
 
-[node name="BtnStart" type="Button" parent="CenterContainer/VBox/MenuButtons"]
+[node name="BtnStart"type="Button"parent="CenterContainer/VBox/MenuButtons"]
 custom_minimum_size = Vector2(360, 58)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -191,16 +191,16 @@ theme_override_font_sizes/font_size = 23
 theme_override_styles/normal = SubResource("StyleBoxTexture_start_n")
 theme_override_styles/hover = SubResource("StyleBoxTexture_start_h")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_start_p")
-text = "➔  모험 시작하기"
+text = "▶ 모험 시작하기"
 
-[node name="SubGrid" type="GridContainer" parent="CenterContainer/VBox/MenuButtons"]
+[node name="SubGrid"type="GridContainer"parent="CenterContainer/VBox/MenuButtons"]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_constants/h_separation = 14
 theme_override_constants/v_separation = 10
 columns = 3
 
-[node name="BtnDash" type="Button" parent="CenterContainer/VBox/MenuButtons/SubGrid"]
+[node name="BtnDash"type="Button"parent="CenterContainer/VBox/MenuButtons/SubGrid"]
 custom_minimum_size = Vector2(170, 48)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("20_font")
@@ -210,9 +210,9 @@ theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxTexture_dash_n")
 theme_override_styles/hover = SubResource("StyleBoxTexture_dash_h")
-text = "📊  학습 대시보드"
+text = "학습 대시보드"
 
-[node name="BtnLeaderboard" type="Button" parent="CenterContainer/VBox/MenuButtons/SubGrid"]
+[node name="BtnLeaderboard"type="Button"parent="CenterContainer/VBox/MenuButtons/SubGrid"]
 custom_minimum_size = Vector2(170, 48)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("20_font")
@@ -222,9 +222,9 @@ theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxTexture_review_n")
 theme_override_styles/hover = SubResource("StyleBoxTexture_review_h")
-text = "🏆  명예의 전당"
+text = "명예의 전당"
 
-[node name="BtnCol" type="Button" parent="CenterContainer/VBox/MenuButtons/SubGrid"]
+[node name="BtnCol"type="Button"parent="CenterContainer/VBox/MenuButtons/SubGrid"]
 custom_minimum_size = Vector2(170, 48)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("20_font")
@@ -234,9 +234,9 @@ theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxTexture_col_n")
 theme_override_styles/hover = SubResource("StyleBoxTexture_col_h")
-text = "🦖  30종 공룡도감"
+text = "30종 공룡도감"
 
-[node name="BtnReview" type="Button" parent="CenterContainer/VBox/MenuButtons/SubGrid"]
+[node name="BtnReview"type="Button"parent="CenterContainer/VBox/MenuButtons/SubGrid"]
 custom_minimum_size = Vector2(170, 48)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("20_font")
@@ -246,9 +246,9 @@ theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxTexture_review_n")
 theme_override_styles/hover = SubResource("StyleBoxTexture_review_h")
-text = "📖  분수 오답노트"
+text = "분수 오답노트"
 
-[node name="BtnAcc" type="Button" parent="CenterContainer/VBox/MenuButtons/SubGrid"]
+[node name="BtnAcc"type="Button"parent="CenterContainer/VBox/MenuButtons/SubGrid"]
 custom_minimum_size = Vector2(170, 48)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("20_font")
@@ -258,14 +258,14 @@ theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxTexture_acc_n")
 theme_override_styles/hover = SubResource("StyleBoxTexture_acc_h")
-text = "👤  탐험가 프로필"
+text = "탐험가 프로필"
 
-[node name="ControlGuide" type="Label" parent="CenterContainer/VBox"]
+[node name="ControlGuide"type="Label"parent="CenterContainer/VBox"]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("20_font")
 theme_override_colors/font_color = Color(0.9, 0.95, 1, 0.9)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 14
-text = "조작 가이드: Space: 점프  |  Ctrl: 공격  |  A/D 또는 ←/→: 좌우 이동"
+text = "조작 가이드: Space: 점프 | Ctrl: 공격 | A/D 또는 /: 좌우 이동"
 horizontal_alignment = 1

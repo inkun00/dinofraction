@@ -1,23 +1,23 @@
 [gd_scene load_steps=6 format=3 uid="uid://problem_bubble_scene"]
 
-[ext_resource type="Script" path="res://scripts/ProblemBubble.gd" id="1_bubble_script"]
-[ext_resource type="Texture2D" path="res://assets/sprites/wood_board.png" id="2_wood"]
-[ext_resource type="Texture2D" path="res://assets/sprites/crystal_orb.png" id="3_orb"]
-[ext_resource type="Texture2D" path="res://assets/sprites/particle_star.png" id="4_star"]
+[ext_resource type="Script"path="res://scripts/ProblemBubble.gd"id="1_bubble_script"]
+[ext_resource type="Texture2D"path="res://assets/sprites/wood_board.png"id="2_wood"]
+[ext_resource type="Texture2D"path="res://assets/sprites/crystal_orb.png"id="3_orb"]
+[ext_resource type="Texture2D"path="res://assets/sprites/particle_star.png"id="4_star"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_choice"]
+[sub_resource type="CircleShape2D"id="CircleShape2D_choice"]
 radius = 26.0
 
-[node name="ProblemBubble" type="Area2D"]
+[node name="ProblemBubble"type="Area2D"]
 script = ExtResource("1_bubble_script")
 
-[node name="ProblemCard" type="Node2D" parent="."]
+[node name="ProblemCard"type="Node2D"parent="."]
 position = Vector2(0, -245)
 
-[node name="BoardSprite" type="Sprite2D" parent="ProblemCard"]
+[node name="BoardSprite"type="Sprite2D"parent="ProblemCard"]
 texture = ExtResource("2_wood")
 
-[node name="FormulaContainer" type="HBoxContainer" parent="ProblemCard"]
+[node name="FormulaContainer"type="HBoxContainer"parent="ProblemCard"]
 offset_left = -160.0
 offset_top = -38.0
 offset_right = 160.0
@@ -25,63 +25,63 @@ offset_bottom = 38.0
 theme_override_constants/separation = 6
 alignment = 1
 
-[node name="Choices" type="Node2D" parent="."]
+[node name="Choices"type="Node2D"parent="."]
 position = Vector2(0, -135)
 
-[node name="Choice1" type="Area2D" parent="Choices"]
+[node name="Choice1"type="Area2D"parent="Choices"]
 position = Vector2(-95, 0)
 collision_layer = 2
 collision_mask = 1
 
-[node name="OrbSprite" type="Sprite2D" parent="Choices/Choice1"]
+[node name="OrbSprite"type="Sprite2D"parent="Choices/Choice1"]
 scale = Vector2(0.65, 0.65)
 texture = ExtResource("3_orb")
 
-[node name="FractionContainer" type="CenterContainer" parent="Choices/Choice1"]
+[node name="FractionContainer"type="CenterContainer"parent="Choices/Choice1"]
 offset_left = -28.0
 offset_top = -28.0
 offset_right = 28.0
 offset_bottom = 28.0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Choices/Choice1"]
+[node name="CollisionShape2D"type="CollisionShape2D"parent="Choices/Choice1"]
 shape = SubResource("CircleShape2D_choice")
 
-[node name="Choice2" type="Area2D" parent="Choices"]
+[node name="Choice2"type="Area2D"parent="Choices"]
 collision_layer = 2
 collision_mask = 1
 
-[node name="OrbSprite" type="Sprite2D" parent="Choices/Choice2"]
+[node name="OrbSprite"type="Sprite2D"parent="Choices/Choice2"]
 scale = Vector2(0.65, 0.65)
 texture = ExtResource("3_orb")
 
-[node name="FractionContainer" type="CenterContainer" parent="Choices/Choice2"]
+[node name="FractionContainer"type="CenterContainer"parent="Choices/Choice2"]
 offset_left = -28.0
 offset_top = -28.0
 offset_right = 28.0
 offset_bottom = 28.0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Choices/Choice2"]
+[node name="CollisionShape2D"type="CollisionShape2D"parent="Choices/Choice2"]
 shape = SubResource("CircleShape2D_choice")
 
-[node name="Choice3" type="Area2D" parent="Choices"]
+[node name="Choice3"type="Area2D"parent="Choices"]
 position = Vector2(95, 0)
 collision_layer = 2
 collision_mask = 1
 
-[node name="OrbSprite" type="Sprite2D" parent="Choices/Choice3"]
+[node name="OrbSprite"type="Sprite2D"parent="Choices/Choice3"]
 scale = Vector2(0.65, 0.65)
 texture = ExtResource("3_orb")
 
-[node name="FractionContainer" type="CenterContainer" parent="Choices/Choice3"]
+[node name="FractionContainer"type="CenterContainer"parent="Choices/Choice3"]
 offset_left = -28.0
 offset_top = -28.0
 offset_right = 28.0
 offset_bottom = 28.0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Choices/Choice3"]
+[node name="CollisionShape2D"type="CollisionShape2D"parent="Choices/Choice3"]
 shape = SubResource("CircleShape2D_choice")
 
-[node name="SparkleParticles" type="CPUParticles2D" parent="."]
+[node name="SparkleParticles"type="CPUParticles2D"parent="."]
 emitting = false
 amount = 18
 one_shot = true

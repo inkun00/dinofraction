@@ -60,13 +60,13 @@ func show_empty() -> void:
 	page_label.text = "0 / 0"
 	for c in formula_box.get_children(): c.queue_free()
 	$Panel/VBox/InputContainer.visible = false
-	feedback_label.text = "✨ 틀린 오답 문제가 없습니다! 완벽합니다! ✨"
+	feedback_label.text = "틀린 오답 문제가 없습니다! 완벽합니다! "
 	feedback_label.modulate = Color.GREEN
 	hint_label.text = "[center][color=#00E5FF]모든 오답을 정복했습니다. 바로 모험을 시작할 수 있습니다![/color][/center]"
 
 func load_current_problem() -> void:
 	if review_list.is_empty():
-		feedback_label.text = "🎉 모든 오답 정복 완료! 다음 게임을 시작할 수 있습니다!"
+		feedback_label.text = "모든 오답 정복 완료! 다음 게임을 시작할 수 있습니다!"
 		feedback_label.modulate = Color.GREEN
 		hint_label.text = "[center][color=#FFD700]모든 분수 오답을 완벽하게 해결했습니다![/color][/center]"
 		for c in formula_box.get_children(): c.queue_free()
@@ -83,7 +83,7 @@ func load_current_problem() -> void:
 		
 	$Panel/VBox/InputContainer.visible = true
 	var prob = review_list[0]
-	page_label.text = "남은 오답: %d개" % review_list.size()
+	page_label.text = "남은 오답: %d개"% review_list.size()
 	feedback_label.text = "자연수, 분자, 분모를 직접 입력하고 [정답 제출]을 누르세요!"
 	feedback_label.modulate = Color.WHITE
 	
@@ -105,7 +105,7 @@ func load_current_problem() -> void:
 	formula_box.add_child(FractionView.create_operator("= ?", 28, Color(0.4, 0.9, 1.0)))
 	
 	# 2. Hint Display
-	hint_label.text = "[color=#FFD700]💡 입력 팁:[/color] 진분수(예: 3/4), 가분수(예: 7/4), 대분수(예: 1과 3/4) 모두 정답으로 인정됩니다!"
+	hint_label.text = "[color=#FFD700][팁] 입력 팁:[/color] 진분수(예: 3/4), 가분수(예: 7/4), 대분수(예: 1과 3/4) 모두 정답으로 인정됩니다!"
 
 func _on_submit() -> void:
 	if is_busy or review_list.is_empty():
@@ -118,16 +118,16 @@ func _on_submit() -> void:
 	var user_n_str = input_num.text.strip_edges()
 	var user_d_str = input_den.text.strip_edges()
 	
-	var user_w = int(user_w_str) if user_w_str != "" else 0
-	var user_n = int(user_n_str) if user_n_str != "" else 0
-	var user_d = int(user_d_str) if user_d_str != "" else 1
+	var user_w = int(user_w_str) if user_w_str != ""else 0
+	var user_n = int(user_n_str) if user_n_str != ""else 0
+	var user_d = int(user_d_str) if user_d_str != ""else 1
 	
 	# Validation: If both fraction parts are empty, check if user entered whole only
-	if user_n_str == "" and user_d_str == "" and user_w_str != "":
+	if user_n_str == ""and user_d_str == ""and user_w_str != "":
 		user_n = 0
 		user_d = 1
 	elif user_d <= 0:
-		feedback_label.text = "⚠️ 분모는 0보다 큰 자연수여야 합니다!"
+		feedback_label.text = "[주의] 분모는 0보다 큰 자연수여야 합니다!"
 		feedback_label.modulate = Color(1.0, 0.8, 0.2)
 		input_den.grab_focus()
 		return
@@ -146,7 +146,7 @@ func _on_submit() -> void:
 	
 	if is_correct:
 		is_busy = true
-		feedback_label.text = "✨ 정답입니다! 완벽하게 해결했습니다! ✨"
+		feedback_label.text = "정답입니다! 완벽하게 해결했습니다! "
 		feedback_label.modulate = Color.GREEN
 		UserProfile.solve_wrong_problem(prob)
 		
@@ -157,7 +157,7 @@ func _on_submit() -> void:
 			load_current_problem()
 		)
 	else:
-		feedback_label.text = "❌ 오답입니다! 분자와 분모를 다시 계산해보세요."
+		feedback_label.text = "오답입니다! 분자와 분모를 다시 계산해보세요."
 		feedback_label.modulate = Color(1.0, 0.4, 0.4)
 		var tween = create_tween()
 		tween.tween_property(self, "position:x", position.x + 10.0, 0.05)
