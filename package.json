@@ -9,7 +9,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "images:prune": "node scripts/prune_unused_images.js",
+    "images:optimize": "node scripts/optimize_images.js"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.14.1",
