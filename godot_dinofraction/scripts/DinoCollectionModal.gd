@@ -21,8 +21,8 @@ const DINO_30_INFO = [
 		"name": "에메랄드 벨로시",
 		"title": "[Rare] 신속의 사냥꾼",
 		"desc": "가볍고 빠른 발걸음과 예리한 감각을 지닌 날렵한 벨로키랍토르",
-		"req": "기본 제공",
-		"score_req": 0,
+		"req": "최고 25점 달성 (첫 공룡 부화!)",
+		"score_req": 25,
 		"mass": 1.2
 	},
 	{
@@ -288,6 +288,24 @@ func _ready() -> void:
 	close_btn.pressed.connect(hide)
 	hide()
 
+func _get_dino_index(dino_id: String) -> int:
+	return clamp(int(dino_id.trim_prefix("dino_")), 1, 30)
+
+func _get_effect_summary(dino_index: int) -> String:
+	if dino_index <= 1:
+		return "효과: 포근한 부화 파동"
+	if dino_index <= 6:
+		return "효과: 속성 충격파"
+	if dino_index <= 12:
+		return "효과: 반짝 별가루"
+	if dino_index <= 18:
+		return "효과: 회전 오라 + 에너지 링"
+	if dino_index <= 24:
+		return "효과: 광채 잔상 + 다중 슬래시"
+	if dino_index <= 28:
+		return "효과: 궤도광 + 연속 충격파"
+	return "효과: 초월 오라 + 성운 폭발"
+
 func open_collection() -> void:
 	render_cards()
 	show()
@@ -298,15 +316,16 @@ func render_cards() -> void:
 		
 	var unlocked_count = 0
 	for info in DINO_30_INFO:
-		if UserProfile.unlocked_dinos.has(info["id"]) or UserProfile.high_score >= info["score_req"]:
+		if info["id"] != "dino_01" and (UserProfile.unlocked_dinos.has(info["id"]) or UserProfile.high_score >= info["score_req"]):
 			unlocked_count += 1
 			
 	if progress_label:
-		progress_label.text = "수집 현황: %d / 30 (%.0f%%)"% [unlocked_count, (float(unlocked_count)/30.0)*100.0]
+		progress_label.text = "공룡 수집: %d / 29 (%.0f%%) · 알 보유"% [unlocked_count, (float(unlocked_count)/29.0)*100.0]
 		
 	for info in DINO_30_INFO:
 		var is_unlocked = UserProfile.unlocked_dinos.has(info["id"]) or UserProfile.high_score >= info["score_req"]
 		var is_equipped = (UserProfile.selected_dino == info["id"])
+		var dino_index = _get_dino_index(info["id"])
 		
 		var card = PanelContainer.new()
 		card.custom_minimum_size = Vector2(215, 230)
@@ -343,7 +362,8 @@ func render_cards() -> void:
 		
 		# Dino Icon Avatar
 		var icon_rect = TextureRect.new()
-		icon_rect.custom_minimum_size = Vector2(68, 68)
+		var icon_size = 66.0 + float(dino_index - 1) * 0.45
+		icon_rect.custom_minimum_size = Vector2(icon_size, icon_size)
 		icon_rect.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -377,6 +397,15 @@ func render_cards() -> void:
 		sub_lbl.add_theme_color_override("font_color", Color(0.4, 0.9, 1.0) if is_unlocked else Color(0.4, 0.4, 0.4))
 		sub_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		vbox.add_child(sub_lbl)
+
+		# Communicate the visual reward that grows with collection rarity.
+		var effect_lbl = Label.new()
+		effect_lbl.text = _get_effect_summary(dino_index) if is_unlocked else "효과: 수집 후 공개"
+		effect_lbl.add_theme_font_override("font", font_bold)
+		effect_lbl.add_theme_font_size_override("font_size", 9)
+		effect_lbl.add_theme_color_override("font_color", Color(0.85, 0.65, 1.0) if is_unlocked else Color(0.35, 0.35, 0.4))
+		effect_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		vbox.add_child(effect_lbl)
 		
 		# Requirement / Status Label
 		var status_lbl = Label.new()

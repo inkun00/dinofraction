@@ -60,6 +60,10 @@ func show_title() -> void:
 func update_view() -> void:
 	var uname = UserProfile.username if UserProfile else "용감한 공룡"
 	var hscore = UserProfile.high_score if UserProfile else 0
-	var un_count = UserProfile.unlocked_dinos.size() if UserProfile else 2
+	var un_count = 0
+	if UserProfile:
+		for dino_id in UserProfile.unlocked_dinos:
+			if dino_id != "dino_01":
+				un_count += 1
 	
-	greeting_label.text = "[center]★ %s 탐험가님 | [color=#FFD700]최고기록: %d Pts[/color] | [color=#00E5FF]수집 공룡: %d/30[/color][/center]" % [uname, hscore, un_count]
+	greeting_label.text = "[center]★ %s 탐험가님 | [color=#FFD700]최고기록: %d Pts[/color] | [color=#00E5FF]수집 공룡: %d/29 · 알 보유[/color][/center]" % [uname, hscore, un_count]

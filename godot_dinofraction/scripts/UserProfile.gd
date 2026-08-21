@@ -8,14 +8,14 @@ var high_score: int = 0
 var total_games: int = 0
 var total_correct: int = 0
 var total_wrong: int = 0
-var unlocked_dinos: Array[String] = ["dino_01", "dino_02"]
+var unlocked_dinos: Array[String] = ["dino_01"]
 var selected_dino: String = "dino_01"
 var wrong_history: Array = []
 var pending_wrong_problems: Array = []
 
 const DINO_UNLOCK_SCORES = {
 	"dino_01": 0, # 신비의 공룡알 (기본)
-	"dino_02": 0, # 에메랄드 벨로시 (기본)
+	"dino_02": 25, # 에메랄드 벨로시 (첫 공룡 해금)
 	"dino_03": 50, # 사파이어 트리케라 (첫 도전 달성!)
 	"dino_04": 120, # 루비 티라노 (제왕의 포효)
 	"dino_05": 200, # 에메랄드 이구아노 (엄지발톱 수호자)
@@ -95,13 +95,27 @@ func load_data() -> void:
 			total_games = d.get("total_games", 0)
 			total_correct = d.get("total_correct", 0)
 			total_wrong = d.get("total_wrong", 0)
-			unlocked_dinos = Array(d.get("unlocked_dinos", ["dino_01", "dino_02"]), TYPE_STRING, &"", null)
+			unlocked_dinos = Array(d.get("unlocked_dinos", ["dino_01"]), TYPE_STRING, &"", null)
 			selected_dino = d.get("selected_dino", "dino_01")
 			wrong_history = d.get("wrong_history", [])
 			pending_wrong_problems = d.get("pending_wrong_problems", [])
 			correct_by_type = d.get("correct_by_type", {})
 			wrong_by_type = d.get("wrong_by_type", {})
+			# Migrate untouched profiles from the old "egg + dino_02" starter set.
+			# Players who have made progress keep every dinosaur they earned.
+			var is_legacy_fresh_profile = (
+				high_score == 0
+				and total_games == 0
+				and unlocked_dinos.size() <= 2
+				and unlocked_dinos.has("dino_01")
+				and unlocked_dinos.has("dino_02")
+			)
+			if is_legacy_fresh_profile:
+				unlocked_dinos = ["dino_01"]
+				selected_dino = "dino_01"
 			check_all_unlocks()
+			if not unlocked_dinos.has(selected_dino):
+				selected_dino = "dino_01"
 
 func record_problem_answer(p_type: String, is_correct: bool) -> void:
 	if is_correct:
