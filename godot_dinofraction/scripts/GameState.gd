@@ -40,6 +40,8 @@ var speed_boost_timer: float = 0.0
 var correct_count: int = 0
 var wrong_count: int = 0
 var wrong_problems: Array = []
+var correct_by_type: Dictionary = {}
+var wrong_by_type: Dictionary = {}
 
 func _process(delta: float) -> void:
 	if is_game_running:
@@ -133,6 +135,8 @@ func start_new_game() -> void:
 	jump_boost_count = 0
 	speed_boost_timer = 0.0
 	wrong_problems.clear()
+	correct_by_type.clear()
+	wrong_by_type.clear()
 	
 	score_changed.emit(score)
 	lives_changed.emit(lives)
@@ -204,6 +208,7 @@ func add_correct(problem_data: Dictionary) -> void:
 	combo_changed.emit(combo)
 	
 	var p_type = problem_data.get("problem_type", "진분수+진분수")
+	correct_by_type[p_type] = int(correct_by_type.get(p_type, 0)) + 1
 	if UserProfile:
 		UserProfile.record_problem_answer(p_type, true)
 	
@@ -227,6 +232,7 @@ func add_wrong(problem_data: Dictionary) -> void:
 	combo_changed.emit(combo)
 	
 	var p_type = problem_data.get("problem_type", "진분수+진분수")
+	wrong_by_type[p_type] = int(wrong_by_type.get(p_type, 0)) + 1
 	if UserProfile:
 		UserProfile.record_problem_answer(p_type, false)
 		

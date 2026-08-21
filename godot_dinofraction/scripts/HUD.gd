@@ -28,6 +28,7 @@ const HEART_EMPTY = preload("res://assets/ui/heart_empty.png")
 
 # Game Over Extra Buttons
 @onready var go_restart_btn: Button = $GameOverPanel/VBox/BtnBox/RestartButton
+@onready var go_report_btn: Button = $GameOverPanel/VBox/BtnBox/GameOverReportBtn
 @onready var go_review_btn: Button = $GameOverPanel/VBox/BtnBox/GameOverReviewBtn
 @onready var go_dash_btn: Button = $GameOverPanel/VBox/BtnBox/GameOverDashBtn
 @onready var go_leaderboard_btn: Button = $GameOverPanel/VBox/BtnBox/GameOverLeaderboardBtn
@@ -65,13 +66,14 @@ func _ready() -> void:
 	
 	# Game Over Buttons
 	go_restart_btn.pressed.connect(_on_request_start_game)
+	go_report_btn.pressed.connect(_on_report_pressed)
 	go_review_btn.pressed.connect(func(): review_modal.open_review(GameState.wrong_problems))
 	go_dash_btn.pressed.connect(func(): dashboard_modal.open_dashboard())
 	go_leaderboard_btn.pressed.connect(func(): leaderboard_modal.open_leaderboard())
 	go_home_btn.pressed.connect(_on_home_pressed)
 	
 	# Add hover animations for all Game Over & Top buttons
-	var all_interactive_buttons = [home_btn, go_restart_btn, go_review_btn, go_dash_btn, go_leaderboard_btn, go_home_btn]
+	var all_interactive_buttons = [home_btn, go_restart_btn, go_report_btn, go_review_btn, go_dash_btn, go_leaderboard_btn, go_home_btn]
 	for btn in all_interactive_buttons:
 		btn.pivot_offset = btn.custom_minimum_size / 2.0
 		btn.mouse_entered.connect(func():
@@ -204,6 +206,99 @@ func _on_game_over() -> void:
 	
 	go_review_btn.visible = (GameState.wrong_problems.size() > 0)
 	game_over_panel.visible = true
+
+func _on_report_pressed() -> void:
+	if not OS.has_feature("web"):
+		OS.alert("PDF 출력은 웹 브라우저에서 게임을 실행할 때 사용할 수 있습니다.", "PDF 출력 안내")
+		return
+
+	var report_bridge = JavaScriptBridge.get_interface("DinoLearningReport")
+	if report_bridge == null:
+		OS.alert("PDF 출력 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.", "PDF 출력 오류")
+		return
+
+	var payload = _build_learning_report_payload()
+	report_bridge.printReport(JSON.stringify(payload))
+
+func _build_learning_report_payload() -> Dictionary:
+	var highest_dino_id = _get_highest_grade_dino_id()
+	return {
+		"studentName": UserProfile.username if UserProfile else "용감한 공룡",
+		"school": UserProfile.school if UserProfile else "",
+		"score": GameState.score,
+		"title": _get_score_title(GameState.score),
+		"correctCount": GameState.correct_count,
+		"wrongCount": GameState.wrong_count,
+		"correctByType": GameState.correct_by_type.duplicate(true),
+		"wrongByType": GameState.wrong_by_type.duplicate(true),
+		"generatedAt": Time.get_datetime_string_from_system(false, true),
+		"dinosaur": {
+			"id": highest_dino_id,
+			"name": _get_dino_name(highest_dino_id),
+			"grade": _get_dino_grade(highest_dino_id),
+			"imageDataUrl": _get_dino_data_url(highest_dino_id)
+		}
+	}
+
+func _get_highest_grade_dino_id() -> String:
+	var highest_number = 1
+	if UserProfile:
+		for dino_id in UserProfile.unlocked_dinos:
+			var dino_number = int(str(dino_id).trim_prefix("dino_"))
+			if dino_number > highest_number:
+				highest_number = dino_number
+	return "dino_%02d" % highest_number
+
+func _get_dino_name(dino_id: String) -> String:
+	var names = {
+		"dino_01": "신비의 공룡알", "dino_02": "에메랄드 벨로시", "dino_03": "사파이어 트리케라",
+		"dino_04": "루비 티라노", "dino_05": "에메랄드 이구아노", "dino_06": "토파즈 스테고",
+		"dino_07": "볼케이노 딜로포", "dino_08": "글래시어 스테고케라", "dino_09": "포이즌 벨로시",
+		"dino_10": "썬더 켄트로", "dino_11": "옵시디언 카르노", "dino_12": "템페스트 파키케",
+		"dino_13": "크리스탈 브라키오", "dino_14": "어비스 알로", "dino_15": "트와일라잇 코리토",
+		"dino_16": "블레이드 테리지노", "dino_17": "크림슨 케라토", "dino_18": "스파이크 스티라코",
+		"dino_19": "나이트 헌터 데이노", "dino_20": "아쿠아 세일 스피노", "dino_21": "헬멧 크레스트 람베오",
+		"dino_22": "마더 가디언 마이아", "dino_23": "선셋 깃털 오비랍", "dino_24": "골든 스프린터 갈리",
+		"dino_25": "쁘띠 프릴 프로토", "dino_26": "스파이크 아머 사우로", "dino_27": "메이스 해머 에우오",
+		"dino_28": "자이언트 브레스 아파토", "dino_29": "크로노스 시공룡", "dino_30": "솔라 제네시스 신룡"
+	}
+	return names.get(dino_id, "신비의 공룡")
+
+func _get_dino_grade(dino_id: String) -> String:
+	var number = int(dino_id.trim_prefix("dino_"))
+	if number >= 26:
+		return "초월"
+	if number >= 21:
+		return "신화"
+	if number >= 16:
+		return "전설"
+	if number >= 11:
+		return "영웅"
+	if number >= 6:
+		return "희귀"
+	return "일반"
+
+func _get_score_title(final_score: int) -> String:
+	if final_score >= 3000:
+		return "태양의 분수 신룡"
+	if final_score >= 1500:
+		return "시간을 다루는 분수 대가"
+	if final_score >= 700:
+		return "루비 분수 정복자"
+	if final_score >= 300:
+		return "사파이어 분수 탐험가"
+	if final_score >= 100:
+		return "에메랄드 분수 사냥꾼"
+	return "새싹 분수 탐험가"
+
+func _get_dino_data_url(dino_id: String) -> String:
+	var texture = load("res://assets/dinos/%s.png" % dino_id) as Texture2D
+	if texture == null:
+		return ""
+	var image = texture.get_image()
+	if image == null or image.is_empty():
+		return ""
+	return "data:image/png;base64," + Marshalls.raw_to_base64(image.save_png_to_buffer())
 
 func _on_dino_unlocked(dino_id: String) -> void:
 	var names_map = {

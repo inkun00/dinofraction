@@ -53,3 +53,5 @@ __pycache__/
 *.py[cod]
 project.zip
 .vercel
+/tmp/
+/output/
