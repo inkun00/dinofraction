@@ -4,6 +4,42 @@ const GRAVITY: float = 2100.0
 const JUMP_VELOCITY: float = -820.0
 const MOVE_SPEED: float = 350.0
 
+# Every sheet is measured independently.  Do not replace this table with one
+# global run/attack frame count: several dinosaurs use wider source poses and a
+# different number of frames after their individual sheets are packed.
+const DINO_ANIMATION_LAYOUTS = {
+	"dino_01": {"run_frames": 8, "attack_frames": 6},
+	"dino_02": {"run_frames": 8, "attack_frames": 6},
+	"dino_03": {"run_frames": 8, "attack_frames": 6},
+	"dino_04": {"run_frames": 8, "attack_frames": 6},
+	"dino_05": {"run_frames": 8, "attack_frames": 6},
+	"dino_06": {"run_frames": 8, "attack_frames": 6},
+	"dino_07": {"run_frames": 8, "attack_frames": 6},
+	"dino_08": {"run_frames": 8, "attack_frames": 5},
+	"dino_09": {"run_frames": 8, "attack_frames": 6},
+	"dino_10": {"run_frames": 8, "attack_frames": 6},
+	"dino_11": {"run_frames": 8, "attack_frames": 5},
+	"dino_12": {"run_frames": 8, "attack_frames": 6},
+	"dino_13": {"run_frames": 8, "attack_frames": 6},
+	"dino_14": {"run_frames": 6, "attack_frames": 5},
+	"dino_15": {"run_frames": 5, "attack_frames": 5},
+	"dino_16": {"run_frames": 8, "attack_frames": 6},
+	"dino_17": {"run_frames": 6, "attack_frames": 5},
+	"dino_18": {"run_frames": 8, "attack_frames": 6},
+	"dino_19": {"run_frames": 8, "attack_frames": 6},
+	"dino_20": {"run_frames": 8, "attack_frames": 6},
+	"dino_21": {"run_frames": 8, "attack_frames": 6},
+	"dino_22": {"run_frames": 8, "attack_frames": 6},
+	"dino_23": {"run_frames": 8, "attack_frames": 6},
+	"dino_24": {"run_frames": 5, "attack_frames": 5},
+	"dino_25": {"run_frames": 8, "attack_frames": 6},
+	"dino_26": {"run_frames": 8, "attack_frames": 6},
+	"dino_27": {"run_frames": 8, "attack_frames": 6},
+	"dino_28": {"run_frames": 6, "attack_frames": 5},
+	"dino_29": {"run_frames": 8, "attack_frames": 6},
+	"dino_30": {"run_frames": 8, "attack_frames": 6},
+}
+
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 @onready var dust_particles: CPUParticles2D = $DustParticles
@@ -27,12 +63,13 @@ var textures = {}
 
 func _init() -> void:
 	# 1. Base Dino 01 (Egg)
+	var egg_layout = DINO_ANIMATION_LAYOUTS["dino_01"]
 	textures["dino_01"] = {
 		"run": load("res://assets/sprites/dinos/dino_01_run.png"),
 		"jump": load("res://assets/sprites/dinos/dino_01_jump.png"),
 		"attack": load("res://assets/sprites/dinos/dino_01_attack.png"),
-		"frames": 8,
-		"attack_frames": 6,
+		"frames": egg_layout["run_frames"],
+		"attack_frames": egg_layout["attack_frames"],
 		"scale": Vector2(0.95, 0.95),
 		"mass": 0.6,
 		"jump_power": -820.0
@@ -46,6 +83,7 @@ func _init() -> void:
 		var run_path = "res://assets/sprites/dinos/%s_run.png"% id_str
 		var jump_path = "res://assets/sprites/dinos/%s_jump.png"% id_str
 		var attack_path = "res://assets/sprites/dinos/%s_attack.png"% id_str
+		var anim_layout = DINO_ANIMATION_LAYOUTS[id_str]
 		
 		var scale_factor = 0.95 + (float(i - 2) * 0.018)
 		var mass_val = 1.0 + (float(i - 2) * 0.45)
@@ -55,8 +93,8 @@ func _init() -> void:
 			"run": load(run_path),
 			"jump": load(jump_path),
 			"attack": load(attack_path),
-			"frames": 8,
-			"attack_frames": 6,
+			"frames": anim_layout["run_frames"],
+			"attack_frames": anim_layout["attack_frames"],
 			"scale": Vector2(scale_factor, scale_factor),
 			"mass": mass_val,
 			"jump_power": j_power
