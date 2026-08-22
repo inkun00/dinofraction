@@ -23,6 +23,13 @@ enum Evolution {
 	GOD
 }
 
+# Keep the bubble clearance in sync with the dinosaur sizing rules in Player.
+# The player's feet are aligned with the terrain using this same 56 px anchor,
+# so raising bubbles by the resulting growth delta preserves jump clearance.
+const DINO_BASE_SCALE: float = 0.95
+const DINO_SCALE_STEP: float = 0.018
+const DINO_FOOT_ALIGNMENT_HEIGHT: float = 56.0
+
 var score: int = 0
 var lives: int = 5
 var time_left: float = 300.0
@@ -107,20 +114,25 @@ func apply_random_mystery_buff() -> Dictionary:
 	return res
 
 func get_evolution_bubble_offset() -> float:
-	match current_evolution:
-		Evolution.EGG:
-			return 0.0
-		Evolution.BABY:
-			return 10.0
-		Evolution.MEDIUM:
-			return 20.0
-		Evolution.ADULT:
-			return 32.0
-		Evolution.BOSS:
-			return 45.0
-		Evolution.GOD:
-			return 58.0
-	return 0.0
+	var dino_number = _get_dino_number(evolution_name)
+	var scale_steps = max(0, dino_number - 2)
+	var scale_growth = float(scale_steps) * DINO_SCALE_STEP
+	return scale_growth * DINO_FOOT_ALIGNMENT_HEIGHT
+
+func _get_dino_number(dino_id: String) -> int:
+	var normalized_id = dino_id
+	match dino_id:
+		"EGG": normalized_id = "dino_01"
+		"BABY": normalized_id = "dino_02"
+		"MEDIUM": normalized_id = "dino_03"
+		"ADULT": normalized_id = "dino_04"
+		"BOSS": normalized_id = "dino_29"
+		"GOD": normalized_id = "dino_30"
+
+	var id_parts = normalized_id.split("_")
+	if id_parts.size() != 2 or id_parts[0] != "dino" or not id_parts[1].is_valid_int():
+		return 2
+	return clampi(int(id_parts[1]), 1, 30)
 
 func start_new_game() -> void:
 	score = 0

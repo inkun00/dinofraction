@@ -70,7 +70,7 @@ func _init() -> void:
 		"attack": load("res://assets/sprites/dinos/dino_01_attack.png"),
 		"frames": egg_layout["run_frames"],
 		"attack_frames": egg_layout["attack_frames"],
-		"scale": Vector2(0.95, 0.95),
+		"scale": Vector2(GameState.DINO_BASE_SCALE, GameState.DINO_BASE_SCALE),
 		"mass": 0.6,
 		"jump_power": -820.0
 	}
@@ -85,7 +85,7 @@ func _init() -> void:
 		var attack_path = "res://assets/sprites/dinos/%s_attack.png"% id_str
 		var anim_layout = DINO_ANIMATION_LAYOUTS[id_str]
 		
-		var scale_factor = 0.95 + (float(i - 2) * 0.018)
+		var scale_factor = GameState.DINO_BASE_SCALE + (float(i - 2) * GameState.DINO_SCALE_STEP)
 		var mass_val = 1.0 + (float(i - 2) * 0.45)
 		var j_power = -840.0 - (float(i - 2) * 6.0)
 		
@@ -155,8 +155,8 @@ func _physics_process(delta: float) -> void:
 	var slope_angle = GroundTracker.get_slope_angle(global_position.x, scroll_x)
 	
 	var cfg = textures.get(current_stage, textures["dino_02"])
-	var cur_scale = cfg.get("scale", Vector2(0.95, 0.95))
-	var foot_offset = (56.0 * cur_scale.y) - 35.0
+	var cur_scale = cfg.get("scale", Vector2(GameState.DINO_BASE_SCALE, GameState.DINO_BASE_SCALE))
+	var foot_offset = (GameState.DINO_FOOT_ALIGNMENT_HEIGHT * cur_scale.y) - 35.0
 	var target_ground_y = ground_y - foot_offset
 	
 	if is_jumping:
