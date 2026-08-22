@@ -1,6 +1,7 @@
 extends Node
 
 const SAVE_PATH: String = "user://user_profile.json"
+const LEADERBOARD_SEASON_ID: String = "season_20260822"
 
 var username: String = "용감한 공룡"
 var school: String = "공룡초등학교"
@@ -12,6 +13,10 @@ var unlocked_dinos: Array[String] = ["dino_01", "dino_02"]
 var selected_dino: String = "dino_01"
 var wrong_history: Array = []
 var pending_wrong_problems: Array = []
+var leaderboard_season_id: String = LEADERBOARD_SEASON_ID
+var season_high_score: int = 0
+var season_total_games: int = 0
+var season_total_correct: int = 0
 
 const DINO_UNLOCK_SCORES = {
 	"dino_01": 0, # 신비의 공룡알 (기본)
@@ -65,7 +70,11 @@ func save_data() -> void:
 		"wrong_history": wrong_history.slice(-40),
 		"pending_wrong_problems": pending_wrong_problems,
 		"correct_by_type": correct_by_type,
-		"wrong_by_type": wrong_by_type
+		"wrong_by_type": wrong_by_type,
+		"leaderboard_season_id": leaderboard_season_id,
+		"season_high_score": season_high_score,
+		"season_total_games": season_total_games,
+		"season_total_correct": season_total_correct
 	}
 	var f = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if f:
@@ -74,10 +83,11 @@ func save_data() -> void:
 	sync_to_cloud()
 
 func sync_to_cloud() -> void:
+	if season_total_games <= 0:
+		return
 	var fb = get_node_or_null("/root/FirebaseService")
 	if fb:
-		var estimated_xp = high_score * 12 + total_correct * 10
-		fb.sync_user_profile(username, school, high_score, estimated_xp)
+		fb.sync_user_profile(username, school, season_high_score, get_leaderboard_season_xp())
 
 func load_data() -> void:
 	if not FileAccess.file_exists(SAVE_PATH):
@@ -101,6 +111,18 @@ func load_data() -> void:
 			pending_wrong_problems = d.get("pending_wrong_problems", [])
 			correct_by_type = d.get("correct_by_type", {})
 			wrong_by_type = d.get("wrong_by_type", {})
+			var saved_season_id = str(d.get("leaderboard_season_id", ""))
+			if saved_season_id == LEADERBOARD_SEASON_ID:
+				leaderboard_season_id = saved_season_id
+				season_high_score = int(d.get("season_high_score", 0))
+				season_total_games = int(d.get("season_total_games", 0))
+				season_total_correct = int(d.get("season_total_correct", 0))
+			else:
+				# Preserve lifetime progress while starting the online leaderboard fresh.
+				leaderboard_season_id = LEADERBOARD_SEASON_ID
+				season_high_score = 0
+				season_total_games = 0
+				season_total_correct = 0
 			check_all_unlocks()
 
 func record_problem_answer(p_type: String, is_correct: bool) -> void:
@@ -154,8 +176,12 @@ func record_game_result(score: int, correct: int, wrong: int, wrong_list: Array)
 	total_games += 1
 	total_correct += correct
 	total_wrong += wrong
+	season_total_games += 1
+	season_total_correct += correct
 	if score > high_score:
 		high_score = score
+	if score > season_high_score:
+		season_high_score = score
 		
 	check_all_unlocks()
 		
@@ -215,3 +241,6 @@ func get_accuracy() -> float:
 	if total == 0:
 		return 100.0
 	return (float(total_correct) / float(total)) * 100.0
+
+func get_leaderboard_season_xp() -> int:
+	return season_high_score * 12 + season_total_correct * 10

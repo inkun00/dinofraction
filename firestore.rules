@@ -8,5 +8,33 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false; // Leaderboard data is written from server-side logic or secured functions
     }
+
+    // 2026-08-22부터 새로 시작하는 온라인 명예의 전당.
+    // 기존 users/leaderboards 데이터는 보존하지만 게임에서는 더 이상 조회하지 않는다.
+    match /leaderboard_season_20260822/{userId} {
+      allow read: if true;
+      allow create, update: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasAll([
+          'nickname', 'school', 'score', 'totalXp', 'seasonId'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'nickname', 'school', 'score', 'totalXp', 'seasonId'
+        ])
+        && request.resource.data.nickname is string
+        && request.resource.data.nickname.size() > 0
+        && request.resource.data.nickname.size() <= 12
+        && request.resource.data.school is string
+        && request.resource.data.school.size() > 0
+        && request.resource.data.school.size() <= 30
+        && request.resource.data.score is int
+        && request.resource.data.score >= 0
+        && request.resource.data.score <= 1000000
+        && request.resource.data.totalXp is int
+        && request.resource.data.totalXp >= 0
+        && request.resource.data.totalXp <= 100000000
+        && request.resource.data.seasonId == 'season_20260822';
+      allow delete: if false;
+    }
   }
 }

@@ -74,21 +74,22 @@ func _populate_ui(records: Array, _is_cloud: bool = false) -> void:
 	if UserProfile:
 		if "username"in UserProfile and UserProfile.username != "":
 			my_name = str(UserProfile.username)
-		if "high_score"in UserProfile:
-			my_score = int(UserProfile.high_score)
+		if "season_high_score"in UserProfile:
+			my_score = int(UserProfile.season_high_score)
 		if "school"in UserProfile and UserProfile.school != "":
 			my_school = str(UserProfile.school)
 			
 	var disp_my_name: String = my_name.substr(0, 6) if my_name.length() > 6 else my_name
 	var disp_my_school: String = my_school.substr(0, 8) if my_school.length() > 8 else my_school
-	var my_xp = my_score * 12 # estimated XP
+	var my_xp = UserProfile.get_leaderboard_season_xp() if UserProfile and UserProfile.has_method("get_leaderboard_season_xp") else my_score * 12
 	
 	if current_tab == "score":
 		title_label.text = "개인 최고 점수 랭킹 TOP 10"
 		var display_list = records.duplicate(true)
 		
 		# Insert player into list if qualified
-		if my_score > 0:
+		var score_has_cloud_me = display_list.any(func(item): return item.get("is_me", false))
+		if my_score > 0 and not score_has_cloud_me:
 			var player_entry = {"rank": 0, "name": my_name + "(나)", "school": my_school, "val": my_score, "is_me": true}
 			display_list.append(player_entry)
 			display_list.sort_custom(func(a, b): return a.get("val", 0) > b.get("val", 0))
@@ -120,7 +121,8 @@ func _populate_ui(records: Array, _is_cloud: bool = false) -> void:
 	elif current_tab == "xp":
 		title_label.text = "개인 누적 경험치(XP) 랭킹 TOP 10"
 		var display_list = records.duplicate(true)
-		if my_xp > 0:
+		var xp_has_cloud_me = display_list.any(func(item): return item.get("is_me", false))
+		if my_xp > 0 and not xp_has_cloud_me:
 			var player_entry = {"rank": 0, "name": my_name + "(나)", "school": my_school, "val": my_xp, "is_me": true}
 			display_list.append(player_entry)
 			display_list.sort_custom(func(a, b): return a.get("val", 0) > b.get("val", 0))
@@ -217,7 +219,8 @@ func _create_entry_row(rank: int, player_name: String, school_name: String, val_
 	if is_me:
 		var raw_name = player_name.replace("(나)", "")
 		if raw_name.length() > 6:
-			display_name = raw_name.substr(0, 6) + "(나)"
+			raw_name = raw_name.substr(0, 6)
+		display_name = raw_name + "(나)"
 	else:
 		if display_name.length() > 6:
 			display_name = display_name.substr(0, 6)
