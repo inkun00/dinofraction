@@ -47,11 +47,27 @@ function getTabType(value: unknown): TabType | null {
   return value === 'score' || value === 'xp' || value === 'school' ? value : null;
 }
 
+function normalizeBoardId(rawValue: string): string {
+  const value = rawValue
+    .trim()
+    .replace(/^PADLET_BOARD_ID\s*=\s*/i, '')
+    .replace(/^["']|["']$/g, '')
+    .trim();
+  if (/^[A-Za-z0-9_-]{16,22}$/.test(value)) return value;
+
+  // Padlet commonly places the 16-character board ID at the end of the URL,
+  // after the human-readable slug. Accepting that URL makes Vercel setup less
+  // error-prone while still sending only the validated ID to Padlet's API.
+  const urlTail = value.replace(/[?#].*$/, '').replace(/\/+$/, '').split('/').pop() ?? '';
+  const candidates = [urlTail, ...urlTail.split('-').reverse()];
+  return candidates.find((candidate) => /^[A-Za-z0-9_-]{16,22}$/.test(candidate)) ?? '';
+}
+
 function getPadletConfig() {
   const apiKey = process.env.PADLET_API_KEY?.trim() ?? '';
-  const boardId = process.env.PADLET_BOARD_ID?.trim() ?? '';
+  const boardId = normalizeBoardId(process.env.PADLET_BOARD_ID ?? '');
   const sectionId = process.env.PADLET_SECTION_ID?.trim() ?? '';
-  if (!apiKey || !/^[A-Za-z0-9_-]{16,22}$/.test(boardId)) return null;
+  if (!apiKey || !boardId) return null;
   return {apiKey, boardId, sectionId};
 }
 

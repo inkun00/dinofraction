@@ -9,7 +9,7 @@ Development:
 
 - `PADLET_API_KEY`: API key generated from Padlet developer settings.
 - `PADLET_BOARD_ID`: ID of a board administered by the API-key owner (16–22
-  characters).
+  characters). A full Padlet board URL is also accepted.
 - `PADLET_SECTION_ID`: Optional section ID. Leave unset to use the board's
   default placement.
 
