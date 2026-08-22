@@ -11,10 +11,7 @@ extends Control
 
 var current_tab: String = "score"# "score", "xp", "school"
 var is_loading_cloud: bool = false
-
-var fallback_score_records = []
-var fallback_xp_records = []
-var fallback_school_records = []
+var cloud_request_serial: int = 0
 
 func _ready() -> void:
 	tab_score_btn.pressed.connect(func(): _switch_tab("score"))
@@ -30,40 +27,66 @@ func open_leaderboard() -> void:
 
 func _switch_tab(tab_name: String) -> void:
 	current_tab = tab_name
+	cloud_request_serial += 1
+	var request_serial = cloud_request_serial
 	
 	# Update tab button visuals
 	tab_score_btn.modulate = Color(1.0, 1.0, 0.4, 1.0) if tab_name == "score"else Color(0.7, 0.7, 0.7, 1.0)
 	tab_xp_btn.modulate = Color(0.4, 0.9, 1.0, 1.0) if tab_name == "xp"else Color(0.7, 0.7, 0.7, 1.0)
 	tab_school_btn.modulate = Color(0.5, 1.0, 0.5, 1.0) if tab_name == "school"else Color(0.7, 0.7, 0.7, 1.0)
 	
-	_render_local_or_cached_list()
-	_fetch_cloud_leaderboard()
+	_render_cloud_status("온라인 명예의 전당을 불러오는 중...")
+	_fetch_cloud_leaderboard(tab_name, request_serial)
 
-func _fetch_cloud_leaderboard() -> void:
+func _fetch_cloud_leaderboard(requested_tab: String, request_serial: int) -> void:
 	if not Engine.has_singleton("FirebaseService") and not get_node_or_null("/root/FirebaseService"):
+		if request_serial == cloud_request_serial:
+			_render_cloud_status("온라인 명예의 전당에 연결할 수 없습니다.\n잠시 후 다시 열어 주세요.")
 		return
 		
 	var fb = get_node_or_null("/root/FirebaseService")
 	if fb:
-		fb.fetch_leaderboard(current_tab, func(success: bool, cloud_records: Array):
-			if success and cloud_records.size() > 0:
-				_populate_ui(cloud_records, true)
+		is_loading_cloud = true
+		# Flush this device's completed season record first. This guarantees that
+		# opening the leaderboard immediately after game over cannot race the
+		# asynchronous Firestore write.
+		if UserProfile and int(UserProfile.season_total_games) > 0:
+			fb.sync_user_profile(
+				str(UserProfile.username),
+				str(UserProfile.school),
+				int(UserProfile.season_high_score),
+				int(UserProfile.get_leaderboard_season_xp()),
+				func(_sync_success: bool):
+					_request_cloud_records(fb, requested_tab, request_serial)
+			)
+		else:
+			_request_cloud_records(fb, requested_tab, request_serial)
+
+func _request_cloud_records(fb: Node, requested_tab: String, request_serial: int) -> void:
+	fb.fetch_leaderboard(requested_tab, func(success: bool, cloud_records: Array):
+			# Ignore an older response after the user moved to another tab or
+			# reopened the leaderboard. It must never overwrite the current list.
+			if request_serial != cloud_request_serial or requested_tab != current_tab:
+				return
+			is_loading_cloud = false
+			if success:
+				# An empty Firestore result is still the authoritative online result.
+				_populate_ui(cloud_records)
 			else:
-				_render_local_or_cached_list()
-		)
+				_render_cloud_status("온라인 순위를 불러오지 못했습니다.\n인터넷 연결을 확인한 뒤 다시 열어 주세요.")
+	)
 
-func _render_local_or_cached_list() -> void:
-	var base_records: Array = []
-	if current_tab == "score":
-		base_records = fallback_score_records.duplicate(true)
-	elif current_tab == "xp":
-		base_records = fallback_xp_records.duplicate(true)
-	else:
-		base_records = fallback_school_records.duplicate(true)
-		
-	_populate_ui(base_records, false)
+func _render_cloud_status(message: String) -> void:
+	for child in list_container.get_children():
+		child.queue_free()
+	match current_tab:
+		"score": title_label.text = "개인 최고 점수 랭킹 TOP 10"
+		"xp": title_label.text = "개인 누적 경험치(XP) 랭킹 TOP 10"
+		_: title_label.text = "학교 대항전 총경험치 랭킹 TOP 10"
+	my_rank_label.text = message.replace("\n", " ")
+	_create_empty_notice(message)
 
-func _populate_ui(records: Array, _is_cloud: bool = false) -> void:
+func _populate_ui(records: Array) -> void:
 	for child in list_container.get_children():
 		child.queue_free()
 		
@@ -86,26 +109,19 @@ func _populate_ui(records: Array, _is_cloud: bool = false) -> void:
 	if current_tab == "score":
 		title_label.text = "개인 최고 점수 랭킹 TOP 10"
 		var display_list = records.duplicate(true)
-		
-		# Insert player into list if qualified
-		var score_has_cloud_me = display_list.any(func(item): return item.get("is_me", false))
-		if my_score > 0 and not score_has_cloud_me:
-			var player_entry = {"rank": 0, "name": my_name + "(나)", "school": my_school, "val": my_score, "is_me": true}
-			display_list.append(player_entry)
-			display_list.sort_custom(func(a, b): return a.get("val", 0) > b.get("val", 0))
-			for i in range(display_list.size()):
-				display_list[i]["rank"] = i + 1
 				
 		var top10 = display_list.slice(0, min(10, display_list.size()))
-		var my_current_rank = 1
+		var my_current_rank = 0
 		for idx in range(display_list.size()):
 			if display_list[idx].get("is_me", false):
 				my_current_rank = idx + 1
 				break
 		if my_score == 0:
 			my_rank_label.text = "내 기록: %s (%s) | 점수: %d Pts | 랭킹 등록 대기중"% [disp_my_name, disp_my_school, my_score]
-		else:
+		elif my_current_rank > 0:
 			my_rank_label.text = "내 기록: %s (%s) | 점수: %d Pts | 현재 %d위!"% [disp_my_name, disp_my_school, my_score, my_current_rank]
+		else:
+			my_rank_label.text = "내 기록: %s (%s) | 점수: %d Pts | 온라인 등록 완료 · TOP 10 도전중"% [disp_my_name, disp_my_school, my_score]
 
 		if top10.is_empty():
 			_create_empty_notice("아직 등록된 랭킹 기록이 없습니다.\n게임을 플레이하여 첫 번째 명예의 전당 주인공이 되어보세요! ")
@@ -121,24 +137,19 @@ func _populate_ui(records: Array, _is_cloud: bool = false) -> void:
 	elif current_tab == "xp":
 		title_label.text = "개인 누적 경험치(XP) 랭킹 TOP 10"
 		var display_list = records.duplicate(true)
-		var xp_has_cloud_me = display_list.any(func(item): return item.get("is_me", false))
-		if my_xp > 0 and not xp_has_cloud_me:
-			var player_entry = {"rank": 0, "name": my_name + "(나)", "school": my_school, "val": my_xp, "is_me": true}
-			display_list.append(player_entry)
-			display_list.sort_custom(func(a, b): return a.get("val", 0) > b.get("val", 0))
-			for i in range(display_list.size()):
-				display_list[i]["rank"] = i + 1
 				
 		var top10 = display_list.slice(0, min(10, display_list.size()))
-		var my_current_rank = 1
+		var my_current_rank = 0
 		for idx in range(display_list.size()):
 			if display_list[idx].get("is_me", false):
 				my_current_rank = idx + 1
 				break
 		if my_xp == 0:
 			my_rank_label.text = "내 기록: %s (%s) | 누적 XP: %d XP | 랭킹 등록 대기중"% [disp_my_name, disp_my_school, my_xp]
-		else:
+		elif my_current_rank > 0:
 			my_rank_label.text = "내 기록: %s (%s) | 누적 XP: %d XP | 현재 %d위"% [disp_my_name, disp_my_school, my_xp, my_current_rank]
+		else:
+			my_rank_label.text = "내 기록: %s (%s) | 누적 XP: %d XP | 온라인 등록 완료 · TOP 10 도전중"% [disp_my_name, disp_my_school, my_xp]
 
 		if top10.is_empty():
 			_create_empty_notice("아직 등록된 경험치 랭킹이 없습니다.\n문제를 풀고 경험치를 모아보세요! ")

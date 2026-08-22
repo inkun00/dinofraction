@@ -290,9 +290,11 @@ func _get_field_int(fields: Dictionary, key: String, default_val: int) -> int:
 # ---------------------------------------------------------
 # 3. Sync User Profile & High Score to Firestore (PATCH)
 # ---------------------------------------------------------
-func sync_user_profile(nickname: String, school: String, score: int, total_xp: int) -> void:
+func sync_user_profile(nickname: String, school: String, score: int, total_xp: int, callback: Callable = Callable()) -> void:
 	var auth_ok = await _ensure_authenticated()
 	if not auth_ok or user_id == "":
+		if callback.is_valid():
+			callback.call(false)
 		return
 			
 	var http = HTTPRequest.new()
@@ -325,11 +327,19 @@ func sync_user_profile(nickname: String, school: String, score: int, total_xp: i
 		http.queue_free()
 		if response_code == 200:
 			print("[FirebaseService] Synced current-season leaderboard. Score: ", score, " | XP: ", total_xp)
+			if callback.is_valid():
+				callback.call(true)
 		else:
 			print("[FirebaseService] Sync failed with response: ", response_code)
 			if response_code == 401:
 				is_authenticated = false
 				token_expires_at = 0
+			if callback.is_valid():
+				callback.call(false)
 	)
 	
-	http.request(doc_url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(doc_body))
+	var err = http.request(doc_url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(doc_body))
+	if err != OK:
+		http.queue_free()
+		if callback.is_valid():
+			callback.call(false)
