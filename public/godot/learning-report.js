@@ -23,6 +23,14 @@
 
   const DENOMINATORS = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15];
   const DEFAULT_UPLOAD_URL = "https://samboard.vivasam.com/studentEntry/?brdId=brd-0RCJWNN7N34NC";
+  const SCRIPT_BASE_URL = new URL(
+    ".",
+    document.currentScript?.src || window.location.href
+  ).href;
+  const PDF_VENDOR_SCRIPTS = {
+    html2canvas: new URL("vendor/html2canvas-1.4.1.min.js", SCRIPT_BASE_URL).href,
+    jspdf: new URL("vendor/jspdf-4.2.1.umd.min.js", SCRIPT_BASE_URL).href
+  };
 
   function escapeHtml(value) {
     return String(value ?? "")
@@ -378,10 +386,8 @@
     const payload = typeof input === "string" ? JSON.parse(input) : (input || {});
     const typeStats = getTypeStats(payload);
     const worksheet = buildWorksheet(payload, typeStats);
-    const autoPrint = options?.autoPrint !== false;
+    const captureOnly = Boolean(options?.captureOnly);
     const uploadUrl = options?.uploadUrl ? safeUploadUrl(options.uploadUrl) : "";
-    const openUploadAfterPrint = Boolean(uploadUrl && options?.openUploadAfterPrint);
-    const uploadUrlLiteral = JSON.stringify(uploadUrl).replaceAll("<", "\\u003c");
     const title = `${payload.studentName || "공룡 탐험가"}_분수탐험_인증서_학습지`;
     return `<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${escapeHtml(title)}</title>
     <style>
@@ -463,69 +469,207 @@
       @media print { html,body { background:white; } .print-toolbar { display:none!important; } .page { margin:0; box-shadow:none; } }
       @media screen and (max-width:850px) { .page { transform-origin:top left; margin:0 auto 12px; } }
     </style></head><body>
-      <div class="print-toolbar">
+      ${captureOnly ? "" : `<div class="print-toolbar">
         <button onclick="window.dinoReportPrintAndUpload()">${uploadUrl ? "PDF 저장 후 업로드로 이동" : "PDF로 저장 / 인쇄"}</button>
         ${uploadUrl ? `<button class="secondary" onclick="window.dinoReportOpenUpload()">업로드 페이지만 열기</button>` : ""}
         <button class="close" onclick="window.close()">닫기</button>
-      </div>
+      </div>`}
       ${renderCertificate(payload, typeStats)}
       ${renderWorksheet(payload, worksheet)}
-      <script>(function(){
-        var uploadUrl=${uploadUrlLiteral};
-        var openAfterPrint=${openUploadAfterPrint ? "true" : "false"};
-        window.dinoReportOpenUpload=function(){if(uploadUrl){window.location.assign(uploadUrl);}};
-        window.dinoReportPrintAndUpload=function(){openAfterPrint=Boolean(uploadUrl);window.print();};
-        window.addEventListener("afterprint",function(){if(openAfterPrint&&uploadUrl){openAfterPrint=false;setTimeout(function(){window.location.assign(uploadUrl);},250);}});
-        ${autoPrint ? `window.addEventListener("load",function(){var images=Array.from(document.images);Promise.all(images.map(function(img){return img.complete?Promise.resolve():new Promise(function(resolve){img.onload=img.onerror=resolve;});})).then(function(){setTimeout(function(){window.print();},500);});});` : ""}
-      })();<\/script>
+      ${captureOnly ? "" : `<script>(function(){
+        var uploadUrl=${JSON.stringify(uploadUrl).replaceAll("<", "\\u003c")};
+        window.dinoReportOpenUpload=function(){if(uploadUrl){window.open(uploadUrl,"_blank","noopener");}};
+        window.dinoReportPrintAndUpload=function(){if(window.opener&&window.opener.DinoLearningReport){window.opener.DinoLearningReport.downloadReport(${JSON.stringify(JSON.stringify(payload)).replaceAll("<", "\\u003c")});}};
+      })();<\/script>`}
     </body></html>`;
   }
 
-  function printReport(payloadJson) {
+  function loadScript(url, ready) {
+    if (ready()) return Promise.resolve();
+    const existing = document.querySelector(`script[data-dino-report-vendor="${url}"]`);
+    if (existing) {
+      return new Promise((resolve, reject) => {
+        existing.addEventListener("load", resolve, { once: true });
+        existing.addEventListener("error", reject, { once: true });
+      });
+    }
+    return new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = url;
+      script.async = true;
+      script.dataset.dinoReportVendor = url;
+      script.addEventListener("load", () => ready() ? resolve() : reject(new Error(`PDF 모듈을 초기화하지 못했습니다: ${url}`)), { once: true });
+      script.addEventListener("error", () => reject(new Error(`PDF 모듈을 불러오지 못했습니다: ${url}`)), { once: true });
+      document.head.appendChild(script);
+    });
+  }
+
+  async function ensurePdfLibraries() {
+    await loadScript(PDF_VENDOR_SCRIPTS.html2canvas, () => typeof window.html2canvas === "function");
+    await loadScript(PDF_VENDOR_SCRIPTS.jspdf, () => Boolean(window.jspdf?.jsPDF));
+  }
+
+  function waitForFrame(frame) {
+    return new Promise((resolve, reject) => {
+      const timeout = window.setTimeout(() => reject(new Error("PDF 레이아웃을 준비하는 데 시간이 너무 오래 걸립니다.")), 15000);
+      frame.addEventListener("load", () => {
+        window.clearTimeout(timeout);
+        resolve();
+      }, { once: true });
+    });
+  }
+
+  async function waitForReportAssets(reportDocument) {
+    const images = Array.from(reportDocument.images);
+    await Promise.all(images.map((image) => image.complete
+      ? Promise.resolve()
+      : new Promise((resolve) => {
+        image.addEventListener("load", resolve, { once: true });
+        image.addEventListener("error", resolve, { once: true });
+      })));
+    if (reportDocument.fonts?.ready) await reportDocument.fonts.ready;
+  }
+
+  function makeDownloadFilename(payload) {
+    const studentName = String(payload.studentName || "공룡_탐험가")
+      .replace(/[<>:"/\\|?*\u0000-\u001f]/g, "_")
+      .trim()
+      .slice(0, 40) || "공룡_탐험가";
+    return `${studentName}_분수탐험_인증서_학습지.pdf`;
+  }
+
+  function showDownloadStatus(message, state) {
+    let status = document.getElementById("dino-report-download-status");
+    if (!status) {
+      status = document.createElement("div");
+      status.id = "dino-report-download-status";
+      Object.assign(status.style, {
+        position: "fixed",
+        left: "50%",
+        bottom: "28px",
+        transform: "translateX(-50%)",
+        zIndex: "2147483647",
+        maxWidth: "calc(100vw - 32px)",
+        padding: "13px 22px",
+        borderRadius: "999px",
+        color: "#ffffff",
+        font: "800 15px 'Malgun Gothic', sans-serif",
+        textAlign: "center",
+        boxShadow: "0 8px 28px rgba(0,0,0,.35)",
+        pointerEvents: "none"
+      });
+      document.body.appendChild(status);
+    }
+    status.textContent = message;
+    status.style.background = state === "error" ? "#b4232f" : state === "success" ? "#147a55" : "#173f32";
+    status.hidden = false;
+    window.clearTimeout(showDownloadStatus.hideTimer);
+    if (state !== "working") {
+      showDownloadStatus.hideTimer = window.setTimeout(() => { status.hidden = true; }, state === "error" ? 7000 : 4000);
+    }
+  }
+
+  async function createPdfBlob(payloadJson) {
+    const payload = typeof payloadJson === "string" ? JSON.parse(payloadJson) : (payloadJson || {});
+    await ensurePdfLibraries();
+
+    const frame = document.createElement("iframe");
+    frame.setAttribute("aria-hidden", "true");
+    Object.assign(frame.style, {
+      position: "fixed",
+      left: "-12000px",
+      top: "0",
+      width: "900px",
+      height: "1200px",
+      border: "0",
+      opacity: "0",
+      pointerEvents: "none"
+    });
+    const loaded = waitForFrame(frame);
+    frame.srcdoc = renderHtml(payload, { captureOnly: true });
+    document.body.appendChild(frame);
+
     try {
-      const reportWindow = window.open("", "_blank", "width=980,height=900");
-      if (!reportWindow) {
-        window.alert("팝업이 차단되어 PDF 출력 창을 열 수 없습니다. 이 사이트의 팝업을 허용한 뒤 다시 시도해 주세요.");
-        return false;
+      await loaded;
+      const reportDocument = frame.contentDocument;
+      if (!reportDocument) throw new Error("PDF 레이아웃 문서를 열 수 없습니다.");
+      await waitForReportAssets(reportDocument);
+      const pages = Array.from(reportDocument.querySelectorAll(".page"));
+      if (pages.length !== 2) throw new Error(`PDF 페이지 수가 올바르지 않습니다: ${pages.length}`);
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
+      for (let index = 0; index < pages.length; index += 1) {
+        const canvas = await window.html2canvas(pages[index], {
+          scale: 2,
+          useCORS: true,
+          allowTaint: false,
+          backgroundColor: "#ffffff",
+          logging: false
+        });
+        if (index > 0) pdf.addPage("a4", "portrait");
+        pdf.addImage(canvas.toDataURL("image/jpeg", 0.96), "JPEG", 0, 0, 210, 297, undefined, "FAST");
       }
-      reportWindow.document.open();
-      reportWindow.document.write(renderHtml(payloadJson, { autoPrint: true }));
-      reportWindow.document.close();
+      return { blob: pdf.output("blob"), filename: makeDownloadFilename(payload) };
+    } finally {
+      frame.remove();
+    }
+  }
+
+  function triggerDownload(blob, filename) {
+    const objectUrl = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = objectUrl;
+    anchor.download = filename;
+    anchor.style.display = "none";
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 15000);
+  }
+
+  async function downloadReport(payloadJson) {
+    showDownloadStatus("인증서와 학습지 PDF를 만들고 있어요…", "working");
+    try {
+      const result = await createPdfBlob(payloadJson);
+      triggerDownload(result.blob, result.filename);
+      showDownloadStatus("PDF 다운로드가 시작되었습니다.", "success");
       return true;
     } catch (error) {
-      console.error("Dino learning report generation failed", error);
-      window.alert("인증서와 학습지를 만드는 중 오류가 발생했습니다. 다시 시도해 주세요.");
+      console.error("Dino learning report PDF generation failed", error);
+      showDownloadStatus("PDF 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.", "error");
       return false;
     }
   }
 
+  async function downloadReportAndOpenUpload(payloadJson, uploadUrl) {
+    const boardUrl = safeUploadUrl(uploadUrl);
+    const boardWindow = window.open(boardUrl, "_blank");
+    if (boardWindow) boardWindow.opener = null;
+    return downloadReport(payloadJson);
+  }
+
+  function printReport(payloadJson) {
+    return downloadReport(payloadJson);
+  }
+
   function printReportAndOpenUpload(payloadJson, uploadUrl) {
-    try {
-      const reportWindow = window.open("", "_blank", "width=980,height=900");
-      if (!reportWindow) {
-        window.alert("팝업이 차단되어 PDF 출력 창을 열 수 없습니다. 이 사이트의 팝업을 허용한 뒤 다시 시도해 주세요.");
-        return false;
-      }
-      reportWindow.document.open();
-      reportWindow.document.write(renderHtml(payloadJson, {
-        autoPrint: true,
-        uploadUrl: safeUploadUrl(uploadUrl),
-        openUploadAfterPrint: true
-      }));
-      reportWindow.document.close();
-      return true;
-    } catch (error) {
-      console.error("Dino learning report upload flow failed", error);
-      window.alert("인증서와 학습지를 만드는 중 오류가 발생했습니다. 다시 시도해 주세요.");
-      return false;
-    }
+    return downloadReportAndOpenUpload(payloadJson, uploadUrl);
   }
 
   function renderIntoCurrentDocument(payloadJson) {
     document.open();
-    document.write(renderHtml(payloadJson, { autoPrint: false }));
+    document.write(renderHtml(payloadJson, { captureOnly: false }));
     document.close();
   }
 
-  window.DinoLearningReport = { printReport, printReportAndOpenUpload, renderHtml, renderIntoCurrentDocument };
+  window.DinoLearningReport = {
+    createPdfBlob,
+    downloadReport,
+    downloadReportAndOpenUpload,
+    printReport,
+    printReportAndOpenUpload,
+    renderHtml,
+    renderIntoCurrentDocument
+  };
 })();

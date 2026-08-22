@@ -226,9 +226,9 @@ func _open_learning_report(payload: Dictionary, open_upload_after_print: bool) -
 		return
 
 	if open_upload_after_print:
-		report_bridge.printReportAndOpenUpload(JSON.stringify(payload), SAMBOARD_UPLOAD_URL)
+		report_bridge.downloadReportAndOpenUpload(JSON.stringify(payload), SAMBOARD_UPLOAD_URL)
 	else:
-		report_bridge.printReport(JSON.stringify(payload))
+		report_bridge.downloadReport(JSON.stringify(payload))
 
 func _build_learning_report_payload() -> Dictionary:
 	var highest_dino_id = _get_highest_grade_dino_id()
