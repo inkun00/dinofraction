@@ -60,7 +60,7 @@ func _ready() -> void:
 	title_menu.open_account_pressed.connect(func(): account_modal.open_account())
 	title_menu.print_dashboard_report_pressed.connect(_on_dashboard_report_pressed)
 	
-	dashboard_modal.open_review_requested.connect(func(): review_modal.open_review())
+	dashboard_modal.open_review_requested.connect(func(problems: Array): review_modal.open_review(problems))
 	
 	# Review Modal Signals
 	review_modal.all_cleared.connect(_start_game_directly)

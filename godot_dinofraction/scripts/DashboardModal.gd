@@ -1,6 +1,6 @@
 extends Control
 
-signal open_review_requested()
+signal open_review_requested(problems: Array)
 
 @onready var name_label: Label = $Panel/VBox/Header/NameLabel
 @onready var high_score_label: Label = $Panel/VBox/SummaryRow/Card1/V/HighScoreVal
@@ -159,5 +159,6 @@ func _render_ai_feedback() -> void:
 		ai_label.text = "공룡 AI 코치 진단: 모든 분수 연산 영역에서 85% 이상의 최우수 정답률을 유지하고 있습니다! 진정한 분수 수호신! "
 
 func _on_review_pressed() -> void:
+	var weak_review_problems = UserProfile.get_weakest_domain_review_problems()
 	hide()
-	open_review_requested.emit()
+	open_review_requested.emit(weak_review_problems)

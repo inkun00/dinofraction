@@ -172,6 +172,58 @@ func get_weakest_domain() -> Dictionary:
 			weakest = s
 	return weakest
 
+func get_problem_signature(prob: Dictionary) -> String:
+	var tokens: PackedStringArray = [str(prob.get("problem_type", ""))]
+	for part in prob.get("parts", []):
+		var part_type = str(part.get("type", ""))
+		if part_type == "frac":
+			var value = part.get("val", {})
+			tokens.append("frac:%d:%d:%d"% [
+				int(value.get("whole", 0)),
+				int(value.get("num", 0)),
+				int(value.get("den", 1))
+			])
+		else:
+			tokens.append("%s:%s"% [part_type, str(part.get("val", ""))])
+	return "|".join(tokens)
+
+func get_unique_wrong_problems(problems: Array) -> Array:
+	var unique: Array = []
+	var seen: Dictionary = {}
+	for problem in problems:
+		if not problem is Dictionary:
+			continue
+		var signature = get_problem_signature(problem)
+		if signature.is_empty() or seen.has(signature):
+			continue
+		seen[signature] = true
+		unique.append(problem.duplicate(true))
+	return unique
+
+func get_weakest_domain_review_problems() -> Array:
+	var source: Array = pending_wrong_problems if not pending_wrong_problems.is_empty() else wrong_history
+	if source.is_empty():
+		return []
+
+	var weakest = get_weakest_domain()
+	var domain_types: Dictionary = {
+		"진분수의 덧셈": ["진분수+진분수", "진분수+진분수_합1초과"],
+		"진분수의 뺄셈": ["진분수-진분수"],
+		"자연수 - 분수의 뺄셈": ["1-진분수", "자연수-진분수", "자연수-대분수"],
+		"대분수의 덧셈": ["대분수+대분수"],
+		"대분수의 뺄셈 (받아내림)": ["대분수-대분수", "대분수-대분수(받아내림)"]
+	}
+	var target_types: Array = domain_types.get(str(weakest.get("name", "")), [])
+	var filtered: Array = []
+	for problem in source:
+		if problem is Dictionary and target_types.has(str(problem.get("problem_type", ""))):
+			filtered.append(problem)
+
+	# Cumulative statistics can point to a domain whose old errors were already
+	# cleared. In that case, keep the review button useful with the remaining
+	# pending problems.
+	return get_unique_wrong_problems(filtered if not filtered.is_empty() else source)
+
 func record_game_result(score: int, correct: int, wrong: int, wrong_list: Array) -> void:
 	total_games += 1
 	total_correct += correct
@@ -202,13 +254,16 @@ func remove_pending_wrong_at(idx: int) -> void:
 		save_data()
 
 func solve_wrong_problem(prob: Dictionary) -> void:
-	var idx = pending_wrong_problems.find(prob)
-	if idx != -1:
-		pending_wrong_problems.remove_at(idx)
-	var h_idx = wrong_history.find(prob)
-	if h_idx != -1:
-		wrong_history.remove_at(h_idx)
+	var signature = get_problem_signature(prob)
+	_remove_matching_wrong_entries(pending_wrong_problems, signature)
+	_remove_matching_wrong_entries(wrong_history, signature)
 	save_data()
+
+func _remove_matching_wrong_entries(problems: Array, signature: String) -> void:
+	for idx in range(problems.size() - 1, -1, -1):
+		var item = problems[idx]
+		if item is Dictionary and get_problem_signature(item) == signature:
+			problems.remove_at(idx)
 
 func clear_all_pending_wrongs() -> void:
 	pending_wrong_problems.clear()

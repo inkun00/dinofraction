@@ -49,12 +49,19 @@ func _on_visibility_changed() -> void:
 	AudioManager.set_silenced(AUDIO_SILENCE_REASON, visible)
 
 func open_review(problems: Array = []) -> void:
+	var source_problems: Array
 	if problems.is_empty():
-		review_list = UserProfile.pending_wrong_problems
-		if review_list.is_empty():
-			review_list = UserProfile.wrong_history
+		source_problems = UserProfile.pending_wrong_problems
+		if source_problems.is_empty():
+			source_problems = UserProfile.wrong_history
 	else:
-		review_list = problems
+		source_problems = problems
+
+	# Work on an independent, de-duplicated queue. The previous implementation
+	# shared UserProfile's Array reference and left repeated copies of the same
+	# missed problem at the front of the queue.
+	review_list = UserProfile.get_unique_wrong_problems(source_problems)
+	review_list.shuffle()
 		
 	is_busy = false
 	if review_list.is_empty():
@@ -156,6 +163,7 @@ func _on_submit() -> void:
 		is_busy = true
 		feedback_label.text = "정답입니다! 완벽하게 해결했습니다! "
 		feedback_label.modulate = Color.GREEN
+		review_list.pop_front()
 		UserProfile.solve_wrong_problem(prob)
 		
 		var tween = create_tween()
