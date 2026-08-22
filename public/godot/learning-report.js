@@ -22,6 +22,7 @@
   ];
 
   const DENOMINATORS = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15];
+  const DEFAULT_UPLOAD_URL = "https://samboard.vivasam.com/studentEntry/?brdId=brd-0RCJWNN7N34NC";
 
   function escapeHtml(value) {
     return String(value ?? "")
@@ -273,6 +274,15 @@
     return "";
   }
 
+  function safeUploadUrl(value) {
+    try {
+      const url = new URL(String(value || DEFAULT_UPLOAD_URL), window.location.href);
+      return url.protocol === "https:" ? url.href : DEFAULT_UPLOAD_URL;
+    } catch (_error) {
+      return DEFAULT_UPLOAD_URL;
+    }
+  }
+
   function getFallbackTitle(score) {
     if (score >= 3000) return "태양의 분수 신룡";
     if (score >= 1500) return "시간을 다루는 분수 대가";
@@ -287,6 +297,12 @@
     const overall = total ? Math.round((Number(payload.correctCount || 0) / total) * 100) : 0;
     const dino = payload.dinosaur || {};
     const imageUrl = safeImageUrl(dino.imageDataUrl || dino.imageUrl);
+    const isDashboard = payload.reportScope === "dashboard";
+    const scoreLabel = isDashboard ? "최고 점수" : "최종 점수";
+    const scopeLabel = isDashboard ? "학습 대시보드 누적 기준" : "이번 게임 기준";
+    const challengeLabel = isDashboard
+      ? `누적 ${Number(payload.totalGames || 0).toLocaleString("ko-KR")}회 · ${total}문항 도전`
+      : `${total}문항 도전`;
     const statCards = typeStats.map((stat) => {
       const rate = stat.accuracy === null ? "-" : `${stat.accuracy}%`;
       const detail = stat.total ? `${stat.correct}/${stat.total}` : "미출제";
@@ -308,16 +324,16 @@
 
         <div class="hero-row">
           <div class="score-medal">
-            <span>최종 점수</span><strong>${Number(payload.score || 0).toLocaleString("ko-KR")}</strong><em>점</em>
+            <span>${scoreLabel}</span><strong>${Number(payload.score || 0).toLocaleString("ko-KR")}</strong><em>점</em>
           </div>
-          <div class="title-block"><span>획득 칭호</span><strong>${escapeHtml(payload.title || getFallbackTitle(Number(payload.score || 0)))}</strong><small>전체 정답률 ${overall}% · ${total}문항 도전</small></div>
+          <div class="title-block"><span>획득 칭호</span><strong>${escapeHtml(payload.title || getFallbackTitle(Number(payload.score || 0)))}</strong><small>전체 정답률 ${overall}% · ${challengeLabel}</small></div>
           <div class="dino-card">
             ${imageUrl ? `<img src="${imageUrl}" alt="${escapeHtml(dino.name || "최고 등급 공룡")}">` : `<div class="dino-fallback">DINO</div>`}
             <div><span>${escapeHtml(dino.grade || "일반")} 등급</span><strong>${escapeHtml(dino.name || "신비의 공룡")}</strong></div>
           </div>
         </div>
 
-        <div class="section-heading"><span>문제 유형별 정답률</span><small>이번 게임 기준</small></div>
+        <div class="section-heading"><span>문제 유형별 정답률</span><small>${scopeLabel}</small></div>
         <div class="type-grid">${statCards}</div>
 
         <div class="certificate-footer">
@@ -341,9 +357,10 @@
     const answerKey = worksheet.problems.map((problem, index) =>
       `<span class="answer-item"><b>${index + 1}.</b>${renderAnswer(problem.answer)}</span>`
     ).join("");
+    const isDashboard = payload.reportScope === "dashboard";
     const guide = worksheet.hasErrors
-      ? "이번 게임에서 오답이 많았던 영역일수록 더 많이 배정했어요. 풀이 과정을 쓰며 천천히 해결해 보세요."
-      : "이번 게임을 완벽하게 마쳤어요. 도전한 유형을 중심으로 골고루 복습해 보세요.";
+      ? `${isDashboard ? "학습 대시보드에서" : "이번 게임에서"} 오답이 많았던 영역일수록 더 많이 배정했어요. 풀이 과정을 쓰며 천천히 해결해 보세요.`
+      : `${isDashboard ? "누적 학습 기록을" : "이번 게임을"} 바탕으로 도전한 유형을 중심으로 골고루 복습해 보세요.`;
 
     return `<section class="page worksheet-page">
       <header class="worksheet-header">
@@ -362,6 +379,9 @@
     const typeStats = getTypeStats(payload);
     const worksheet = buildWorksheet(payload, typeStats);
     const autoPrint = options?.autoPrint !== false;
+    const uploadUrl = options?.uploadUrl ? safeUploadUrl(options.uploadUrl) : "";
+    const openUploadAfterPrint = Boolean(uploadUrl && options?.openUploadAfterPrint);
+    const uploadUrlLiteral = JSON.stringify(uploadUrl).replaceAll("<", "\\u003c");
     const title = `${payload.studentName || "공룡 탐험가"}_분수탐험_인증서_학습지`;
     return `<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${escapeHtml(title)}</title>
     <style>
@@ -371,7 +391,8 @@
       body { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
       .print-toolbar { position:sticky; top:0; z-index:10; display:flex; justify-content:center; gap:10px; padding:12px; background:#102a21; box-shadow:0 3px 16px #0004; }
       .print-toolbar button { border:0; border-radius:999px; padding:11px 22px; font-weight:800; cursor:pointer; color:white; background:#21845f; }
-      .print-toolbar button:last-child { background:#52645c; }
+      .print-toolbar button.secondary { background:#356996; }
+      .print-toolbar button.close { background:#52645c; }
       .page { position:relative; width:210mm; height:297mm; margin:10mm auto; overflow:hidden; background:var(--paper); box-shadow:0 8px 30px #0002; page-break-after:always; }
       .page:last-of-type { page-break-after:auto; }
       .certificate-page { padding:12mm; background:linear-gradient(145deg,#fbfff9 0%,#fffdf4 52%,#eff9f2 100%); }
@@ -442,10 +463,21 @@
       @media print { html,body { background:white; } .print-toolbar { display:none!important; } .page { margin:0; box-shadow:none; } }
       @media screen and (max-width:850px) { .page { transform-origin:top left; margin:0 auto 12px; } }
     </style></head><body>
-      <div class="print-toolbar"><button onclick="window.print()">PDF로 저장 / 인쇄</button><button onclick="window.close()">닫기</button></div>
+      <div class="print-toolbar">
+        <button onclick="window.dinoReportPrintAndUpload()">${uploadUrl ? "PDF 저장 후 업로드로 이동" : "PDF로 저장 / 인쇄"}</button>
+        ${uploadUrl ? `<button class="secondary" onclick="window.dinoReportOpenUpload()">업로드 페이지만 열기</button>` : ""}
+        <button class="close" onclick="window.close()">닫기</button>
+      </div>
       ${renderCertificate(payload, typeStats)}
       ${renderWorksheet(payload, worksheet)}
-      ${autoPrint ? `<script>window.addEventListener("load",function(){var images=Array.from(document.images);Promise.all(images.map(function(img){return img.complete?Promise.resolve():new Promise(function(resolve){img.onload=img.onerror=resolve;});})).then(function(){setTimeout(function(){window.print();},500);});});<\/script>` : ""}
+      <script>(function(){
+        var uploadUrl=${uploadUrlLiteral};
+        var openAfterPrint=${openUploadAfterPrint ? "true" : "false"};
+        window.dinoReportOpenUpload=function(){if(uploadUrl){window.location.assign(uploadUrl);}};
+        window.dinoReportPrintAndUpload=function(){openAfterPrint=Boolean(uploadUrl);window.print();};
+        window.addEventListener("afterprint",function(){if(openAfterPrint&&uploadUrl){openAfterPrint=false;setTimeout(function(){window.location.assign(uploadUrl);},250);}});
+        ${autoPrint ? `window.addEventListener("load",function(){var images=Array.from(document.images);Promise.all(images.map(function(img){return img.complete?Promise.resolve():new Promise(function(resolve){img.onload=img.onerror=resolve;});})).then(function(){setTimeout(function(){window.print();},500);});});` : ""}
+      })();<\/script>
     </body></html>`;
   }
 
@@ -467,11 +499,33 @@
     }
   }
 
+  function printReportAndOpenUpload(payloadJson, uploadUrl) {
+    try {
+      const reportWindow = window.open("", "_blank", "width=980,height=900");
+      if (!reportWindow) {
+        window.alert("팝업이 차단되어 PDF 출력 창을 열 수 없습니다. 이 사이트의 팝업을 허용한 뒤 다시 시도해 주세요.");
+        return false;
+      }
+      reportWindow.document.open();
+      reportWindow.document.write(renderHtml(payloadJson, {
+        autoPrint: true,
+        uploadUrl: safeUploadUrl(uploadUrl),
+        openUploadAfterPrint: true
+      }));
+      reportWindow.document.close();
+      return true;
+    } catch (error) {
+      console.error("Dino learning report upload flow failed", error);
+      window.alert("인증서와 학습지를 만드는 중 오류가 발생했습니다. 다시 시도해 주세요.");
+      return false;
+    }
+  }
+
   function renderIntoCurrentDocument(payloadJson) {
     document.open();
     document.write(renderHtml(payloadJson, { autoPrint: false }));
     document.close();
   }
 
-  window.DinoLearningReport = { printReport, renderHtml, renderIntoCurrentDocument };
+  window.DinoLearningReport = { printReport, printReportAndOpenUpload, renderHtml, renderIntoCurrentDocument };
 })();

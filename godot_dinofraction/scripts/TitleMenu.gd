@@ -6,6 +6,7 @@ signal open_leaderboard_pressed()
 signal open_review_pressed()
 signal open_collection_pressed()
 signal open_account_pressed()
+signal print_dashboard_report_pressed()
 
 @onready var emblem_sprite: Sprite2D = $CenterContainer/VBox/LogoBox/EmblemSprite
 @onready var greeting_label: RichTextLabel = $CenterContainer/VBox/GreetingLabel
@@ -17,6 +18,7 @@ signal open_account_pressed()
 @onready var btn_review: Button = $CenterContainer/VBox/MenuButtons/SubGrid/BtnReview
 @onready var btn_col: Button = $CenterContainer/VBox/MenuButtons/SubGrid/BtnCol
 @onready var btn_acc: Button = $CenterContainer/VBox/MenuButtons/SubGrid/BtnAcc
+@onready var btn_report: Button = $CenterContainer/VBox/MenuButtons/SubGrid/BtnReport
 
 var float_timer: float = 0.0
 
@@ -30,9 +32,10 @@ func _ready() -> void:
 	btn_review.pressed.connect(func(): open_review_pressed.emit())
 	btn_col.pressed.connect(func(): open_collection_pressed.emit())
 	btn_acc.pressed.connect(func(): open_account_pressed.emit())
+	btn_report.pressed.connect(func(): print_dashboard_report_pressed.emit())
 	
 	# Hover Animations for all buttons
-	var buttons = [btn_start, btn_dash, btn_leaderboard, btn_review, btn_col, btn_acc]
+	var buttons = [btn_start, btn_dash, btn_leaderboard, btn_review, btn_col, btn_acc, btn_report]
 	for btn in buttons:
 		btn.mouse_entered.connect(func():
 			var tween = create_tween()

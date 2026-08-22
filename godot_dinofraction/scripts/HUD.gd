@@ -13,6 +13,7 @@ signal restart_pressed
 
 const HEART_FULL = preload("res://assets/ui/heart_full.png")
 const HEART_EMPTY = preload("res://assets/ui/heart_empty.png")
+const SAMBOARD_UPLOAD_URL: String = "https://samboard.vivasam.com/studentEntry/?brdId=brd-0RCJWNN7N34NC"
 
 @onready var game_over_panel: PanelContainer = $GameOverPanel
 @onready var final_score_label: Label = $GameOverPanel/VBox/FinalScoreLabel
@@ -57,6 +58,7 @@ func _ready() -> void:
 	title_menu.open_review_pressed.connect(func(): review_modal.open_review())
 	title_menu.open_collection_pressed.connect(func(): collection_modal.open_collection())
 	title_menu.open_account_pressed.connect(func(): account_modal.open_account())
+	title_menu.print_dashboard_report_pressed.connect(_on_dashboard_report_pressed)
 	
 	dashboard_modal.open_review_requested.connect(func(): review_modal.open_review())
 	
@@ -208,6 +210,12 @@ func _on_game_over() -> void:
 	game_over_panel.visible = true
 
 func _on_report_pressed() -> void:
+	_open_learning_report(_build_learning_report_payload(), false)
+
+func _on_dashboard_report_pressed() -> void:
+	_open_learning_report(_build_dashboard_report_payload(), true)
+
+func _open_learning_report(payload: Dictionary, open_upload_after_print: bool) -> void:
 	if not OS.has_feature("web"):
 		OS.alert("PDF 출력은 웹 브라우저에서 게임을 실행할 때 사용할 수 있습니다.", "PDF 출력 안내")
 		return
@@ -217,8 +225,10 @@ func _on_report_pressed() -> void:
 		OS.alert("PDF 출력 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.", "PDF 출력 오류")
 		return
 
-	var payload = _build_learning_report_payload()
-	report_bridge.printReport(JSON.stringify(payload))
+	if open_upload_after_print:
+		report_bridge.printReportAndOpenUpload(JSON.stringify(payload), SAMBOARD_UPLOAD_URL)
+	else:
+		report_bridge.printReport(JSON.stringify(payload))
 
 func _build_learning_report_payload() -> Dictionary:
 	var highest_dino_id = _get_highest_grade_dino_id()
@@ -231,6 +241,31 @@ func _build_learning_report_payload() -> Dictionary:
 		"wrongCount": GameState.wrong_count,
 		"correctByType": GameState.correct_by_type.duplicate(true),
 		"wrongByType": GameState.wrong_by_type.duplicate(true),
+		"reportScope": "game",
+		"totalGames": 1,
+		"generatedAt": Time.get_datetime_string_from_system(false, true),
+		"dinosaur": {
+			"id": highest_dino_id,
+			"name": _get_dino_name(highest_dino_id),
+			"grade": _get_dino_grade(highest_dino_id),
+			"imageDataUrl": _get_dino_data_url(highest_dino_id)
+		}
+	}
+
+func _build_dashboard_report_payload() -> Dictionary:
+	var highest_dino_id = _get_highest_grade_dino_id()
+	var dashboard_score = UserProfile.high_score if UserProfile else 0
+	return {
+		"studentName": UserProfile.username if UserProfile else "용감한 공룡",
+		"school": UserProfile.school if UserProfile else "",
+		"score": dashboard_score,
+		"title": _get_score_title(dashboard_score),
+		"correctCount": UserProfile.total_correct if UserProfile else 0,
+		"wrongCount": UserProfile.total_wrong if UserProfile else 0,
+		"correctByType": UserProfile.correct_by_type.duplicate(true) if UserProfile else {},
+		"wrongByType": UserProfile.wrong_by_type.duplicate(true) if UserProfile else {},
+		"reportScope": "dashboard",
+		"totalGames": UserProfile.total_games if UserProfile else 0,
 		"generatedAt": Time.get_datetime_string_from_system(false, true),
 		"dinosaur": {
 			"id": highest_dino_id,

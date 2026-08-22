@@ -261,6 +261,18 @@ theme_override_styles/normal = SubResource("StyleBoxTexture_acc_n")
 theme_override_styles/hover = SubResource("StyleBoxTexture_acc_h")
 text = "탐험가 프로필"
 
+[node name="BtnReport"type="Button"parent="CenterContainer/VBox/MenuButtons/SubGrid"]
+custom_minimum_size = Vector2(170, 48)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("20_font")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxTexture_dash_n")
+theme_override_styles/hover = SubResource("StyleBoxTexture_dash_h")
+text = "인증서 · 오답학습지 출력"
+
 [node name="ControlGuide"type="Label"parent="CenterContainer/VBox"]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("20_font")
