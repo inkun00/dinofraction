@@ -39,38 +39,31 @@ func _switch_tab(tab_name: String) -> void:
 	_fetch_cloud_leaderboard(tab_name, request_serial)
 
 func _fetch_cloud_leaderboard(requested_tab: String, request_serial: int) -> void:
-	if not Engine.has_singleton("FirebaseService") and not get_node_or_null("/root/FirebaseService"):
+	if not get_node_or_null("/root/PadletService"):
 		if request_serial == cloud_request_serial:
 			_render_cloud_status("온라인 명예의 전당에 연결할 수 없습니다.\n잠시 후 다시 열어 주세요.")
 		return
 		
-	var fb = get_node_or_null("/root/FirebaseService")
-	if fb:
+	var padlet = get_node_or_null("/root/PadletService")
+	if padlet:
 		is_loading_cloud = true
-		# Flush this device's completed season record first. This guarantees that
-		# opening the leaderboard immediately after game over cannot race the
-		# asynchronous Firestore write.
+		# Finish any pending Padlet snapshot before reading the shared ranking.
 		if UserProfile and int(UserProfile.season_total_games) > 0:
-			fb.sync_user_profile(
-				str(UserProfile.username),
-				str(UserProfile.school),
-				int(UserProfile.season_high_score),
-				int(UserProfile.get_leaderboard_season_xp()),
-				func(_sync_success: bool):
-					_request_cloud_records(fb, requested_tab, request_serial)
+			UserProfile.sync_to_cloud(func(_sync_success: bool):
+				_request_cloud_records(padlet, requested_tab, request_serial)
 			)
 		else:
-			_request_cloud_records(fb, requested_tab, request_serial)
+			_request_cloud_records(padlet, requested_tab, request_serial)
 
-func _request_cloud_records(fb: Node, requested_tab: String, request_serial: int) -> void:
-	fb.fetch_leaderboard(requested_tab, func(success: bool, cloud_records: Array):
+func _request_cloud_records(padlet: Node, requested_tab: String, request_serial: int) -> void:
+	padlet.fetch_leaderboard(requested_tab, func(success: bool, cloud_records: Array):
 			# Ignore an older response after the user moved to another tab or
 			# reopened the leaderboard. It must never overwrite the current list.
 			if request_serial != cloud_request_serial or requested_tab != current_tab:
 				return
 			is_loading_cloud = false
 			if success:
-				# An empty Firestore result is still the authoritative online result.
+				# An empty Padlet result is still the authoritative online result.
 				_populate_ui(cloud_records)
 			else:
 				_render_cloud_status("온라인 순위를 불러오지 못했습니다.\n인터넷 연결을 확인한 뒤 다시 열어 주세요.")

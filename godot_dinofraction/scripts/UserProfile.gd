@@ -1,7 +1,7 @@
 extends Node
 
 const SAVE_PATH: String = "user://user_profile.json"
-const LEADERBOARD_SEASON_ID: String = "season_20260822"
+const LEADERBOARD_SEASON_ID: String = "padlet_v1_20260822"
 
 var username: String = "용감한 공룡"
 var school: String = "공룡초등학교"
@@ -17,6 +17,7 @@ var leaderboard_season_id: String = LEADERBOARD_SEASON_ID
 var season_high_score: int = 0
 var season_total_games: int = 0
 var season_total_correct: int = 0
+var leaderboard_last_synced_games: int = 0
 
 const DINO_UNLOCK_SCORES = {
 	"dino_01": 0, # 신비의 공룡알 (기본)
@@ -57,7 +58,7 @@ var wrong_by_type: Dictionary = {}
 func _ready() -> void:
 	load_data()
 
-func save_data() -> void:
+func save_data(sync_leaderboard: bool = false) -> void:
 	var data = {
 		"username": username,
 		"school": school,
@@ -74,20 +75,44 @@ func save_data() -> void:
 		"leaderboard_season_id": leaderboard_season_id,
 		"season_high_score": season_high_score,
 		"season_total_games": season_total_games,
-		"season_total_correct": season_total_correct
+		"season_total_correct": season_total_correct,
+		"leaderboard_last_synced_games": leaderboard_last_synced_games
 	}
 	var f = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if f:
 		f.store_string(JSON.stringify(data, "\t"))
 		f.close()
-	sync_to_cloud()
+	if sync_leaderboard:
+		sync_to_cloud()
 
-func sync_to_cloud() -> void:
+func sync_to_cloud(callback: Callable = Callable()) -> void:
 	if season_total_games <= 0:
+		if callback.is_valid():
+			callback.call(true)
 		return
-	var fb = get_node_or_null("/root/FirebaseService")
-	if fb:
-		fb.sync_user_profile(username, school, season_high_score, get_leaderboard_season_xp())
+	if leaderboard_last_synced_games >= season_total_games:
+		if callback.is_valid():
+			callback.call(true)
+		return
+	var padlet = get_node_or_null("/root/PadletService")
+	if not padlet:
+		if callback.is_valid():
+			callback.call(false)
+		return
+	var games_to_sync = season_total_games
+	padlet.sync_user_profile(
+		username,
+		school,
+		season_high_score,
+		get_leaderboard_season_xp(),
+		games_to_sync,
+		func(success: bool):
+			if success and games_to_sync > leaderboard_last_synced_games:
+				leaderboard_last_synced_games = games_to_sync
+				save_data(false)
+			if callback.is_valid():
+				callback.call(success)
+	)
 
 func load_data() -> void:
 	if not FileAccess.file_exists(SAVE_PATH):
@@ -117,12 +142,14 @@ func load_data() -> void:
 				season_high_score = int(d.get("season_high_score", 0))
 				season_total_games = int(d.get("season_total_games", 0))
 				season_total_correct = int(d.get("season_total_correct", 0))
+				leaderboard_last_synced_games = int(d.get("leaderboard_last_synced_games", 0))
 			else:
 				# Preserve lifetime progress while starting the online leaderboard fresh.
 				leaderboard_season_id = LEADERBOARD_SEASON_ID
 				season_high_score = 0
 				season_total_games = 0
 				season_total_correct = 0
+				leaderboard_last_synced_games = 0
 			check_all_unlocks()
 
 func record_problem_answer(p_type: String, is_correct: bool) -> void:
@@ -241,7 +268,7 @@ func record_game_result(score: int, correct: int, wrong: int, wrong_list: Array)
 		wrong_history.append(w)
 		pending_wrong_problems.append(w)
 		
-	save_data()
+	save_data(true)
 
 func remove_pending_wrong_at(idx: int) -> void:
 	if idx >= 0 and idx < pending_wrong_problems.size():

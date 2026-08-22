@@ -23,7 +23,7 @@ boot_splash/bg_color=Color(0.06, 0.09, 0.14, 1)
 
 [autoload]
 
-FirebaseService="*res://scripts/FirebaseService.gd"
+PadletService="*res://scripts/PadletService.gd"
 GameState="*res://scripts/GameState.gd"
 GroundTracker="*res://scripts/GroundTracker.gd"
 UserProfile="*res://scripts/UserProfile.gd"

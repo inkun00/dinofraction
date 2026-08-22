@@ -1,359 +1,124 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 	<head>
 		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
+		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
 		<title>Dino Fractions Arcade</title>
-		<link rel="preconnect" href="https://fonts.googleapis.com">
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-		<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
 		<style>
-* {
-	box-sizing: border-box;
-}
-
 html, body, #canvas {
 	margin: 0;
 	padding: 0;
 	border: 0;
-	width: 100%;
-	height: 100%;
 }
 
 body {
 	color: white;
-	background-color: #080c16;
-	font-family: 'Outfit', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+	background-color: black;
 	overflow: hidden;
 	touch-action: none;
-	user-select: none;
-	-webkit-user-select: none;
 }
 
 #canvas {
 	display: block;
-	width: 100%;
-	height: 100%;
 }
 
 #canvas:focus {
 	outline: none;
 }
 
-/* 로딩 오버레이 */
+#status, #status-splash, #status-progress {
+	position: absolute;
+	left: 0;
+	right: 0;
+}
+
+#status, #status-splash {
+	top: 0;
+	bottom: 0;
+}
+
 #status {
-	position: fixed;
-	inset: 0;
-	background: radial-gradient(circle at 50% 40%, #152238 0%, #0a0f1d 70%, #05080f 100%);
+	background-color: #0f1724;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
-	z-index: 9999;
-	padding: 20px;
-	transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-	visibility: visible;
-	opacity: 1;
-}
-
-#status.status-hidden {
-	opacity: 0;
 	visibility: hidden;
-	pointer-events: none;
 }
 
-/* 로딩 메인 컨테이너 */
-.loading-wrapper {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	max-width: 900px;
-	width: 100%;
-	animation: floatIn 0.8s ease-out;
+#status-splash {
+	max-height: 100%;
+	max-width: 100%;
+	margin: auto;
 }
 
-@keyframes floatIn {
-	from {
-		opacity: 0;
-		transform: translateY(20px) scale(0.98);
-	}
-	to {
-		opacity: 1;
-		transform: translateY(0) scale(1);
-	}
-}
-
-/* 스플래시 이미지 카드 */
-.splash-card {
-	position: relative;
-	width: 100%;
-	max-width: 780px;
-	aspect-ratio: 16 / 9;
-	border-radius: 20px;
-	overflow: hidden;
-	box-shadow: 
-		0 25px 50px -12px rgba(0, 0, 0, 0.7),
-		0 0 40px rgba(46, 204, 113, 0.18),
-		inset 0 1px 1px rgba(255, 255, 255, 0.2);
-	border: 1px solid rgba(255, 255, 255, 0.12);
-	background: #0d1525;
-	margin-bottom: 24px;
-}
-
-.splash-image {
-	width: 100%;
-	height: 100%;
-	object-fit: cover;
-	display: block;
-	filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
-	transition: transform 0.3s ease;
-}
-
-/* 프로그레스 컨트롤 영역 */
-.progress-card {
-	width: 100%;
-	max-width: 680px;
-	background: rgba(18, 28, 48, 0.85);
-	backdrop-filter: blur(16px);
-	-webkit-backdrop-filter: blur(16px);
-	border: 1px solid rgba(255, 255, 255, 0.12);
-	border-radius: 18px;
-	padding: 18px 24px;
-	box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
-}
-
-.progress-header {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	margin-bottom: 10px;
-}
-
-.loading-label {
-	font-size: 15px;
-	font-weight: 700;
-	color: #6ee7b7;
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	letter-spacing: 0.5px;
-}
-
-.loading-label .spinner {
-	width: 14px;
-	height: 14px;
-	border: 2px solid rgba(110, 231, 183, 0.3);
-	border-top-color: #6ee7b7;
-	border-radius: 50%;
-	animation: spin 0.8s linear infinite;
-	display: inline-block;
-}
-
-@keyframes spin {
-	to { transform: rotate(360deg); }
-}
-
-.progress-metrics {
-	font-size: 14px;
-	font-weight: 700;
-	color: #f3f4f6;
-	font-variant-numeric: tabular-nums;
-}
-
-.progress-metrics .bytes {
-	font-size: 12px;
-	font-weight: 500;
-	color: #9ca3af;
-	margin-left: 6px;
-}
-
-/* 커스텀 게이지 바 */
-.custom-progress-track {
-	position: relative;
-	width: 100%;
-	height: 14px;
-	background: rgba(10, 15, 29, 0.8);
-	border-radius: 100px;
-	overflow: hidden;
-	border: 1px solid rgba(255, 255, 255, 0.08);
-	box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-.custom-progress-fill {
-	position: absolute;
-	left: 0;
-	top: 0;
-	bottom: 0;
-	width: 0%;
-	background: linear-gradient(90deg, #10b981 0%, #06b6d4 50%, #38bdf8 100%);
-	border-radius: 100px;
-	transition: width 0.15s ease-out;
-	box-shadow: 0 0 16px rgba(56, 189, 248, 0.6);
-}
-
-.custom-progress-fill::after {
-	content: '';
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background: linear-gradient(
-		90deg,
-		rgba(255, 255, 255, 0) 0%,
-		rgba(255, 255, 255, 0.4) 50%,
-		rgba(255, 255, 255, 0) 100%
-	);
-	animation: shimmer 1.5s infinite;
-}
-
-@keyframes shimmer {
-	0% { transform: translateX(-100%); }
-	100% { transform: translateX(100%); }
-}
-
-/* 롤링 팁 & 안내문구 */
-.loading-tip {
-	margin-top: 12px;
-	font-size: 13px;
-	color: #d1d5db;
-	text-align: center;
-	min-height: 20px;
-	font-weight: 500;
-	transition: opacity 0.3s ease;
-}
-
-/* 에러 노티스 */
-#status-notice {
+#status-splash.show-image--false {
 	display: none;
-	background: rgba(185, 28, 28, 0.85);
-	backdrop-filter: blur(12px);
-	border-radius: 12px;
-	border: 1px solid rgba(239, 68, 68, 0.5);
-	color: #ffffff;
-	font-size: 14px;
-	line-height: 1.5;
-	margin-top: 16px;
-	padding: 14px 20px;
-	text-align: center;
-	max-width: 600px;
-	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }
 
-/* 모바일 화면 최적화 */
-@media (max-width: 640px) {
-	.splash-card {
-		border-radius: 14px;
-		margin-bottom: 16px;
-	}
-	.progress-card {
-		padding: 14px 18px;
-		border-radius: 14px;
-	}
-	.loading-label {
-		font-size: 13px;
-	}
-	.progress-metrics {
-		font-size: 13px;
-	}
-	.custom-progress-track {
-		height: 11px;
-	}
-	.loading-tip {
-		font-size: 12px;
-	}
+#status-splash.fullsize--true {
+	height: 100%;
+	width: 100%;
+	object-fit: contain;
+}
+
+#status-splash.use-filter--false {
+	image-rendering: pixelated;
+}
+
+#status-progress, #status-notice {
+	display: none;
+}
+
+#status-progress {
+	bottom: 10%;
+	width: 50%;
+	margin: 0 auto;
+}
+
+#status-notice {
+	background-color: #5b3943;
+	border-radius: 0.5rem;
+	border: 1px solid #9b3943;
+	color: #e0e0e0;
+	font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif;
+	line-height: 1.3;
+	margin: 0 2rem;
+	overflow: hidden;
+	padding: 1rem;
+	text-align: center;
+	z-index: 1;
 }
 		</style>
 		<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
-		<link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
-		<script src="learning-report.js"></script>
+<link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
+<script src="learning-report.js"></script>
 	</head>
 	<body>
 		<canvas id="canvas">
-			브라우저가 캔버스 기능을 지원하지 않습니다. 최신 브라우저를 사용해 주세요.
+			Your browser does not support the canvas tag.
 		</canvas>
 
 		<noscript>
-			게임 실행을 위해 자바스크립트(JavaScript) 활성화가 필요합니다.
+			Your browser does not support JavaScript.
 		</noscript>
 
-		<!-- 커스텀 로딩 화면 -->
 		<div id="status">
-			<div class="loading-wrapper">
-				<div class="splash-card">
-					<img id="status-splash" class="splash-image" src="index.png" alt="Dino Fractions Arcade">
-				</div>
-
-				<div class="progress-card" id="progress-container">
-					<div class="progress-header">
-						<span class="loading-label">
-							<span class="spinner"></span>
-							<span id="loading-state-text">게임 모험 로딩 중...</span>
-						</span>
-						<span class="progress-metrics">
-							<span id="progress-percent">0%</span>
-							<span class="bytes" id="progress-bytes"></span>
-						</span>
-					</div>
-
-					<div class="custom-progress-track">
-						<div class="custom-progress-fill" id="custom-progress-bar"></div>
-					</div>
-
-					<div class="loading-tip" id="loading-tip-text">
-						🦖 공룡들이 신나는 분수 모험을 준비하고 있어요!
-					</div>
-				</div>
-
-				<div id="status-notice"></div>
-			</div>
+			<img id="status-splash" class="show-image--true fullsize--true use-filter--true" src="index.png" alt="">
+			<progress id="status-progress"></progress>
+			<div id="status-notice"></div>
 		</div>
 
 		<script src="index.js"></script>
 		<script>
-const GODOT_CONFIG = {
-	"args": [],
-	"canvasResizePolicy": 2,
-	"emscriptenPoolSize": 8,
-	"ensureCrossOriginIsolationHeaders": true,
-	"executable": "index",
-	"experimentalVK": false,
-	"fileSizes": { "index.pck": 45714232, "index.wasm": 39513091 },
-	"focusCanvas": true,
-	"gdextensionLibs": [],
-	"godotPoolSize": 4
-};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":18395180,"index.wasm":39513091},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 const GODOT_THREADS_ENABLED = false;
 const engine = new Engine(GODOT_CONFIG);
 
 (function () {
 	const statusOverlay = document.getElementById('status');
-	const progressContainer = document.getElementById('progress-container');
-	const customProgressBar = document.getElementById('custom-progress-bar');
-	const progressPercent = document.getElementById('progress-percent');
-	const progressBytes = document.getElementById('progress-bytes');
+	const statusProgress = document.getElementById('status-progress');
 	const statusNotice = document.getElementById('status-notice');
-	const loadingTipText = document.getElementById('loading-tip-text');
-	const loadingStateText = document.getElementById('loading-state-text');
-
-	const TIPS = [
-		"🦖 티라노사우루스가 분수 크리스탈을 충전하고 있어요!",
-		"💎 스테이지에 숨겨진 보석과 황금 알을 배치하는 중...",
-		"⚡ 통분과 약분을 마스터하면 엄청난 보너스 점수를 획득해요!",
-		"🌴 정글, 사막, 화산 월드의 장애물을 조심하세요!",
-		"🚀 준비 완료! 신나는 쥬라기 러닝 액션이 곧 시작됩니다!"
-	];
-
-	let tipIndex = 0;
-	const tipInterval = setInterval(() => {
-		if (!loadingTipText) return;
-		tipIndex = (tipIndex + 1) % TIPS.length;
-		loadingTipText.style.opacity = '0';
-		setTimeout(() => {
-			loadingTipText.textContent = TIPS[tipIndex];
-			loadingTipText.style.opacity = '1';
-		}, 250);
-	}, 2800);
 
 	let initializing = true;
 	let statusMode = '';
@@ -363,16 +128,12 @@ const engine = new Engine(GODOT_CONFIG);
 			return;
 		}
 		if (mode === 'hidden') {
-			clearInterval(tipInterval);
-			statusOverlay.classList.add('status-hidden');
-			setTimeout(() => {
-				statusOverlay.remove();
-			}, 650);
+			statusOverlay.remove();
 			initializing = false;
 			return;
 		}
-		statusOverlay.classList.remove('status-hidden');
-		progressContainer.style.display = mode === 'progress' ? 'block' : 'none';
+		statusOverlay.style.visibility = 'visible';
+		statusProgress.style.display = mode === 'progress' ? 'block' : 'none';
 		statusNotice.style.display = mode === 'notice' ? 'block' : 'none';
 		statusMode = mode;
 	}
@@ -390,13 +151,12 @@ const engine = new Engine(GODOT_CONFIG);
 
 	function displayFailureNotice(err) {
 		console.error(err);
-		clearInterval(tipInterval);
 		if (err instanceof Error) {
 			setStatusNotice(err.message);
 		} else if (typeof err === 'string') {
 			setStatusNotice(err);
 		} else {
-			setStatusNotice('알 수 없는 오류가 발생했습니다. 새로고침해 보세요.');
+			setStatusNotice('An unknown error occurred.');
 		}
 		setStatusMode('notice');
 		initializing = false;
@@ -414,6 +174,7 @@ const engine = new Engine(GODOT_CONFIG);
 			} catch (err) {
 				serviceWorkerRegistrationPromise = Promise.reject(new Error('Service worker registration failed.'));
 			}
+			// There's a chance that installing the service worker would fix the issue
 			Promise.race([
 				serviceWorkerRegistrationPromise.then((registration) => {
 					if (registration != null) {
@@ -421,16 +182,19 @@ const engine = new Engine(GODOT_CONFIG);
 					}
 					return registration;
 				}).then(() => engine.installServiceWorker()),
+				// For some reason, `getRegistration()` can stall
 				new Promise((resolve) => {
 					setTimeout(() => resolve(), 2000);
 				}),
 			]).then(() => {
+				// Reload if there was no error.
 				window.location.reload();
 			}).catch((err) => {
 				console.error('Error while registering service worker:', err);
 			});
 		} else {
-			const missingMsg = '오류\n웹에서 게임을 실행하기 위한 브라우저 필수 기능이 지원되지 않습니다:\n';
+			// Display the message as usual
+			const missingMsg = 'Error\nThe following features required to run Godot projects on the Web are missing:\n';
 			displayFailureNotice(missingMsg + missing.join('\n'));
 		}
 	} else {
@@ -438,20 +202,11 @@ const engine = new Engine(GODOT_CONFIG);
 		engine.startGame({
 			'onProgress': function (current, total) {
 				if (current > 0 && total > 0) {
-					const pct = Math.min(100, Math.round((current / total) * 100));
-					customProgressBar.style.width = pct + '%';
-					progressPercent.textContent = pct + '%';
-
-					const curMB = (current / (1024 * 1024)).toFixed(1);
-					const totMB = (total / (1024 * 1024)).toFixed(1);
-					progressBytes.textContent = `(${curMB} / ${totMB} MB)`;
-
-					if (pct >= 100) {
-						loadingStateText.textContent = "게임 월드 생성 완료!";
-					}
+					statusProgress.value = current;
+					statusProgress.max = total;
 				} else {
-					customProgressBar.style.width = '100%';
-					progressPercent.textContent = '...';
+					statusProgress.removeAttribute('value');
+					statusProgress.removeAttribute('max');
 				}
 			},
 		}).then(() => {
