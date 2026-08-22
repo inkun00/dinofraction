@@ -22,6 +22,15 @@ var token_expires_at: int = 0
 
 signal auth_completed(success: bool)
 
+func _create_http_request() -> HTTPRequest:
+	var http = HTTPRequest.new()
+	# Browsers transparently decompress HTTP responses. Leaving Godot's gzip
+	# handling enabled makes the Web export try to decompress the same Firebase
+	# response again, producing an empty body even when Firebase returns 200.
+	http.accept_gzip = false
+	add_child(http)
+	return http
+
 func _ready() -> void:
 	load_cached_auth()
 	if refresh_token != "":
@@ -76,8 +85,7 @@ func authenticate_anonymously() -> void:
 		return
 	is_authenticating = true
 
-	var http = HTTPRequest.new()
-	add_child(http)
+	var http = _create_http_request()
 
 	var headers = ["Content-Type: application/json"]
 	var body = JSON.stringify({"returnSecureToken": true})
@@ -117,8 +125,7 @@ func refresh_auth_token() -> void:
 		return
 
 	is_authenticating = true
-	var http = HTTPRequest.new()
-	add_child(http)
+	var http = _create_http_request()
 	var headers = ["Content-Type: application/x-www-form-urlencoded"]
 	var body = "grant_type=refresh_token&refresh_token=" + refresh_token.uri_encode()
 
@@ -163,13 +170,7 @@ func refresh_auth_token() -> void:
 # 2. Fetch Leaderboard from Firestore (Live Query)
 # ---------------------------------------------------------
 func fetch_leaderboard(tab_type: String, callback: Callable) -> void:
-	var auth_ok = await _ensure_authenticated()
-	if not auth_ok:
-		callback.call(false, [])
-		return
-
-	var http = HTTPRequest.new()
-	add_child(http)
+	var http = _create_http_request()
 	
 	var order_field = "score"if tab_type == "score"else "totalXp"
 	var query_limit = 10 if (tab_type == "score"or tab_type == "xp") else 200
@@ -182,10 +183,9 @@ func fetch_leaderboard(tab_type: String, callback: Callable) -> void:
 		}
 	}
 	
-	var headers = [
-		"Content-Type: application/json",
-		"Authorization: Bearer "+ id_token
-	]
+	# Leaderboard reads are public in Firestore rules. Keeping this request
+	# unauthenticated avoids an unnecessary CORS preflight for Authorization.
+	var headers = ["Content-Type: application/json"]
 	
 	http.request_completed.connect(func(_result: int, response_code: int, _headers: PackedStringArray, response_body: PackedByteArray):
 		http.queue_free()
@@ -297,8 +297,7 @@ func sync_user_profile(nickname: String, school: String, score: int, total_xp: i
 			callback.call(false)
 		return
 			
-	var http = HTTPRequest.new()
-	add_child(http)
+	var http = _create_http_request()
 	
 	var safe_nickname = nickname.strip_edges().substr(0, 12)
 	var safe_school = school.strip_edges().substr(0, 30)
