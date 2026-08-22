@@ -117,6 +117,9 @@ func get_stage_mass() -> float:
 		return textures[current_stage].get("mass", 1.2)
 	return 1.2
 
+func get_attack_direction() -> float:
+	return -1.0 if sprite.flip_h else 1.0
+
 func _physics_process(delta: float) -> void:
 	# Cooldown and timer management
 	if attack_cooldown > 0.0:
@@ -223,6 +226,12 @@ func play_attack_effect() -> void:
 	var parent_node = get_parent()
 	if parent_node:
 		for child in parent_node.get_children():
+			if child.has_method("receive_attack"):
+				var dist_x = child.global_position.x - global_position.x
+				var dist_y = abs(child.global_position.y - global_position.y)
+				if dist_x * dash_dir >= -20.0 and dist_x * dash_dir < 150.0 and dist_y < 105.0:
+					child.receive_attack(global_position, get_stage_mass(), dash_dir)
+				continue
 			if child.has_method("destroy_obstacle") and child.get("is_broken") == false:
 				var dist_x = child.global_position.x - global_position.x
 				var dist_y = abs(child.global_position.y - global_position.y)

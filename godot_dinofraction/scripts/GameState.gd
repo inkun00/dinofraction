@@ -44,6 +44,7 @@ var scroll_x: float = 0.0
 
 var jump_boost_count: int = 0
 var speed_boost_timer: float = 0.0
+var damage_cooldown: float = 0.0
 
 var correct_count: int = 0
 var wrong_count: int = 0
@@ -55,6 +56,8 @@ func _process(delta: float) -> void:
 	if is_game_running:
 		if speed_boost_timer > 0.0:
 			speed_boost_timer -= delta
+		if damage_cooldown > 0.0:
+			damage_cooldown -= delta
 
 func request_screen_shake(intensity: float, duration: float = 0.25) -> void:
 	screen_shake_requested.emit(intensity, duration)
@@ -147,6 +150,7 @@ func start_new_game() -> void:
 	combo = 0
 	jump_boost_count = 0
 	speed_boost_timer = 0.0
+	damage_cooldown = 0.0
 	wrong_problems.clear()
 	correct_by_type.clear()
 	wrong_by_type.clear()
@@ -255,6 +259,17 @@ func add_wrong(problem_data: Dictionary) -> void:
 	lives_changed.emit(lives)
 	if lives <= 0:
 		trigger_game_over()
+
+func take_damage(amount: int = 1) -> bool:
+	if not is_game_running or damage_cooldown > 0.0:
+		return false
+	damage_cooldown = 0.9
+	lives = max(0, lives - amount)
+	lives_changed.emit(lives)
+	request_screen_shake(7.0, 0.2)
+	if lives <= 0:
+		trigger_game_over()
+	return true
 
 func check_evolution() -> void:
 	# If player specifically equipped a dinosaur from collection, keep their choice!

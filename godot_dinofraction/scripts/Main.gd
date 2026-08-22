@@ -3,6 +3,7 @@ extends Node2D
 @export var problem_scene: PackedScene = preload("res://scenes/ProblemBubble.tscn")
 @export var mystery_box_scene: PackedScene = preload("res://scenes/MysteryBox.tscn")
 @export var obstacle_scene: PackedScene = preload("res://scenes/Obstacle.tscn")
+@export var monster_scene: PackedScene = preload("res://scenes/VillainMonster.tscn")
 
 static var instance = null
 
@@ -13,6 +14,7 @@ static var instance = null
 
 var mystery_timer: Timer
 var obstacle_timer: Timer
+var monster_timer: Timer
 
 var shake_intensity: float = 0.0
 var shake_timer: float = 0.0
@@ -30,6 +32,11 @@ func _ready() -> void:
 	obstacle_timer.one_shot = true
 	obstacle_timer.timeout.connect(_on_obstacle_timer_timeout)
 	add_child(obstacle_timer)
+
+	monster_timer = Timer.new()
+	monster_timer.one_shot = true
+	monster_timer.timeout.connect(_on_monster_timer_timeout)
+	add_child(monster_timer)
 	
 	hud.restart_pressed.connect(_on_restart_pressed)
 	spawn_timer.timeout.connect(_on_spawn_timer_timeout)
@@ -37,7 +44,7 @@ func _ready() -> void:
 func start_game() -> void:
 	# Clear any remaining problems, boxes, or obstacles
 	for child in get_children():
-		if child.has_method("setup") or child.name.begins_with("MysteryBox") or child.name.begins_with("Obstacle"):
+		if child.has_method("setup") or child.name.begins_with("MysteryBox") or child.name.begins_with("Obstacle") or child.name.begins_with("VillainMonster"):
 			child.queue_free()
 			
 	GameState.start_new_game()
@@ -47,6 +54,7 @@ func start_game() -> void:
 	spawn_timer.start(3.0)
 	mystery_timer.start(randf_range(6.0, 10.0))
 	obstacle_timer.start(8.0)
+	monster_timer.start(7.0)
 
 func _process(delta: float) -> void:
 	if GameState.is_game_running:
@@ -111,6 +119,25 @@ func _on_obstacle_timer_timeout() -> void:
 		
 	var next_obs_time = randf_range(6.5, 10.5)
 	obstacle_timer.start(next_obs_time)
+
+func _on_monster_timer_timeout() -> void:
+	if not GameState.is_game_running:
+		return
+
+	var time_elapsed = maxf(0.0, 300.0 - GameState.time_left)
+	var stage_idx = clampi(int(time_elapsed / 75.0), 0, 3)
+	var group_min = 1 if stage_idx < 2 else 2
+	var group_max = 1 if stage_idx == 0 else (2 if stage_idx < 3 else 3)
+	var monster_count = randi_range(group_min, group_max)
+	for i in range(monster_count):
+		var monster = monster_scene.instantiate()
+		monster.setup(stage_idx)
+		monster.position = Vector2(1420.0 + i * 175.0, 540.0)
+		add_child(monster)
+
+	var interval_ranges = [Vector2(11.0, 14.0), Vector2(8.0, 10.5), Vector2(5.5, 7.5), Vector2(3.5, 5.0)]
+	var interval = interval_ranges[stage_idx]
+	monster_timer.start(randf_range(interval.x, interval.y))
 
 func _on_restart_pressed() -> void:
 	start_game()

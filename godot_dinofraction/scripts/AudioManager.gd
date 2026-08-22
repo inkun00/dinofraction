@@ -119,7 +119,7 @@ func _on_button_pressed() -> void:
 	play_sfx("button")
 
 func _build_sfx_streams() -> void:
-	for effect_name in ["jump", "attack", "correct", "wrong", "mystery", "game_over", "button"]:
+	for effect_name in ["jump", "attack", "correct", "wrong", "mystery", "game_over", "button", "hurt", "monster_hit", "monster_defeat"]:
 		sfx_streams[effect_name] = _make_sfx(effect_name)
 
 func _make_sfx(effect_name: String) -> AudioStreamWAV:
@@ -131,6 +131,9 @@ func _make_sfx(effect_name: String) -> AudioStreamWAV:
 		"mystery": duration = 0.62
 		"game_over": duration = 1.35
 		"button": duration = 0.075
+		"hurt": duration = 0.3
+		"monster_hit": duration = 0.16
+		"monster_defeat": duration = 0.5
 
 	var sample_count = int(duration * SAMPLE_RATE)
 	var bytes = PackedByteArray()
@@ -171,6 +174,17 @@ func _make_sfx(effect_name: String) -> AudioStreamWAV:
 			"button":
 				var freq = lerpf(920.0, 610.0, progress)
 				value = sin(TAU * freq * t) * envelope
+			"hurt":
+				var freq = lerpf(180.0, 75.0, progress)
+				value = (_square(freq, t) * 0.45 + sin(TAU * freq * 0.5 * t) * 0.35) * envelope
+			"monster_hit":
+				var freq = lerpf(135.0, 58.0, progress)
+				value = (sin(TAU * freq * t) * 0.6 + _square(freq * 2.0, t) * 0.25) * envelope
+			"monster_defeat":
+				var notes = [48, 55, 60, 67]
+				var note_idx = mini(int(progress * notes.size()), notes.size() - 1)
+				var note_t = fmod(t, duration / notes.size())
+				value = _triangle(_midi_to_freq(notes[note_idx]), note_t) * envelope
 
 		_write_sample(bytes, i, value * 0.72)
 	return _make_wav(bytes, sample_count, false)

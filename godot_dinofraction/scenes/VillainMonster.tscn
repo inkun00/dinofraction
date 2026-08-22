@@ -1,0 +1,54 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/VillainMonster.gd" id="1_monster"]
+[ext_resource type="Texture2D" path="res://assets/sprites/dust_cloud.png" id="2_dust"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_monster"]
+size = Vector2(82, 68)
+
+[node name="VillainMonster" type="Area2D"]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_monster")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(0, -35)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -35)
+shape = SubResource("RectangleShape2D_monster")
+
+[node name="HealthBar" type="Node2D" parent="."]
+position = Vector2(-38, -105)
+
+[node name="Background" type="ColorRect" parent="HealthBar"]
+offset_right = 76.0
+offset_bottom = 9.0
+color = Color(0.12, 0.08, 0.08, 0.92)
+
+[node name="Fill" type="ColorRect" parent="HealthBar"]
+offset_left = 2.0
+offset_top = 2.0
+offset_right = 74.0
+offset_bottom = 7.0
+mouse_filter = 2
+color = Color(0.95, 0.18, 0.16, 1)
+pivot_offset = Vector2(0, 2.5)
+
+[node name="HitParticles" type="CPUParticles2D" parent="."]
+position = Vector2(0, -40)
+emitting = false
+amount = 12
+lifetime = 0.45
+one_shot = true
+explosiveness = 0.9
+texture = ExtResource("2_dust")
+direction = Vector2(1, -0.35)
+spread = 65.0
+gravity = Vector2(0, 420)
+initial_velocity_min = 110.0
+initial_velocity_max = 230.0
+scale_amount_min = 0.25
+scale_amount_max = 0.65
+color = Color(1, 0.45, 0.2, 0.9)
