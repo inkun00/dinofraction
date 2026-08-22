@@ -453,14 +453,14 @@
       .fraction span:first-child { border-bottom:.35mm solid #17231e; padding:0 .8mm .5mm; } .fraction span:last-child { padding:.5mm .8mm 0; }
       .equals { margin-left:auto; }
       .answer-blank { width:17mm; height:10mm; border-bottom:.45mm solid #243c30; }
-      .answer-key { position:absolute; left:14mm; right:14mm; bottom:11mm; min-height:10mm; display:grid; grid-template-columns:11mm 1fr; align-items:center; gap:2mm; padding:1.5mm 2.5mm; border:.25mm solid #d3ded8; border-radius:2mm; background:#f5f9f6; color:#506158; }
+      .answer-key { position:absolute; left:14mm; right:14mm; bottom:11mm; min-height:13mm; display:grid; grid-template-columns:11mm 1fr; align-items:center; gap:2mm; padding:1.5mm 2.5mm; border:.25mm solid #d3ded8; border-radius:2mm; background:#f5f9f6; color:#506158; }
       .answer-key>strong { color:#1b5e46; font-size:6.5pt; text-align:center; }
-      .answer-grid { display:grid; grid-template-columns:repeat(10,1fr); row-gap:.7mm; column-gap:1mm; font-family:"Malgun Gothic",Arial,sans-serif; font-size:5.2pt; line-height:1.1; white-space:nowrap; }
-      .answer-item { display:flex; align-items:center; justify-content:center; gap:.7mm; text-align:center; min-height:3.7mm; }
+      .answer-grid { display:grid; grid-template-columns:repeat(10,1fr); row-gap:.7mm; column-gap:1mm; font-family:"Malgun Gothic",Arial,sans-serif; font-size:6.76pt; line-height:1.1; white-space:nowrap; }
+      .answer-item { display:flex; align-items:center; justify-content:center; gap:.7mm; text-align:center; min-height:4.81mm; }
       .answer-item b { color:#176349; }
       .answer-item .mixed-number { gap:.45mm; }
-      .answer-item .whole, .answer-whole { font-size:5.2pt; }
-      .answer-item .fraction { min-width:3.4mm; font-size:4.6pt; line-height:1; }
+      .answer-item .whole, .answer-whole { font-size:6.76pt; }
+      .answer-item .fraction { min-width:4.42mm; font-size:5.98pt; line-height:1; }
       .answer-item .fraction span:first-child { border-bottom:.22mm solid #31443a; padding:0 .35mm .2mm; }
       .answer-item .fraction span:last-child { padding:.2mm .35mm 0; }
       .worksheet-footer { position:absolute; left:14mm; right:14mm; bottom:4.5mm; display:flex; justify-content:space-between; color:#758179; font-size:6.5pt; }
