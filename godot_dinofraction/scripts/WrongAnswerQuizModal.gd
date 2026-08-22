@@ -9,9 +9,17 @@ signal all_cleared()
 
 var current_problem: Dictionary = {}
 var is_busy: bool = false
+const AUDIO_SILENCE_REASON: String = "wrong_answer_quiz_modal"
 
 func _ready() -> void:
+	visibility_changed.connect(_on_visibility_changed)
 	hide()
+
+func _exit_tree() -> void:
+	AudioManager.set_silenced(AUDIO_SILENCE_REASON, false)
+
+func _on_visibility_changed() -> void:
+	AudioManager.set_silenced(AUDIO_SILENCE_REASON, visible)
 
 func open_quiz() -> void:
 	if UserProfile.pending_wrong_problems.is_empty():

@@ -17,8 +17,10 @@ signal go_home_requested()
 
 var review_list: Array = []
 var is_busy: bool = false
+const AUDIO_SILENCE_REASON: String = "review_modal"
 
 func _ready() -> void:
+	visibility_changed.connect(_on_visibility_changed)
 	home_btn.pressed.connect(_on_home_pressed)
 	submit_btn.pressed.connect(_on_submit)
 	
@@ -39,6 +41,12 @@ func _ready() -> void:
 		)
 		
 	hide()
+
+func _exit_tree() -> void:
+	AudioManager.set_silenced(AUDIO_SILENCE_REASON, false)
+
+func _on_visibility_changed() -> void:
+	AudioManager.set_silenced(AUDIO_SILENCE_REASON, visible)
 
 func open_review(problems: Array = []) -> void:
 	if problems.is_empty():

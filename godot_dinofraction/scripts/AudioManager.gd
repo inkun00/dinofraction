@@ -13,6 +13,9 @@ var sfx_streams: Dictionary = {}
 var active_bgm_player: int = 0
 var current_stage: int = -1
 var sfx_cursor: int = 0
+var silence_reasons: Dictionary = {}
+var audio_silenced: bool = false
+var silence_release_version: int = 0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -62,6 +65,7 @@ func play_stage_music(stage_idx: int) -> void:
 	new_player.stream = bgm_streams[stage_idx]
 	new_player.volume_db = -40.0
 	new_player.play()
+	new_player.stream_paused = audio_silenced
 	current_stage = stage_idx
 
 	var tween = create_tween()
@@ -72,12 +76,42 @@ func play_stage_music(stage_idx: int) -> void:
 		tween.tween_callback(old_player.stop)
 
 func play_sfx(effect_name: String) -> void:
+	if audio_silenced:
+		return
 	if not sfx_streams.has(effect_name):
 		return
 	var player = _next_sfx_player()
 	player.stream = sfx_streams[effect_name]
 	player.pitch_scale = randf_range(0.985, 1.015) if effect_name != "game_over" else 1.0
 	player.play()
+
+func set_silenced(reason: String, silenced: bool) -> void:
+	if silenced:
+		silence_reasons[reason] = true
+	else:
+		silence_reasons.erase(reason)
+
+	silence_release_version += 1
+	if not silence_reasons.is_empty():
+		_apply_silence()
+	elif audio_silenced:
+		# Keep the button that closes the review screen silent as well. Global
+		# button callbacks run later in the same pressed-signal dispatch.
+		call_deferred("_release_silence", silence_release_version)
+
+func _apply_silence() -> void:
+	audio_silenced = true
+	for player in bgm_players:
+		player.stream_paused = true
+	for player in sfx_players:
+		player.stop()
+
+func _release_silence(version: int) -> void:
+	if version != silence_release_version or not silence_reasons.is_empty():
+		return
+	audio_silenced = false
+	for player in bgm_players:
+		player.stream_paused = false
 
 func _next_sfx_player() -> AudioStreamPlayer:
 	for player in sfx_players:
