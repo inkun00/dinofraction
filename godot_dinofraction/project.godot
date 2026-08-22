@@ -27,6 +27,7 @@ FirebaseService="*res://scripts/FirebaseService.gd"
 GameState="*res://scripts/GameState.gd"
 GroundTracker="*res://scripts/GroundTracker.gd"
 UserProfile="*res://scripts/UserProfile.gd"
+AudioManager="*res://scripts/AudioManager.gd"
 
 [display]
 

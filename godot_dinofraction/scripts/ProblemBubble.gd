@@ -107,6 +107,7 @@ func _on_choice_body_entered(body: Node2D, choice_area: Area2D) -> void:
 	var is_correct = choice_area.get_meta("is_correct", false)
 	
 	if is_correct:
+		AudioManager.play_sfx("correct")
 		sparkle_particles.global_position = choice_area.global_position
 		sparkle_particles.emitting = true
 		
@@ -134,6 +135,7 @@ func _on_choice_body_entered(body: Node2D, choice_area: Area2D) -> void:
 			queue_free()
 		)
 	else:
+		AudioManager.play_sfx("wrong")
 		var tween = create_tween()
 		tween.tween_property(choice_area, "position:x", choice_area.position.x + 12, 0.04)
 		tween.tween_property(choice_area, "position:x", choice_area.position.x - 12, 0.04)

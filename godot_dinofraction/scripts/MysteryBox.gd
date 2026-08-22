@@ -37,6 +37,7 @@ func _on_body_entered(body: Node2D) -> void:
 		return
 		
 	is_collected = true
+	AudioManager.play_sfx("mystery")
 	var buff_res = GameState.apply_random_mystery_buff()
 	
 	# Particle explosion

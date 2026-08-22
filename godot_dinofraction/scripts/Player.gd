@@ -190,6 +190,7 @@ func _physics_process(delta: float) -> void:
 				
 			y_velocity = jump_power
 			jump_y = position.y
+			AudioManager.play_sfx("jump")
 			play_jump_effect()
 
 	update_animation(delta)
@@ -204,6 +205,7 @@ func start_attack() -> void:
 	sprite.texture = cfg.get("attack", cfg["run"])
 	sprite.hframes = cfg.get("attack_frames", 6)
 	sprite.frame = 0
+	AudioManager.play_sfx("attack")
 	play_attack_effect()
 
 func play_attack_effect() -> void:

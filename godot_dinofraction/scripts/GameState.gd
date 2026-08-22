@@ -12,6 +12,7 @@ signal screen_shake_requested(intensity: float, duration: float)
 signal dino_unlocked(dino_id: String)
 @warning_ignore("unused_signal")
 signal biome_changed(biome_idx: int)
+signal game_started()
 signal game_over()
 
 enum Evolution {
@@ -155,6 +156,7 @@ func start_new_game() -> void:
 	time_changed.emit(int(time_left))
 	evolution_changed.emit(evolution_name)
 	combo_changed.emit(combo)
+	game_started.emit()
 
 func add_score(amount: int) -> void:
 	if not is_game_running:
