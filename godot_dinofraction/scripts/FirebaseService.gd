@@ -31,6 +31,11 @@ func _create_http_request() -> HTTPRequest:
 	add_child(http)
 	return http
 
+func _get_web_leaderboard_api_url() -> String:
+	if OS.has_feature("web"):
+		return str(JavaScriptBridge.eval("window.location.origin")) + "/api/leaderboard"
+	return ""
+
 func _ready() -> void:
 	load_cached_auth()
 	if refresh_token != "":
@@ -183,9 +188,11 @@ func fetch_leaderboard(tab_type: String, callback: Callable) -> void:
 		}
 	}
 	
-	# Leaderboard reads are public in Firestore rules. Keeping this request
-	# unauthenticated avoids an unnecessary CORS preflight for Authorization.
 	var headers = ["Content-Type: application/json"]
+	var request_url = FIRESTORE_QUERY_URL
+	if OS.has_feature("web"):
+		request_url = _get_web_leaderboard_api_url()
+		query_body = {"action": "query", "tabType": tab_type}
 	
 	http.request_completed.connect(func(_result: int, response_code: int, _headers: PackedStringArray, response_body: PackedByteArray):
 		http.queue_free()
@@ -206,7 +213,7 @@ func fetch_leaderboard(tab_type: String, callback: Callable) -> void:
 	)
 	
 	var json_str = JSON.stringify(query_body)
-	var err = http.request(FIRESTORE_QUERY_URL, headers, HTTPClient.METHOD_POST, json_str)
+	var err = http.request(request_url, headers, HTTPClient.METHOD_POST, json_str)
 	if err != OK:
 		http.queue_free()
 		callback.call(false, [])
@@ -321,6 +328,19 @@ func sync_user_profile(nickname: String, school: String, score: int, total_xp: i
 		"Content-Type: application/json",
 		"Authorization: Bearer "+ id_token
 	]
+	var request_url = doc_url
+	var request_method = HTTPClient.METHOD_PATCH
+	if OS.has_feature("web"):
+		request_url = _get_web_leaderboard_api_url()
+		request_method = HTTPClient.METHOD_POST
+		doc_body = {
+			"action": "sync",
+			"userId": user_id,
+			"nickname": safe_nickname,
+			"school": safe_school,
+			"score": score,
+			"totalXp": total_xp
+		}
 	
 	http.request_completed.connect(func(_result: int, response_code: int, _headers: PackedStringArray, _response_body: PackedByteArray):
 		http.queue_free()
@@ -337,7 +357,7 @@ func sync_user_profile(nickname: String, school: String, score: int, total_xp: i
 				callback.call(false)
 	)
 	
-	var err = http.request(doc_url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(doc_body))
+	var err = http.request(request_url, headers, request_method, JSON.stringify(doc_body))
 	if err != OK:
 		http.queue_free()
 		if callback.is_valid():
