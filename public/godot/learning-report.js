@@ -311,10 +311,10 @@
     const overall = total ? Math.round((Number(payload.correctCount || 0) / total) * 100) : 0;
     const dino = payload.dinosaur || {};
     const imageUrl = safeImageUrl(dino.imageDataUrl || dino.imageUrl);
-    const isDashboard = payload.reportScope === "dashboard";
-    const scoreLabel = isDashboard ? "최고 점수" : "최종 점수";
-    const scopeLabel = isDashboard ? "학습 대시보드 누적 기준" : "이번 게임 기준";
-    const challengeLabel = isDashboard
+    const isCumulative = payload.reportScope === "dashboard" || payload.reportScope === "cumulative";
+    const scoreLabel = isCumulative ? "최고 점수" : "최종 점수";
+    const scopeLabel = isCumulative ? "전체 플레이 누적 기준" : "이번 게임 기준";
+    const challengeLabel = isCumulative
       ? `누적 ${Number(payload.totalGames || 0).toLocaleString("ko-KR")}회 · ${total}문항 도전`
       : `${total}문항 도전`;
     const statCards = typeStats.map((stat) => {

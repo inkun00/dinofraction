@@ -232,20 +232,21 @@ func _open_learning_report(payload: Dictionary, open_upload_after_print: bool) -
 
 func _build_learning_report_payload() -> Dictionary:
 	var highest_dino_id = _get_highest_grade_dino_id()
+	var certificate_score = UserProfile.high_score if UserProfile else GameState.score
 	return {
 		"studentName": UserProfile.username if UserProfile else "용감한 공룡",
 		"school": UserProfile.school if UserProfile else "",
-		"score": GameState.score,
-		"title": _get_score_title(GameState.score),
-		"correctCount": GameState.correct_count,
-		"wrongCount": GameState.wrong_count,
-		"correctByType": GameState.correct_by_type.duplicate(true),
-		"wrongByType": GameState.wrong_by_type.duplicate(true),
+		"score": certificate_score,
+		"title": _get_score_title(certificate_score),
+		"correctCount": UserProfile.total_correct if UserProfile else GameState.correct_count,
+		"wrongCount": UserProfile.total_wrong if UserProfile else GameState.wrong_count,
+		"correctByType": UserProfile.correct_by_type.duplicate(true) if UserProfile else GameState.correct_by_type.duplicate(true),
+		"wrongByType": UserProfile.wrong_by_type.duplicate(true) if UserProfile else GameState.wrong_by_type.duplicate(true),
 		"worksheetCorrectByType": UserProfile.correct_by_type.duplicate(true) if UserProfile else GameState.correct_by_type.duplicate(true),
 		"worksheetWrongByType": UserProfile.wrong_by_type.duplicate(true) if UserProfile else GameState.wrong_by_type.duplicate(true),
 		"worksheetTotalGames": UserProfile.total_games if UserProfile else 1,
-		"reportScope": "game",
-		"totalGames": 1,
+		"reportScope": "cumulative",
+		"totalGames": UserProfile.total_games if UserProfile else 1,
 		"generatedAt": Time.get_datetime_string_from_system(false, true),
 		"dinosaur": {
 			"id": highest_dino_id,
