@@ -147,9 +147,7 @@
     }
   }
 
-  function getTypeStats(payload) {
-    const correct = payload.correctByType || {};
-    const wrong = payload.wrongByType || {};
+  function getTypeStatsFromMaps(correct, wrong) {
     return PROBLEM_TYPES.map((type) => {
       const correctCount = Number(correct[type.key] || 0);
       const wrongCount = Number(wrong[type.key] || 0);
@@ -164,6 +162,17 @@
     });
   }
 
+  function getTypeStats(payload) {
+    return getTypeStatsFromMaps(payload.correctByType || {}, payload.wrongByType || {});
+  }
+
+  function getWorksheetTypeStats(payload) {
+    return getTypeStatsFromMaps(
+      payload.worksheetCorrectByType || payload.correctByType || {},
+      payload.worksheetWrongByType || payload.wrongByType || {}
+    );
+  }
+
   function getDomainStats(typeStats) {
     return DOMAINS.map((name) => {
       const children = typeStats.filter((item) => item.domain === name);
@@ -174,23 +183,25 @@
     });
   }
 
-  function allocateQuestions(domainStats, totalQuestions) {
-    const hasErrors = domainStats.some((domain) => domain.wrong > 0);
-    let eligible = domainStats.filter((domain) => hasErrors ? domain.wrong > 0 : domain.total > 0);
-    if (!eligible.length) eligible = domainStats;
+  function allocateQuestionTypes(typeStats, totalQuestions) {
+    const hasErrors = typeStats.some((stat) => stat.wrong > 0);
+    let eligible = typeStats.filter((stat) => hasErrors ? stat.wrong > 0 : stat.total > 0);
+    if (!eligible.length) eligible = typeStats;
 
-    const weighted = eligible.map((domain) => {
-      const weakness = domain.total ? 1 - domain.correct / domain.total : 0;
-      const weight = hasErrors ? domain.wrong * 4 + weakness * 2 : Math.max(1, domain.total);
-      return { domain, weight };
+    const baseCount = eligible.length <= totalQuestions ? 1 : 0;
+    const remainingQuestions = totalQuestions - baseCount * eligible.length;
+    const weighted = eligible.map((stat) => {
+      const errorRate = stat.total > 0 ? stat.wrong / stat.total : 0;
+      const weight = hasErrors ? Math.pow(errorRate, 2) : 1;
+      return { stat, errorRate, weight };
     });
     const weightSum = weighted.reduce((sum, item) => sum + item.weight, 0);
     const rows = weighted.map((item) => {
-      const exact = (item.weight / weightSum) * totalQuestions;
-      return { ...item, count: Math.floor(exact), remainder: exact - Math.floor(exact) };
+      const exact = weightSum > 0 ? (item.weight / weightSum) * remainingQuestions : 0;
+      return { ...item, count: baseCount + Math.floor(exact), remainder: exact - Math.floor(exact) };
     });
     let assigned = rows.reduce((sum, item) => sum + item.count, 0);
-    rows.sort((a, b) => b.remainder - a.remainder);
+    rows.sort((a, b) => b.remainder - a.remainder || b.errorRate - a.errorRate);
     for (let index = 0; assigned < totalQuestions; index = (index + 1) % rows.length) {
       rows[index].count += 1;
       assigned += 1;
@@ -198,39 +209,34 @@
     return rows.filter((item) => item.count > 0);
   }
 
-  function weightedType(rng, domain, hasErrors) {
-    const candidates = domain.children;
-    const weights = candidates.map((item) => {
-      if (hasErrors && domain.wrong > 0) return item.wrong > 0 ? item.wrong : 0;
-      return item.total > 0 ? item.total : 1;
-    });
-    const total = weights.reduce((sum, value) => sum + value, 0);
-    let cursor = rng() * total;
-    for (let index = 0; index < candidates.length; index += 1) {
-      cursor -= weights[index];
-      if (cursor <= 0) return candidates[index].key;
-    }
-    return candidates[candidates.length - 1].key;
+  function aggregateDomainAllocation(typeStats, typeAllocation) {
+    return getDomainStats(typeStats).map((domain) => ({
+      domain,
+      count: typeAllocation
+        .filter((item) => item.stat.domain === domain.name)
+        .reduce((sum, item) => sum + item.count, 0)
+    })).filter((item) => item.count > 0);
   }
 
   function buildWorksheet(payload, typeStats) {
-    const domainStats = getDomainStats(typeStats);
-    const allocation = allocateQuestions(domainStats, 20);
-    const hasErrors = domainStats.some((domain) => domain.wrong > 0);
+    const typeAllocation = allocateQuestionTypes(typeStats, 20);
+    const allocation = aggregateDomainAllocation(typeStats, typeAllocation);
+    const hasErrors = typeStats.some((stat) => stat.wrong > 0);
     const seedSource = JSON.stringify([
       payload.studentName,
       payload.score,
-      payload.correctByType,
-      payload.wrongByType,
+      payload.worksheetCorrectByType || payload.correctByType,
+      payload.worksheetWrongByType || payload.wrongByType,
+      payload.worksheetTotalGames || payload.totalGames,
       payload.generatedAt
     ]);
     const rng = seededRandom(hashSeed(seedSource));
     const problems = [];
     const signatures = new Set();
 
-    allocation.forEach(({ domain, count }) => {
+    typeAllocation.forEach(({ stat, count }) => {
       for (let i = 0; i < count; i += 1) {
-        const type = weightedType(rng, domain, hasErrors);
+        const type = stat.key;
         let generated = generateProblem(type, rng);
         let signature = JSON.stringify(generated.tokens);
         let retries = 0;
@@ -240,7 +246,7 @@
           retries += 1;
         }
         signatures.add(signature);
-        problems.push({ type, domain: domain.name, tokens: generated.tokens, answer: generated.answer });
+        problems.push({ type, domain: stat.domain, tokens: generated.tokens, answer: generated.answer });
       }
     });
 
@@ -248,7 +254,7 @@
       const j = Math.floor(rng() * (i + 1));
       [problems[i], problems[j]] = [problems[j], problems[i]];
     }
-    return { problems, allocation, hasErrors };
+    return { problems, allocation, typeAllocation, hasErrors };
   }
 
   function renderFraction(token) {
@@ -354,9 +360,11 @@
   }
 
   function renderWorksheet(payload, worksheet) {
-    const focus = worksheet.allocation
-      .sort((a, b) => b.count - a.count)
-      .map((item) => `<span><b>${escapeHtml(item.domain.name)}</b> ${item.count}문항</span>`)
+    const focus = worksheet.typeAllocation
+      .slice()
+      .sort((a, b) => b.errorRate - a.errorRate || b.count - a.count)
+      .slice(0, 5)
+      .map((item) => `<span><b>${escapeHtml(item.stat.label)}</b> 오답률 ${Math.round(item.errorRate * 100)}% · ${item.count}문항</span>`)
       .join("");
     const problems = worksheet.problems.map((problem, index) => `<div class="question">
       <span class="question-number">${index + 1}.</span>
@@ -365,10 +373,11 @@
     const answerKey = worksheet.problems.map((problem, index) =>
       `<span class="answer-item"><b>${index + 1}.</b>${renderAnswer(problem.answer)}</span>`
     ).join("");
-    const isDashboard = payload.reportScope === "dashboard";
+    const cumulativeGames = Number(payload.worksheetTotalGames ?? payload.totalGames ?? 0);
+    const historyLabel = cumulativeGames > 0 ? `누적 ${cumulativeGames.toLocaleString("ko-KR")}회 플레이 기록에서` : "그동안 누적된 플레이 기록에서";
     const guide = worksheet.hasErrors
-      ? `${isDashboard ? "학습 대시보드에서" : "이번 게임에서"} 오답이 많았던 영역일수록 더 많이 배정했어요. 풀이 과정을 쓰며 천천히 해결해 보세요.`
-      : `${isDashboard ? "누적 학습 기록을" : "이번 게임을"} 바탕으로 도전한 유형을 중심으로 골고루 복습해 보세요.`;
+      ? `${historyLabel} 오답률이 높은 문제 유형일수록 유사문제를 더 많이 배정했어요. 풀이 과정을 쓰며 천천히 해결해 보세요.`
+      : `${historyLabel} 도전한 유형을 중심으로 20문항을 골고루 구성했어요.`;
 
     return `<section class="page worksheet-page">
       <header class="worksheet-header">
@@ -385,7 +394,8 @@
   function renderHtml(input, options) {
     const payload = typeof input === "string" ? JSON.parse(input) : (input || {});
     const typeStats = getTypeStats(payload);
-    const worksheet = buildWorksheet(payload, typeStats);
+    const worksheetTypeStats = getWorksheetTypeStats(payload);
+    const worksheet = buildWorksheet(payload, worksheetTypeStats);
     const captureOnly = Boolean(options?.captureOnly);
     const uploadUrl = options?.uploadUrl ? safeUploadUrl(options.uploadUrl) : "";
     const title = `${payload.studentName || "공룡 탐험가"}_분수탐험_인증서_학습지`;
