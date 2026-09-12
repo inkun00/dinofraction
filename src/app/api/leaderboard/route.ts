@@ -2,6 +2,7 @@ import {NextRequest, NextResponse} from 'next/server';
 
 const PADLET_BASE_URL = 'https://api.padlet.dev/v1';
 const SEASON_ID = 'padlet_v2_20260912';
+const LEGACY_SEASON_ID = 'padlet_v1_20260822';
 const RECORD_MARKER = 'DINO_FRACTION_LEADERBOARD_V1:';
 
 export const runtime = 'nodejs';
@@ -66,9 +67,13 @@ function normalizeBoardId(rawValue: string): string {
 function getPadletConfig() {
   const apiKey = process.env.PADLET_API_KEY?.trim() ?? '';
   const boardId = normalizeBoardId(process.env.PADLET_BOARD_ID ?? '');
+  const legacyBoardIds = (process.env.PADLET_LEGACY_BOARD_IDS ?? '')
+    .split(',')
+    .map(normalizeBoardId)
+    .filter((id, index, ids) => id !== '' && id !== boardId && ids.indexOf(id) === index);
   const sectionId = process.env.PADLET_SECTION_ID?.trim() ?? '';
   if (!apiKey || !boardId) return null;
-  return {apiKey, boardId, sectionId};
+  return {apiKey, boardId, legacyBoardIds, sectionId};
 }
 
 async function padletFetch(path: string, init: RequestInit = {}) {
@@ -102,7 +107,10 @@ function decodeHtmlText(html: string): string {
     .trim();
 }
 
-function parseSnapshot(resource: PadletResource): LeaderboardSnapshot | null {
+function parseSnapshot(
+  resource: PadletResource,
+  expectedSeasonId: string,
+): LeaderboardSnapshot | null {
   if (resource.type !== 'post') return null;
   const bodyHtml = resource.attributes?.content?.bodyHtml;
   if (!bodyHtml) return null;
@@ -119,7 +127,7 @@ function parseSnapshot(resource: PadletResource): LeaderboardSnapshot | null {
       Buffer.from(encoded, 'base64url').toString('utf8'),
     ) as Partial<LeaderboardSnapshot>;
     if (
-      raw.seasonId !== SEASON_ID ||
+      raw.seasonId !== expectedSeasonId ||
       typeof raw.userId !== 'string' ||
       !/^[A-Za-z0-9_-]{8,128}$/.test(raw.userId)
     ) {
@@ -138,7 +146,7 @@ function parseSnapshot(resource: PadletResource): LeaderboardSnapshot | null {
       score: safeNonNegativeInteger(raw.score),
       totalXp: safeNonNegativeInteger(raw.totalXp),
       seasonGames: safeNonNegativeInteger(raw.seasonGames, 100_000),
-      seasonId: SEASON_ID,
+      seasonId: expectedSeasonId,
       eventId: typeof raw.eventId === 'string' ? raw.eventId : '',
       recordedAt:
         typeof raw.recordedAt === 'string'
@@ -150,33 +158,68 @@ function parseSnapshot(resource: PadletResource): LeaderboardSnapshot | null {
   }
 }
 
-async function getPadletSnapshots(): Promise<LeaderboardSnapshot[]> {
+async function getBoardSnapshots(
+  boardId: string,
+  expectedSeasonId: string,
+): Promise<LeaderboardSnapshot[]> {
   const config = getPadletConfig();
   if (!config) throw new Error('PADLET_NOT_CONFIGURED');
   const upstream = await padletFetch(
-    `/boards/${encodeURIComponent(config.boardId)}?include=posts`,
+    `/boards/${encodeURIComponent(boardId)}?include=posts`,
   );
   if (!upstream.ok) throw new Error(`PADLET_READ_${upstream.status}`);
   const payload = (await upstream.json()) as {included?: PadletResource[]};
   return (payload.included ?? [])
-    .map(parseSnapshot)
+    .map((resource) => parseSnapshot(resource, expectedSeasonId))
     .filter((snapshot): snapshot is LeaderboardSnapshot => snapshot !== null);
 }
 
+async function getAllPadletSnapshots(): Promise<LeaderboardSnapshot[]> {
+  const config = getPadletConfig();
+  if (!config) throw new Error('PADLET_NOT_CONFIGURED');
+  const boardReads = [
+    getBoardSnapshots(config.boardId, SEASON_ID),
+    ...config.legacyBoardIds.map((boardId) =>
+      getBoardSnapshots(boardId, LEGACY_SEASON_ID),
+    ),
+  ];
+  return (await Promise.all(boardReads)).flat();
+}
+
 function latestPlayerSnapshots(snapshots: LeaderboardSnapshot[]) {
-  const players = new Map<string, LeaderboardSnapshot>();
+  const players = new Map<string, Map<string, LeaderboardSnapshot>>();
   for (const snapshot of snapshots) {
-    const current = players.get(snapshot.userId);
+    const seasons = players.get(snapshot.userId) ?? new Map<string, LeaderboardSnapshot>();
+    const current = seasons.get(snapshot.seasonId);
     if (
       !current ||
       snapshot.seasonGames > current.seasonGames ||
       (snapshot.seasonGames === current.seasonGames &&
         snapshot.recordedAt > current.recordedAt)
     ) {
-      players.set(snapshot.userId, snapshot);
+      seasons.set(snapshot.seasonId, snapshot);
     }
+    players.set(snapshot.userId, seasons);
   }
-  return [...players.values()];
+
+  return [...players.values()].map((seasons) => {
+    const legacy = seasons.get(LEGACY_SEASON_ID);
+    const current = seasons.get(SEASON_ID);
+    const latest = current ?? legacy!;
+    const score = Math.max(legacy?.score ?? 0, current?.score ?? 0);
+    // Each season's XP includes its own high-score bonus. Count that bonus
+    // only once, then add the correct-answer XP earned in both periods.
+    const answerXp = [legacy, current].reduce(
+      (sum, snapshot) =>
+        sum + Math.max(0, (snapshot?.totalXp ?? 0) - (snapshot?.score ?? 0) * 12),
+      0,
+    );
+    return {
+      ...latest,
+      score,
+      totalXp: safeNonNegativeInteger(score * 12 + answerXp),
+    };
+  });
 }
 
 async function queryLeaderboard(tabTypeValue: unknown, viewerIdValue: unknown) {
@@ -184,7 +227,7 @@ async function queryLeaderboard(tabTypeValue: unknown, viewerIdValue: unknown) {
   if (!tabType) return jsonResponse({error: 'Invalid leaderboard tab.'}, 400);
   const viewerId =
     typeof viewerIdValue === 'string' ? viewerIdValue.slice(0, 128) : '';
-  const players = latestPlayerSnapshots(await getPadletSnapshots());
+  const players = latestPlayerSnapshots(await getAllPadletSnapshots());
 
   if (tabType === 'school') {
     const schools = new Map<string, {xp: number; members: number}>();
@@ -208,14 +251,13 @@ async function queryLeaderboard(tabTypeValue: unknown, viewerIdValue: unknown) {
   }
 
   const metric = tabType === 'score' ? 'score' : 'totalXp';
-  const result = players
+  const ranked = players
     .sort(
       (a, b) =>
         b[metric] - a[metric] ||
         b.score - a.score ||
         a.recordedAt.localeCompare(b.recordedAt),
     )
-    .slice(0, 10)
     .map((player, index) => ({
       rank: index + 1,
       name: player.nickname,
@@ -224,6 +266,9 @@ async function queryLeaderboard(tabTypeValue: unknown, viewerIdValue: unknown) {
       dino: '공룡 러너',
       is_me: viewerId !== '' && player.userId === viewerId,
     }));
+  const result = ranked.slice(0, 10);
+  const viewer = ranked.find((entry) => entry.is_me && entry.rank > 10);
+  if (viewer) result.push(viewer);
   return jsonResponse(result);
 }
 
@@ -249,7 +294,9 @@ async function syncLeaderboard(body: Record<string, unknown>) {
   }
 
   const eventId = `${SEASON_ID}:${userId}:${seasonGames}`;
-  const snapshots = await getPadletSnapshots();
+  const config = getPadletConfig();
+  if (!config) throw new Error('PADLET_NOT_CONFIGURED');
+  const snapshots = await getBoardSnapshots(config.boardId, SEASON_ID);
   if (snapshots.some((snapshot) => snapshot.eventId === eventId)) {
     return jsonResponse({ok: true, duplicate: true});
   }
@@ -266,8 +313,6 @@ async function syncLeaderboard(body: Record<string, unknown>) {
     recordedAt: new Date().toISOString(),
   };
   const encoded = Buffer.from(JSON.stringify(snapshot), 'utf8').toString('base64url');
-  const config = getPadletConfig();
-  if (!config) throw new Error('PADLET_NOT_CONFIGURED');
   const relationships = config.sectionId
     ? {section: {data: {id: config.sectionId}}}
     : undefined;

@@ -107,14 +107,13 @@ func _populate_ui(records: Array) -> void:
 		var my_current_rank = 0
 		for idx in range(display_list.size()):
 			if display_list[idx].get("is_me", false):
-				my_current_rank = idx + 1
+				my_current_rank = int(display_list[idx].get("rank", idx + 1))
+				my_score = int(display_list[idx].get("val", my_score))
 				break
-		if my_score == 0:
+		if my_current_rank == 0:
 			my_rank_label.text = "내 기록: %s (%s) | 점수: %d Pts | 랭킹 등록 대기중"% [disp_my_name, disp_my_school, my_score]
-		elif my_current_rank > 0:
-			my_rank_label.text = "내 기록: %s (%s) | 점수: %d Pts | 현재 %d위!"% [disp_my_name, disp_my_school, my_score, my_current_rank]
 		else:
-			my_rank_label.text = "내 기록: %s (%s) | 점수: %d Pts | 온라인 등록 완료 · TOP 10 도전중"% [disp_my_name, disp_my_school, my_score]
+			my_rank_label.text = "내 기록: %s (%s) | 점수: %d Pts | 현재 %d위!"% [disp_my_name, disp_my_school, my_score, my_current_rank]
 
 		if top10.is_empty():
 			_create_empty_notice("아직 등록된 랭킹 기록이 없습니다.\n게임을 플레이하여 첫 번째 명예의 전당 주인공이 되어보세요! ")
@@ -135,14 +134,13 @@ func _populate_ui(records: Array) -> void:
 		var my_current_rank = 0
 		for idx in range(display_list.size()):
 			if display_list[idx].get("is_me", false):
-				my_current_rank = idx + 1
+				my_current_rank = int(display_list[idx].get("rank", idx + 1))
+				my_xp = int(display_list[idx].get("val", my_xp))
 				break
-		if my_xp == 0:
+		if my_current_rank == 0:
 			my_rank_label.text = "내 기록: %s (%s) | 누적 XP: %d XP | 랭킹 등록 대기중"% [disp_my_name, disp_my_school, my_xp]
-		elif my_current_rank > 0:
-			my_rank_label.text = "내 기록: %s (%s) | 누적 XP: %d XP | 현재 %d위"% [disp_my_name, disp_my_school, my_xp, my_current_rank]
 		else:
-			my_rank_label.text = "내 기록: %s (%s) | 누적 XP: %d XP | 온라인 등록 완료 · TOP 10 도전중"% [disp_my_name, disp_my_school, my_xp]
+			my_rank_label.text = "내 기록: %s (%s) | 누적 XP: %d XP | 현재 %d위"% [disp_my_name, disp_my_school, my_xp, my_current_rank]
 
 		if top10.is_empty():
 			_create_empty_notice("아직 등록된 경험치 랭킹이 없습니다.\n문제를 풀고 경험치를 모아보세요! ")
