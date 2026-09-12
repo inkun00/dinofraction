@@ -1,8 +1,14 @@
 import {NextRequest, NextResponse} from 'next/server';
+import legacyArchive from '@/lib/leaderboard-legacy-archive.json';
+import {
+  hashUserId,
+  latestPlayerSnapshots,
+  LEGACY_SEASON_ID,
+  SEASON_ID,
+  type PlayerRecord,
+} from '@/lib/leaderboard-merge';
 
 const PADLET_BASE_URL = 'https://api.padlet.dev/v1';
-const SEASON_ID = 'padlet_v2_20260912';
-const LEGACY_SEASON_ID = 'padlet_v1_20260822';
 const RECORD_MARKER = 'DINO_FRACTION_LEADERBOARD_V1:';
 
 export const runtime = 'nodejs';
@@ -68,13 +74,9 @@ function normalizeBoardId(rawValue: string): string {
 function getPadletConfig() {
   const apiKey = process.env.PADLET_API_KEY?.trim() ?? '';
   const boardId = normalizeBoardId(process.env.PADLET_BOARD_ID ?? '');
-  const legacyBoardIds = (process.env.PADLET_LEGACY_BOARD_IDS ?? '')
-    .split(',')
-    .map(normalizeBoardId)
-    .filter((id, index, ids) => id !== '' && id !== boardId && ids.indexOf(id) === index);
   const sectionId = process.env.PADLET_SECTION_ID?.trim() ?? '';
   if (!apiKey || !boardId) return null;
-  return {apiKey, boardId, legacyBoardIds, sectionId};
+  return {apiKey, boardId, sectionId};
 }
 
 async function padletFetch(path: string, init: RequestInit = {}) {
@@ -181,75 +183,27 @@ async function getBoardSnapshots(
     .filter((snapshot): snapshot is LeaderboardSnapshot => snapshot !== null);
 }
 
-const legacyCache = new Map<
-  string,
-  {expiresAt: number; snapshots: LeaderboardSnapshot[]}
->();
-const legacyPending = new Map<string, Promise<LeaderboardSnapshot[]>>();
-
-async function getCachedLegacyBoardSnapshots(boardId: string) {
-  const cached = legacyCache.get(boardId);
-  if (cached && cached.expiresAt > Date.now()) return cached.snapshots;
-  const pending = legacyPending.get(boardId);
-  if (pending) return pending;
-
-  const fetchSnapshots = getBoardSnapshots(boardId, LEGACY_SEASON_ID);
-  legacyPending.set(boardId, fetchSnapshots);
-  try {
-    const snapshots = await fetchSnapshots;
-    legacyCache.set(boardId, {expiresAt: Date.now() + 10 * 60_000, snapshots});
-    return snapshots;
-  } finally {
-    legacyPending.delete(boardId);
-  }
-}
-
-async function getAllPadletSnapshots(): Promise<LeaderboardSnapshot[]> {
+async function getAllPlayerRecords(): Promise<PlayerRecord[]> {
   const config = getPadletConfig();
   if (!config) throw new Error('PADLET_NOT_CONFIGURED');
-  const boardReads = [
-    getBoardSnapshots(config.boardId, SEASON_ID),
-    ...config.legacyBoardIds.map((boardId) =>
-      getCachedLegacyBoardSnapshots(boardId),
-    ),
+  const current = await getBoardSnapshots(config.boardId, SEASON_ID);
+  return [
+    ...legacyArchive.players.map((player) => ({
+      ...player,
+      seasonGames: 0,
+      seasonId: LEGACY_SEASON_ID,
+    })),
+    ...current.map((snapshot) => ({
+      userIdHash: hashUserId(snapshot.userId),
+      nickname: snapshot.nickname,
+      school: snapshot.school,
+      score: snapshot.score,
+      totalXp: snapshot.totalXp,
+      seasonGames: snapshot.seasonGames,
+      seasonId: snapshot.seasonId,
+      recordedAt: snapshot.recordedAt,
+    })),
   ];
-  return (await Promise.all(boardReads)).flat();
-}
-
-function latestPlayerSnapshots(snapshots: LeaderboardSnapshot[]) {
-  const players = new Map<string, Map<string, LeaderboardSnapshot>>();
-  for (const snapshot of snapshots) {
-    const seasons = players.get(snapshot.userId) ?? new Map<string, LeaderboardSnapshot>();
-    const current = seasons.get(snapshot.seasonId);
-    if (
-      !current ||
-      snapshot.seasonGames > current.seasonGames ||
-      (snapshot.seasonGames === current.seasonGames &&
-        snapshot.recordedAt > current.recordedAt)
-    ) {
-      seasons.set(snapshot.seasonId, snapshot);
-    }
-    players.set(snapshot.userId, seasons);
-  }
-
-  return [...players.values()].map((seasons) => {
-    const legacy = seasons.get(LEGACY_SEASON_ID);
-    const current = seasons.get(SEASON_ID);
-    const latest = current ?? legacy!;
-    const score = Math.max(legacy?.score ?? 0, current?.score ?? 0);
-    // Each season's XP includes its own high-score bonus. Count that bonus
-    // only once, then add the correct-answer XP earned in both periods.
-    const answerXp = [legacy, current].reduce(
-      (sum, snapshot) =>
-        sum + Math.max(0, (snapshot?.totalXp ?? 0) - (snapshot?.score ?? 0) * 12),
-      0,
-    );
-    return {
-      ...latest,
-      score,
-      totalXp: safeNonNegativeInteger(score * 12 + answerXp),
-    };
-  });
 }
 
 async function queryLeaderboard(tabTypeValue: unknown, viewerIdValue: unknown) {
@@ -257,7 +211,7 @@ async function queryLeaderboard(tabTypeValue: unknown, viewerIdValue: unknown) {
   if (!tabType) return jsonResponse({error: 'Invalid leaderboard tab.'}, 400);
   const viewerId =
     typeof viewerIdValue === 'string' ? viewerIdValue.slice(0, 128) : '';
-  const players = latestPlayerSnapshots(await getAllPadletSnapshots());
+  const players = latestPlayerSnapshots(await getAllPlayerRecords());
 
   if (tabType === 'school') {
     const schools = new Map<string, {xp: number; members: number}>();
@@ -294,7 +248,7 @@ async function queryLeaderboard(tabTypeValue: unknown, viewerIdValue: unknown) {
       school: player.school,
       val: player[metric],
       dino: '공룡 러너',
-      is_me: viewerId !== '' && player.userId === viewerId,
+      is_me: viewerId !== '' && player.userIdHash === hashUserId(viewerId),
     }));
   const result = ranked.slice(0, 10);
   const viewer = ranked.find((entry) => entry.is_me && entry.rank > 10);
@@ -372,17 +326,6 @@ async function syncLeaderboard(body: Record<string, unknown>) {
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as Record<string, unknown>;
-    // Temporary one-time migration endpoint. Removed after the legacy snapshot
-    // has been verified and checked in as a static dataset.
-    if (body.action === 'archive_legacy') {
-      const config = getPadletConfig();
-      if (!config) throw new Error('PADLET_NOT_CONFIGURED');
-      const boards = await Promise.all(config.legacyBoardIds.map(async (boardId) => ({
-        boardId,
-        snapshots: await getBoardSnapshots(boardId, LEGACY_SEASON_ID),
-      })));
-      return jsonResponse({boards});
-    }
     if (body.action === 'query') {
       return await queryLeaderboard(body.tabType, body.userId);
     }
