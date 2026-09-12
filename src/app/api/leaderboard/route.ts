@@ -372,6 +372,17 @@ async function syncLeaderboard(body: Record<string, unknown>) {
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as Record<string, unknown>;
+    // Temporary one-time migration endpoint. Removed after the legacy snapshot
+    // has been verified and checked in as a static dataset.
+    if (body.action === 'archive_legacy') {
+      const config = getPadletConfig();
+      if (!config) throw new Error('PADLET_NOT_CONFIGURED');
+      const boards = await Promise.all(config.legacyBoardIds.map(async (boardId) => ({
+        boardId,
+        snapshots: await getBoardSnapshots(boardId, LEGACY_SEASON_ID),
+      })));
+      return jsonResponse({boards});
+    }
     if (body.action === 'query') {
       return await queryLeaderboard(body.tabType, body.userId);
     }
