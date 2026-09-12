@@ -7,6 +7,7 @@ const RECORD_MARKER = 'DINO_FRACTION_LEADERBOARD_V1:';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
 
 type TabType = 'score' | 'xp' | 'school';
 
@@ -88,7 +89,7 @@ async function padletFetch(path: string, init: RequestInit = {}) {
       ...init.headers,
     },
     cache: 'no-store',
-    signal: AbortSignal.timeout(12_000),
+    signal: AbortSignal.timeout(40_000),
   });
 }
 
@@ -164,9 +165,15 @@ async function getBoardSnapshots(
 ): Promise<LeaderboardSnapshot[]> {
   const config = getPadletConfig();
   if (!config) throw new Error('PADLET_NOT_CONFIGURED');
-  const upstream = await padletFetch(
-    `/boards/${encodeURIComponent(boardId)}?include=posts`,
-  );
+  let upstream: Response;
+  try {
+    upstream = await padletFetch(
+      `/boards/${encodeURIComponent(boardId)}?include=posts`,
+    );
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : 'UNKNOWN';
+    throw new Error(`PADLET_READ_${boardId}_${reason}`);
+  }
   if (!upstream.ok) throw new Error(`PADLET_READ_${upstream.status}`);
   const payload = (await upstream.json()) as {included?: PadletResource[]};
   return (payload.included ?? [])
