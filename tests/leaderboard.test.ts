@@ -95,6 +95,9 @@ test('reads two earlier boards and the new board, merging each player once', asy
     assert.equal((await school.json())[0].val, 3150);
     assert.deepEqual(new Set(calls.map((url) => url.match(/\/boards\/([^?]+)/)?.[1])),
       new Set([currentBoard, ...legacyBoards]));
+    assert.equal(calls.filter((url) => url.includes(`/boards/${currentBoard}`)).length, 3);
+    assert.equal(calls.filter((url) => url.includes(`/boards/${legacyBoards[0]}`)).length, 1);
+    assert.equal(calls.filter((url) => url.includes(`/boards/${legacyBoards[1]}`)).length, 1);
   } finally {
     globalThis.fetch = originalFetch;
   }

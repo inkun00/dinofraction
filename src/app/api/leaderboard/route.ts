@@ -181,13 +181,36 @@ async function getBoardSnapshots(
     .filter((snapshot): snapshot is LeaderboardSnapshot => snapshot !== null);
 }
 
+const legacyCache = new Map<
+  string,
+  {expiresAt: number; snapshots: LeaderboardSnapshot[]}
+>();
+const legacyPending = new Map<string, Promise<LeaderboardSnapshot[]>>();
+
+async function getCachedLegacyBoardSnapshots(boardId: string) {
+  const cached = legacyCache.get(boardId);
+  if (cached && cached.expiresAt > Date.now()) return cached.snapshots;
+  const pending = legacyPending.get(boardId);
+  if (pending) return pending;
+
+  const fetchSnapshots = getBoardSnapshots(boardId, LEGACY_SEASON_ID);
+  legacyPending.set(boardId, fetchSnapshots);
+  try {
+    const snapshots = await fetchSnapshots;
+    legacyCache.set(boardId, {expiresAt: Date.now() + 10 * 60_000, snapshots});
+    return snapshots;
+  } finally {
+    legacyPending.delete(boardId);
+  }
+}
+
 async function getAllPadletSnapshots(): Promise<LeaderboardSnapshot[]> {
   const config = getPadletConfig();
   if (!config) throw new Error('PADLET_NOT_CONFIGURED');
   const boardReads = [
     getBoardSnapshots(config.boardId, SEASON_ID),
     ...config.legacyBoardIds.map((boardId) =>
-      getBoardSnapshots(boardId, LEGACY_SEASON_ID),
+      getCachedLegacyBoardSnapshots(boardId),
     ),
   ];
   return (await Promise.all(boardReads)).flat();

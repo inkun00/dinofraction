@@ -21,7 +21,9 @@ completed game is written only to the current board with
 `DINO_FRACTION_LEADERBOARD_V1` marker and the expected board-specific season ID
 are used for rankings, so unrelated Padlet posts are ignored. A player's latest
 snapshot from each season is merged: the highest score is kept, and correct-answer
-XP from both seasons is added without double-counting the high-score bonus.
+XP from both seasons is added without double-counting the high-score bonus. The
+earlier boards are cached per server instance for ten minutes because the oldest
+board is large; the current board is read live on every ranking request.
 
 The write board is `https://padlet.com/inkun02/3-s023i9sy71hjijvegv2q`
 (`PADLET_BOARD_ID=s023i9sy71hjijvegv2q`). The two read-only earlier boards are
