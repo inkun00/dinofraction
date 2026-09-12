@@ -17,3 +17,9 @@ The board is read with `GET /v1/boards/{board_id}?include=posts`. Each completed
 game is written with `POST /v1/boards/{board_id}/posts`. Only posts containing
 the `DINO_FRACTION_LEADERBOARD_V1` marker and the active season ID are used for
 rankings, so unrelated Padlet posts are ignored.
+
+The active board is `https://padlet.com/inkun02/3-s023i9sy71hjijvegv2q`
+(`PADLET_BOARD_ID=s023i9sy71hjijvegv2q`). The active season is
+`padlet_v2_20260912`. The client's season data resets when it first loads this
+version; lifetime learning statistics are preserved. Older game builds cannot
+write their previous-season totals to this board.

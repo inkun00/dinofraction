@@ -1,7 +1,7 @@
 import {NextRequest, NextResponse} from 'next/server';
 
 const PADLET_BASE_URL = 'https://api.padlet.dev/v1';
-const SEASON_ID = 'padlet_v1_20260822';
+const SEASON_ID = 'padlet_v2_20260912';
 const RECORD_MARKER = 'DINO_FRACTION_LEADERBOARD_V1:';
 
 export const runtime = 'nodejs';
@@ -228,6 +228,9 @@ async function queryLeaderboard(tabTypeValue: unknown, viewerIdValue: unknown) {
 }
 
 async function syncLeaderboard(body: Record<string, unknown>) {
+  if (body.seasonId !== SEASON_ID) {
+    return jsonResponse({error: 'Please reload the game to join the current leaderboard.'}, 409);
+  }
   const userId = typeof body.userId === 'string' ? body.userId.trim() : '';
   if (!/^[A-Za-z0-9_-]{8,128}$/.test(userId)) {
     return jsonResponse({error: 'Invalid player identifier.'}, 400);

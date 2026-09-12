@@ -1,7 +1,7 @@
 extends Node
 
 const SAVE_PATH: String = "user://user_profile.json"
-const LEADERBOARD_SEASON_ID: String = "padlet_v1_20260822"
+const LEADERBOARD_SEASON_ID: String = "padlet_v2_20260912"
 
 var username: String = "용감한 공룡"
 var school: String = "공룡초등학교"
@@ -106,6 +106,7 @@ func sync_to_cloud(callback: Callable = Callable()) -> void:
 		season_high_score,
 		get_leaderboard_season_xp(),
 		games_to_sync,
+		LEADERBOARD_SEASON_ID,
 		func(success: bool):
 			if success and games_to_sync > leaderboard_last_synced_games:
 				leaderboard_last_synced_games = games_to_sync

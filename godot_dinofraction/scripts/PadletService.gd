@@ -68,6 +68,7 @@ func sync_user_profile(
 	score: int,
 	total_xp: int,
 	season_games: int,
+	season_id: String,
 	callback: Callable = Callable()
 ) -> void:
 	var safe_nickname = nickname.strip_edges().substr(0, 12)
@@ -85,7 +86,8 @@ func sync_user_profile(
 		"school": safe_school,
 		"score": max(0, score),
 		"totalXp": max(0, total_xp),
-		"seasonGames": max(0, season_games)
+		"seasonGames": max(0, season_games),
+		"seasonId": season_id
 	}
 	http.request_completed.connect(func(_result: int, response_code: int, _headers: PackedStringArray, _response_body: PackedByteArray):
 		http.queue_free()
