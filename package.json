@@ -9,7 +9,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "godot:subset-font": "python scripts/subset_game_font.py",
+    "godot:version-web": "node scripts/version_godot_web_assets.mjs"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.14.1",
